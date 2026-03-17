@@ -14,8 +14,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; direction: rtl; background: linear-gradient(135deg, #fdf8ee 0%, #f0e8d4 50%, #e8dfc8 100%); min-height: 100vh; min-height: -webkit-fill-available; }
-  html { height: -webkit-fill-available; }
+  body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; direction: rtl; background: linear-gradient(135deg, #fef9e7 0%, #f5e6c0 50%, #e8d49a 100%); min-height: 100vh; }
+  input, textarea, button, select { font-family: inherit; font-size: 16px; }
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type="number"] { -moz-appearance: textfield; }
+  textarea { resize: vertical; }
 
   @media print {
     body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -25,11 +28,6 @@
     table { page-break-inside: avoid; }
     tr { page-break-inside: avoid; }
   }
-
-  input, textarea, button, select { font-family: inherit; font-size: 16px; }
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
-  input[type="number"] { -moz-appearance: textfield; }
-  textarea { resize: vertical; }
 
   @media (max-width: 700px) {
     .two-col { grid-template-columns: 1fr !important; }
@@ -43,10 +41,11 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
 
-<script type="text/babel">
+<script>
 const { useState } = React;
+const html = htm.bind(React.createElement);
 
 const PHONES = { uri: "972524767233", batchen: "972542031448" };
 const KASHRUT = "מהדרין רבנות קרני שומרון";
@@ -89,15 +88,15 @@ const CATEGORIES = [...new Set(PRODUCTS.map(p => p.cat))];
 const fmt = n => "\u20AA" + n.toLocaleString("he-IL");
 
 const C = {
-  pri: "#1b4965", priL: "#2d6a8f", acc: "#5fa8d3",
-  cream: "#fdf8ee", creamD: "#e8dfc8", creamB: "#d4c9ad",
-  txt: "#1b3a4b", txtL: "#6a8fa0", green: "#25D366",
+  pri: "#0d3b6e", priL: "#1565c0", acc: "#1e88e5",
+  cream: "#fef9e7", creamD: "#f5e6c0", creamB: "#c9a96e",
+  txt: "#0d2b40", txtL: "#5a7fa0", green: "#25D366",
 };
 
 function App() {
   const [client, setClient] = useState({ name: "", phone: "", date: "", event: "", guests: "", notes: "" });
   const [items, setItems] = useState([]);
-  const [filterCat, setFilterCat] = useState("הכל");
+  const [filterCat, setFilterCat] = useState("\u05d4\u05db\u05dc");
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState("");
   const [view, setView] = useState("build");
@@ -106,187 +105,213 @@ function App() {
 
   const addItem = (p) => {
     const ex = items.find(i => i.id === p.id);
-    if (ex) setItems(items.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i));
-    else setItems([...items, { ...p, qty: 1 }]);
+    if (ex) setItems(items.map(i => i.id === p.id ? Object.assign({}, i, { qty: i.qty + 1 }) : i));
+    else setItems([...items, Object.assign({}, p, { qty: 1 })]);
   };
-  const updateQty = (id, q) => q <= 0 ? setItems(items.filter(i => i.id !== id)) : setItems(items.map(i => i.id === id ? { ...i, qty: q } : i));
+  const updateQty = (id, q) => q <= 0 ? setItems(items.filter(i => i.id !== id)) : setItems(items.map(i => i.id === id ? Object.assign({}, i, { qty: q }) : i));
   const removeItem = (id) => setItems(items.filter(i => i.id !== id));
 
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);
   const filtered = PRODUCTS.filter(p => (filterCat === "הכל" || p.cat === filterCat) && (!search || p.name.includes(search)));
 
-  const fmtDate = (v) => { if (!v) return ""; const [y,m,d] = v.split("-"); return d+"."+m+"."+y; };
+  const fmtDate = (v) => { if (!v) return ""; const parts = v.split("-"); return parts[2] + "." + parts[1] + "." + parts[0]; };
   const wordCount = (s) => s.trim() ? s.trim().split(/\s+/).length : 0;
 
   const waText = () => {
-    let t = "🏪 *הזמנה — בית קפה מאפיית השומרון*\n━━━━━━━━━━━━━━━━━━\n";
-    if (client.name)   t += "👤 " + client.name + "\n";
-    if (client.phone)  t += "📱 " + client.phone + "\n";
-    if (client.date)   t += "📅 " + fmtDate(client.date) + "\n";
-    if (client.event)  t += "🎉 " + client.event + "\n";
-    if (client.guests) t += "👥 " + client.guests + " אורחים\n";
-    t += "━━━━━━━━━━━━━━━━━━\n\n";
-    items.forEach(i => { t += "• " + i.name + " (" + i.qty_desc + ") × " + i.qty + " — " + fmt(i.price * i.qty) + "\n"; });
-    t += "\n━━━━━━━━━━━━━━━━━━\n";
-    t += "*סה\"כ כולל מע\"מ: " + fmt(total) + "*\n";
-    if (client.notes) t += "\n💬 " + client.notes;
+    let t = "\uD83C\uDFEA *\u05d4\u05d6\u05de\u05e0\u05d4 \u2014 \u05d1\u05d9\u05ea \u05e7\u05e4\u05d4 \u05de\u05d0\u05e4\u05d9\u05d9\u05ea \u05d4\u05e9\u05d5\u05de\u05e8\u05d5\u05df*\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n";
+    if (client.name)   t += "\uD83D\uDC64 " + client.name + "\n";
+    if (client.phone)  t += "\uD83D\uDCF1 " + client.phone + "\n";
+    if (client.date)   t += "\uD83D\uDCC5 " + fmtDate(client.date) + "\n";
+    if (client.event)  t += "\uD83C\uDF89 " + client.event + "\n";
+    if (client.guests) t += "\uD83D\uDC65 " + client.guests + " \u05d0\u05d5\u05e8\u05d7\u05d9\u05dd\n";
+    t += "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n\n";
+    items.forEach(i => { t += "\u2022 " + i.name + " (" + i.qty_desc + ") \u00D7 " + i.qty + " \u2014 " + fmt(i.price * i.qty) + "\n"; });
+    t += "\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n";
+    t += "*\u05e1\u05d4\"\u05db \u05db\u05d5\u05dc\u05dc \u05de\u05e2\"\u05de: " + fmt(total) + "*\n";
+    if (client.notes) t += "\n\uD83D\uDCAC " + client.notes;
     return t;
   };
 
   const sendWA = (ph) => { window.open("https://wa.me/" + ph + "?text=" + encodeURIComponent(waText()), "_blank"); };
-  const copyTxt = async () => { try { await navigator.clipboard.writeText(waText()); showToast("✓ הועתק!"); } catch { showToast("לא הצלחתי להעתיק"); } };
+  const copyTxt = () => {
+    const txt = waText();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(() => showToast("\u2713 \u05d4\u05d5\u05e2\u05ea\u05e7!")).catch(() => fallbackCopy(txt));
+    } else {
+      fallbackCopy(txt);
+    }
+  };
+  const fallbackCopy = (txt) => {
+    const ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand("copy"); showToast("\u2713 \u05d4\u05d5\u05e2\u05ea\u05e7!"); } catch { showToast("\u05dc\u05d0 \u05d4\u05e6\u05dc\u05d7\u05ea\u05d9 \u05dc\u05d4\u05e2\u05ea\u05d9\u05e7"); }
+    document.body.removeChild(ta);
+  };
 
-  const iS = { width: "100%", padding: "10px 14px", border: "1px solid "+C.creamB, borderRadius: 10, fontSize: 16, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fff", fontFamily: "inherit", WebkitAppearance: "none" };
+  const iS = { width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fff", fontFamily: "inherit", WebkitAppearance: "none" };
   const cS = { background: "white", borderRadius: 16, boxShadow: "0 2px 16px rgba(27,73,101,0.07)", padding: 20, marginBottom: 16 };
   const bS = (bg, co) => ({ padding: "14px 20px", borderRadius: 12, border: "none", background: bg, color: co, fontSize: 15, fontWeight: 700, cursor: "pointer", flex: 1, fontFamily: "inherit", WebkitAppearance: "none" });
-  const qS = { width: 36, height: 36, borderRadius: "50%", border: "1px solid "+C.creamB, background: "#fff", cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", WebkitAppearance: "none" };
+  const qS = { width: 44, height: 44, borderRadius: "50%", border: "1px solid " + C.creamB, background: "#fff", cursor: "pointer", fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center", WebkitAppearance: "none" };
 
-  // ===== PREVIEW =====
-  if (view === "preview") return (
-    <div style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px" }}>
-      <div id="preview-card" style={{ background: "#fff", borderRadius: 20, boxShadow: "0 4px 30px rgba(27,73,101,0.1)", padding: 32, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: "linear-gradient(90deg, "+C.pri+", "+C.acc+", "+C.pri+")" }} />
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <img src={LOGO} alt="לוגו מאפיית השומרון" style={{ width: 90, height: 90, borderRadius: "50%", marginBottom: 8, border: "3px solid "+C.creamD, objectFit: "cover" }} />
-          <h2 style={{ margin: 0, fontSize: 20, color: C.pri }}>בית קפה מאפיית השומרון</h2>
-          <p style={{ margin: "2px 0 0", color: C.txtL, fontSize: 13 }}>כשרות {KASHRUT}</p>
+  if (view === "preview") return html`
+    <div style=${{ maxWidth: 640, margin: "0 auto", padding: "24px 16px" }}>
+      <div id="preview-card" style=${{ background: "#fff", borderRadius: 20, boxShadow: "0 4px 30px rgba(27,73,101,0.1)", padding: 32, position: "relative", overflow: "hidden" }}>
+        <div style=${{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: "linear-gradient(90deg," + C.pri + "," + C.acc + "," + C.pri + ")" }} />
+        <div style=${{ textAlign: "center", marginBottom: 24 }}>
+          <img src=${LOGO} alt="לוגו" style=${{ width: 90, height: 90, borderRadius: "50%", marginBottom: 8, border: "3px solid " + C.creamD, objectFit: "cover" }} />
+          <h2 style=${{ margin: 0, fontSize: 20, color: C.pri }}>בית קפה מאפיית השומרון</h2>
+          <p style=${{ margin: "2px 0 0", color: C.txtL, fontSize: 13 }}>כשרות ${KASHRUT}</p>
         </div>
-        <div style={{ background: C.cream, borderRadius: 12, padding: 14, marginBottom: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: 14, color: C.txt }}>
-          {client.name && <div><strong>לקוח:</strong> {client.name}</div>}
-          {client.phone && <div><strong>טלפון:</strong> {client.phone}</div>}
-          {client.date && <div><strong>תאריך:</strong> {fmtDate(client.date)}</div>}
-          {client.event && <div><strong>אירוע:</strong> {client.event}</div>}
-          {client.guests && <div><strong>אורחים:</strong> {client.guests}</div>}
+        <div style=${{ background: C.cream, borderRadius: 12, padding: 14, marginBottom: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: 14, color: C.txt }}>
+          ${client.name && html`<div><strong>לקוח:</strong> ${client.name}</div>`}
+          ${client.phone && html`<div><strong>טלפון:</strong> ${client.phone}</div>`}
+          ${client.date && html`<div><strong>תאריך:</strong> ${fmtDate(client.date)}</div>`}
+          ${client.event && html`<div><strong>אירוע:</strong> ${client.event}</div>`}
+          ${client.guests && html`<div><strong>אורחים:</strong> ${client.guests}</div>`}
         </div>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-          <thead><tr style={{ background: C.pri, color: "#fff" }}>
-            <th style={{ padding: "10px 12px", textAlign: "right", borderRadius: "10px 0 0 0" }}>מוצר</th>
-            <th style={{ padding: "10px 8px", textAlign: "center" }}>כמות</th>
-            <th style={{ padding: "10px 8px", textAlign: "center" }}>מחיר</th>
-            <th style={{ padding: "10px 12px", textAlign: "center", borderRadius: "0 10px 0 0" }}>סה"כ</th>
-          </tr></thead>
-          <tbody>{items.map((it, idx) => (
-            <tr key={it.id} style={{ background: idx % 2 ? C.cream : "#fff" }}>
-              <td style={{ padding: "10px 12px" }}>{it.name}<br/><span style={{ fontSize: 11, color: C.txtL }}>{it.qty_desc}</span></td>
-              <td style={{ padding: "10px 8px", textAlign: "center" }}>{it.qty}</td>
-              <td style={{ padding: "10px 8px", textAlign: "center" }}>{fmt(it.price)}</td>
-              <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>{fmt(it.price * it.qty)}</td>
+        <table style=${{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+          <thead>
+            <tr style=${{ background: C.pri, color: "#fff" }}>
+              <th style=${{ padding: "10px 12px", textAlign: "right", borderRadius: "10px 0 0 0" }}>מוצר</th>
+              <th style=${{ padding: "10px 8px", textAlign: "center" }}>כמות</th>
+              <th style=${{ padding: "10px 8px", textAlign: "center" }}>מחיר</th>
+              <th style=${{ padding: "10px 12px", textAlign: "center", borderRadius: "0 10px 0 0" }}>סה"כ</th>
             </tr>
-          ))}</tbody>
+          </thead>
+          <tbody>
+            ${items.map((it, idx) => html`
+              <tr key=${it.id} style=${{ background: idx % 2 ? C.cream : "#fff" }}>
+                <td style=${{ padding: "10px 12px" }}>${it.name}<br/><span style=${{ fontSize: 11, color: C.txtL }}>${it.qty_desc}</span></td>
+                <td style=${{ padding: "10px 8px", textAlign: "center" }}>${it.qty}</td>
+                <td style=${{ padding: "10px 8px", textAlign: "center" }}>${fmt(it.price)}</td>
+                <td style=${{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>${fmt(it.price * it.qty)}</td>
+              </tr>
+            `)}
+          </tbody>
         </table>
-        <div style={{ marginTop: 16, borderTop: "2px solid "+C.creamD, paddingTop: 14, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22, color: C.pri }}>
-          <span>סה"כ כולל מע"מ</span><span>{fmt(total)}</span>
+        <div style=${{ marginTop: 16, borderTop: "2px solid " + C.creamD, paddingTop: 14, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22, color: C.pri }}>
+          <span>סה"כ כולל מע"מ</span><span>${fmt(total)}</span>
         </div>
-        {client.notes && <div style={{ marginTop: 14, padding: 10, background: C.cream, borderRadius: 8, fontSize: 13, color: C.txt }}>💬 {client.notes}</div>}
-        <p style={{ textAlign: "center", color: C.creamB, fontSize: 11, marginTop: 20 }}>since 2001 · הצעה תקפה ל-14 ימים</p>
+        ${client.notes && html`<div style=${{ marginTop: 14, padding: 10, background: C.cream, borderRadius: 8, fontSize: 13, color: C.txt }}>💬 ${client.notes}</div>`}
+        <p style=${{ textAlign: "center", color: C.creamB, fontSize: 11, marginTop: 20 }}>since 2001 · הצעה תקפה ל-14 ימים</p>
       </div>
-      <div className="no-print btn-row" style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
-        <button onClick={() => setView("build")} style={bS(C.creamD, C.pri)}>← חזרה</button>
-        <button onClick={() => window.print()} style={bS(C.priL, "#fff")}>🖨️ הדפס / PDF</button>
-        <button onClick={copyTxt} style={bS(C.pri, "#fff")}>📋 העתק טקסט</button>
-        <button onClick={() => sendWA(PHONES.uri)} style={bS(C.green, "#fff")}>💬 שלח לאורי</button>
-        <button onClick={() => sendWA(PHONES.batchen)} style={bS(C.green, "#fff")}>💬 שלח לבת חן</button>
+      <div className="no-print btn-row" style=${{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
+        <button onClick=${() => setView("build")} style=${bS(C.creamD, C.pri)}>← חזרה</button>
+        <button onClick=${() => window.print()} style=${bS(C.priL, "#fff")}>🖨️ הדפס / PDF</button>
+        <button onClick=${copyTxt} style=${bS(C.pri, "#fff")}>📋 העתק טקסט</button>
+        <button onClick=${() => sendWA(PHONES.uri)} style=${bS(C.green, "#fff")}>💬 שלח לאורי</button>
+        <button onClick=${() => sendWA(PHONES.batchen)} style=${bS(C.green, "#fff")}>💬 שלח לבת חן</button>
       </div>
-      {toast && <Toast msg={toast}/>}
+      ${toast && html`<${Toast} msg=${toast}/>`}
     </div>
-  );
+  `;
 
-  // ===== BUILD =====
-  return (
-    <div style={{ maxWidth: 880, margin: "0 auto", padding: "16px 16px 60px" }}>
-      <div style={{ textAlign: "center", padding: "20px 0 12px" }}>
-        <img src={LOGO} alt="לוגו מאפיית השומרון" style={{ width: 80, height: 80, borderRadius: "50%", border: "3px solid "+C.creamD, objectFit: "cover" }} />
-        <h1 style={{ margin: "8px 0 2px", fontSize: 22, color: C.pri }}>בית קפה מאפיית השומרון</h1>
-        <p style={{ margin: 0, color: C.txtL, fontSize: 13 }}>הרכיבו את ההזמנה שלכם</p>
+  return html`
+    <div style=${{ maxWidth: 880, margin: "0 auto", padding: "16px 16px 60px" }}>
+      <div style=${{ textAlign: "center", padding: "20px 0 12px" }}>
+        <img src=${LOGO} alt="לוגו" style=${{ width: 80, height: 80, borderRadius: "50%", border: "3px solid " + C.creamD, objectFit: "cover" }} />
+        <h1 style=${{ margin: "8px 0 2px", fontSize: 22, color: C.pri }}>בית קפה מאפיית השומרון</h1>
+        <p style=${{ margin: 0, color: C.txtL, fontSize: 13 }}>הרכיבו את ההזמנה שלכם</p>
       </div>
 
-      <div style={cS}>
-        <h3 style={{ margin: "0 0 12px", fontSize: 15, color: C.pri }}>📋 פרטים</h3>
-        <div className="form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <input style={iS} placeholder="שם מלא *" value={client.name} onChange={e => setClient({...client, name: e.target.value})} />
-          <input style={iS} placeholder="טלפון *" type="tel" value={client.phone} onChange={e => setClient({...client, phone: e.target.value})} />
-          <input style={iS} type="date" value={client.date} onChange={e => setClient({...client, date: e.target.value})} />
-          <input style={iS} placeholder="סוג אירוע" value={client.event} onChange={e => setClient({...client, event: e.target.value})} />
-          <input style={iS} placeholder="מספר אורחים" type="number" value={client.guests} onChange={e => setClient({...client, guests: e.target.value})} />
-          <div style={{ position: "relative" }}>
-            <textarea style={{...iS, minHeight: 44, maxHeight: 120}} placeholder="הערות (עד 300 מילים)" value={client.notes} maxLength={2000}
-              onChange={e => { if (wordCount(e.target.value) <= 300) setClient({...client, notes: e.target.value}); }} />
-            <span style={{ position: "absolute", left: 10, bottom: 6, fontSize: 11, color: wordCount(client.notes) > 280 ? "#c00" : C.txtL }}>{wordCount(client.notes)}/300</span>
+      <div style=${cS}>
+        <h3 style=${{ margin: "0 0 12px", fontSize: 15, color: C.pri }}>📋 פרטים</h3>
+        <div className="form-grid" style=${{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <input style=${iS} placeholder="שם מלא *" value=${client.name} onInput=${e => setClient(Object.assign({}, client, { name: e.target.value }))} />
+          <input style=${iS} placeholder="טלפון *" type="tel" value=${client.phone} onInput=${e => setClient(Object.assign({}, client, { phone: e.target.value }))} />
+          <input style=${iS} type="date" value=${client.date} onChange=${e => setClient(Object.assign({}, client, { date: e.target.value }))} />
+          <input style=${iS} placeholder="סוג אירוע" value=${client.event} onInput=${e => setClient(Object.assign({}, client, { event: e.target.value }))} />
+          <input style=${iS} placeholder="מספר אורחים" type="number" value=${client.guests} onInput=${e => setClient(Object.assign({}, client, { guests: e.target.value }))} />
+          <div style=${{ position: "relative" }}>
+            <textarea
+              style=${{ width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fff", fontFamily: "inherit", WebkitAppearance: "none", minHeight: 44, maxHeight: 120, resize: "vertical" }}
+              placeholder="הערות (עד 300 מילים)"
+              maxLength="2000"
+              onInput=${e => { if (wordCount(e.target.value) <= 300) setClient(Object.assign({}, client, { notes: e.target.value })); }}
+            >${client.notes}</textarea>
+            <span style=${{ position: "absolute", left: 10, bottom: 6, fontSize: 11, color: wordCount(client.notes) > 280 ? "#c00" : C.txtL }}>${wordCount(client.notes)}/300</span>
           </div>
         </div>
       </div>
 
-      <div className="two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div style={cS}>
-          <h3 style={{ margin: "0 0 10px", fontSize: 15, color: C.pri }}>🛒 תפריט</h3>
-          <input style={{...iS, marginBottom: 10}} placeholder="🔍 חיפוש מוצר..." value={search} onChange={e => setSearch(e.target.value)} />
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-            {["הכל", ...CATEGORIES].map(c => (
-              <button key={c} onClick={() => setFilterCat(c)}
-                style={{ padding: "6px 14px", borderRadius: 20, border: "none", fontSize: 13, fontWeight: filterCat===c?700:400, background: filterCat===c?C.pri:C.creamD, color: filterCat===c?"#fff":C.pri, cursor: "pointer", WebkitAppearance: "none" }}>
-                {c}
+      <div className="two-col" style=${{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div style=${cS}>
+          <h3 style=${{ margin: "0 0 10px", fontSize: 15, color: C.pri }}>🛒 תפריט</h3>
+          <input style=${{ width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fff", fontFamily: "inherit", WebkitAppearance: "none", marginBottom: 10 }} placeholder="🔍 חיפוש מוצר..." value=${search} onInput=${e => setSearch(e.target.value)} />
+          <div style=${{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+            ${["הכל", ...CATEGORIES].map(c => html`
+              <button key=${c} onClick=${() => setFilterCat(c)}
+                style=${{ padding: "6px 14px", borderRadius: 20, border: "none", fontSize: 13, fontWeight: filterCat === c ? 700 : 400, background: filterCat === c ? C.pri : C.creamD, color: filterCat === c ? "#fff" : C.pri, cursor: "pointer", WebkitAppearance: "none" }}>
+                ${c}
               </button>
-            ))}
+            `)}
           </div>
-          <div style={{ maxHeight: 400, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
-            {filtered.map(p => {
+          <div style=${{ maxHeight: 400, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+            ${filtered.map(p => {
               const ic = items.find(i => i.id === p.id);
-              return (
-                <div key={p.id} onClick={() => addItem(p)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid "+C.creamD, cursor: "pointer", background: ic?"#eef6ff":"transparent", borderRadius: 10 }}>
+              return html`
+                <div key=${p.id} onClick=${() => addItem(p)} style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid " + C.creamD, cursor: "pointer", background: ic ? "#eef6ff" : "transparent", borderRadius: 10 }}>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: C.txt }}>{p.name} {ic && <span style={{ color: "#2563eb", fontSize: 12, fontWeight: 700 }}>✓ {ic.qty}</span>}</div>
-                    <div style={{ fontSize: 11, color: C.txtL }}>{p.qty_desc} למגש</div>
+                    <div style=${{ fontSize: 14, fontWeight: 500, color: C.txt }}>
+                      ${p.name} ${ic && html`<span style=${{ color: "#2563eb", fontSize: 12, fontWeight: 700 }}>✓ ${ic.qty}</span>`}
+                    </div>
+                    <div style=${{ fontSize: 11, color: C.txtL }}>${p.qty_desc} למגש</div>
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: C.pri }}>{fmt(p.price)}</div>
+                  <div style=${{ fontSize: 15, fontWeight: 700, color: C.pri }}>${fmt(p.price)}</div>
                 </div>
-              );
+              `;
             })}
           </div>
         </div>
 
-        <div style={cS}>
-          <h3 style={{ margin: "0 0 10px", fontSize: 15, color: C.pri }}>📝 ההזמנה שלי ({items.length})</h3>
-          {items.length === 0 ? (
-            <div style={{ textAlign: "center", padding: 50, color: C.creamB }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>🥐</div>
+        <div style=${cS}>
+          <h3 style=${{ margin: "0 0 10px", fontSize: 15, color: C.pri }}>📝 ההזמנה שלי (${items.length})</h3>
+          ${items.length === 0 ? html`
+            <div style=${{ textAlign: "center", padding: 50, color: C.creamB }}>
+              <div style=${{ fontSize: 40, marginBottom: 8 }}>🥐</div>
               <div>בחרו מוצרים מהתפריט</div>
             </div>
-          ) : (<>
-            <div style={{ maxHeight: 320, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
-              {items.map(it => (
-                <div key={it.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid "+C.creamD }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: C.txt }}>{it.name}</div>
-                    <div style={{ fontSize: 12, color: C.txtL }}>{fmt(it.price)} × {it.qty} = {fmt(it.price * it.qty)}</div>
+          ` : html`
+            <div style=${{ maxHeight: 320, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+              ${items.map(it => html`
+                <div key=${it.id} style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid " + C.creamD }}>
+                  <div style=${{ flex: 1 }}>
+                    <div style=${{ fontSize: 14, fontWeight: 600, color: C.txt }}>${it.name}</div>
+                    <div style=${{ fontSize: 12, color: C.txtL }}>${fmt(it.price)} × ${it.qty} = ${fmt(it.price * it.qty)}</div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <button onClick={e=>{e.stopPropagation();updateQty(it.id,it.qty-1)}} style={qS}>−</button>
-                    <span style={{ minWidth: 24, textAlign: "center", fontWeight: 700, color: C.pri }}>{it.qty}</span>
-                    <button onClick={e=>{e.stopPropagation();updateQty(it.id,it.qty+1)}} style={qS}>+</button>
-                    <button onClick={e=>{e.stopPropagation();removeItem(it.id)}} style={{...qS, background:"#fee2e2", border:"none", color:"#dc2626", marginRight:4}}>✕</button>
+                  <div style=${{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <button onClick=${e => { e.stopPropagation(); updateQty(it.id, it.qty - 1); }} style=${qS}>−</button>
+                    <span style=${{ minWidth: 24, textAlign: "center", fontWeight: 700, color: C.pri }}>${it.qty}</span>
+                    <button onClick=${e => { e.stopPropagation(); updateQty(it.id, it.qty + 1); }} style=${qS}>+</button>
+                    <button onClick=${e => { e.stopPropagation(); removeItem(it.id); }} style=${{ width: 44, height: 44, borderRadius: "50%", border: "none", background: "#fee2e2", cursor: "pointer", fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center", color: "#dc2626", marginRight: 4 }}>✕</button>
                   </div>
                 </div>
-              ))}
+              `)}
             </div>
-            <div style={{ marginTop: 16, paddingTop: 14, borderTop: "2px solid "+C.creamD, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 20, color: C.pri }}>
-              <span>סה"כ כולל מע"מ</span><span>{fmt(total)}</span>
+            <div style=${{ marginTop: 16, paddingTop: 14, borderTop: "2px solid " + C.creamD, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 20, color: C.pri }}>
+              <span>סה"כ כולל מע"מ</span><span>${fmt(total)}</span>
             </div>
-            <div style={{ marginTop: 14 }}>
-              <button onClick={() => { if (!client.name) { showToast("נא למלא שם לקוח"); return; } setView("preview"); }} style={{...bS(C.pri,"#fff"), width:"100%"}}>✅ ביצוע ההזמנה</button>
+            <div style=${{ marginTop: 14 }}>
+              <button onClick=${() => { if (!client.name) { showToast("נא למלא שם לקוח"); return; } setView("preview"); }} style=${{ padding: "14px 20px", borderRadius: 12, border: "none", background: C.pri, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", width: "100%", fontFamily: "inherit", WebkitAppearance: "none" }}>✅ ביצוע ההזמנה</button>
             </div>
-          </>)}
+          `}
         </div>
       </div>
-      {toast && <Toast msg={toast}/>}
+      ${toast && html`<${Toast} msg=${toast}/>`}
     </div>
-  );
+  `;
 }
 
 function Toast({ msg }) {
-  return <div style={{ position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",background:C.pri,color:"#fff",padding:"12px 28px",borderRadius:30,fontSize:14,fontWeight:600,zIndex:999,boxShadow:"0 4px 20px rgba(0,0,0,0.2)" }}>{msg}</div>;
+  return html`<div style=${{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: C.pri, color: "#fff", padding: "12px 28px", borderRadius: 30, fontSize: 14, fontWeight: 600, zIndex: 999, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>${msg}</div>`;
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
 </script>
 </body>
 </html>
