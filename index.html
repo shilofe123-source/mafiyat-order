@@ -11,7 +11,7 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Heebo', sans-serif; direction: rtl; background: linear-gradient(135deg, #fdf6ee 0%, #f5ebe0 50%, #eddfcc 100%); min-height: 100vh; }
-  
+
   @media print {
     body { background: white !important; }
     .no-print { display: none !important; }
@@ -41,44 +41,41 @@
 <script type="text/babel">
 const { useState, useEffect } = React;
 
-// =============================================
-// ⚙️ הגדרות — שנה כאן
-// =============================================
+// ⚙️ הגדרות
 const PHONES = { uri: "972524767233", batchen: "972542031448" };
 const KASHRUT = "מהדרין רבנות קרני שומרון";
-// =============================================
 
 const PRODUCTS = [
-  { id: 1, name: "מגש כירכוני ביס", price: 180, qty_desc: "12 יח'", cat: "מגשי אירוח" },
-  { id: 2, name: "מיני פיתה סביח", price: 180, qty_desc: "12 יח'", cat: "מגשי אירוח" },
-  { id: 3, name: "כריכוני קרואסון חמאה", price: 140, qty_desc: "12 יח'", cat: "מגשי אירוח" },
-  { id: 4, name: "חצאי טורטיה (12)", price: 105, qty_desc: "12 יח'", cat: "מגשי אירוח" },
-  { id: 5, name: "חצאי טורטיה (24)", price: 195, qty_desc: "24 יח'", cat: "מגשי אירוח" },
-  { id: 6, name: "מיני טורטיה", price: 195, qty_desc: "כ-40 יח'", cat: "מגשי אירוח" },
-  { id: 7, name: "בוריקיטס", price: 180, qty_desc: "20 יח'", cat: "מגשי אירוח" },
-  { id: 8, name: "בוריקיטס סביח", price: 180, qty_desc: "20 יח'", cat: "מגשי אירוח" },
-  { id: 9, name: "פריקסה", price: 195, qty_desc: "20 יח'", cat: "מגשי אירוח" },
-  { id: 10, name: "מגש מיני קיש", price: 195, qty_desc: "24 יח'", cat: "מאפים חמים" },
-  { id: 11, name: "מגש פיצוניות", price: 160, qty_desc: "24 יח'", cat: "מאפים חמים" },
-  { id: 12, name: "פוקצ'ינות", price: 160, qty_desc: "24 יח'", cat: "מאפים חמים" },
-  { id: 13, name: "מיני לחם שום", price: 120, qty_desc: "24 יח'", cat: "מאפים חמים" },
-  { id: 14, name: "מגש מאפים טריים", price: 100, qty_desc: "20 יח'", cat: "מאפים חמים" },
-  { id: 15, name: "פסטה", price: 120, qty_desc: "כ-10 מנות", cat: "מנות חמות" },
-  { id: 16, name: "מגש שקשוקה", price: 180, qty_desc: "כ-8 מנות", cat: "מנות חמות" },
-  { id: 17, name: "מגש מיני גחנון", price: 180, qty_desc: "כ-8 מנות", cat: "מנות חמות" },
-  { id: 18, name: "מגש מקושקשת", price: 180, qty_desc: "כ-12 מנות", cat: "מנות חמות" },
-  { id: 19, name: "פלטת גבינות קשות", price: 380, qty_desc: "כ-18 מנות", cat: "פלטות" },
-  { id: 20, name: "פלטת ירקות שוק", price: 160, qty_desc: "כ-2.5 ק\"ג", cat: "פלטות" },
-  { id: 21, name: "שיפודי מוצרלה", price: 180, qty_desc: "24 יח'", cat: "פלטות" },
-  { id: 22, name: "אנטיפסטי", price: 195, qty_desc: "כ-1.5 ק\"ג", cat: "פלטות" },
-  { id: 23, name: "סלטים טריים (קיסר)", price: 120, qty_desc: "כ-12 מנות", cat: "סלטים" },
-  { id: 24, name: "סלטים טריים", price: 165, qty_desc: "כ-12 מנות", cat: "סלטים" },
-  { id: 25, name: "פלטת פירות העונה", price: 250, qty_desc: "כ-2.4 ק\"ג", cat: "פירות וקינוחים" },
-  { id: 26, name: "מגש מתוקים", price: 295, qty_desc: "50 יח'", cat: "פירות וקינוחים" },
-  { id: 27, name: "מגש כדורי שוקולד", price: 180, qty_desc: "35 יח'", cat: "פירות וקינוחים" },
-  { id: 28, name: "מגש קוקיז חמאה", price: 180, qty_desc: "35 יח'", cat: "פירות וקינוחים" },
-  { id: 29, name: "מגש פחזניות", price: 180, qty_desc: "24 יח'", cat: "פירות וקינוחים" },
-  { id: 30, name: "מגש עוגות בחושות", price: 170, qty_desc: "30 יח'", cat: "פירות וקינוחים" },
+  { id: 1,  name: "מגש כירכוני ביס",       price: 180, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
+  { id: 2,  name: "מיני פיתה סביח",         price: 180, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
+  { id: 3,  name: "כריכוני קרואסון חמאה",   price: 140, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
+  { id: 4,  name: "חצאי טורטיה (12)",       price: 105, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
+  { id: 5,  name: "חצאי טורטיה (24)",       price: 195, qty_desc: "24 יח'",       cat: "מגשי אירוח" },
+  { id: 6,  name: "מיני טורטיה",            price: 195, qty_desc: "כ-40 יח'",     cat: "מגשי אירוח" },
+  { id: 7,  name: "בוריקיטס",               price: 180, qty_desc: "20 יח'",       cat: "מגשי אירוח" },
+  { id: 8,  name: "בוריקיטס סביח",          price: 180, qty_desc: "20 יח'",       cat: "מגשי אירוח" },
+  { id: 9,  name: "פריקסה",                 price: 195, qty_desc: "20 יח'",       cat: "מגשי אירוח" },
+  { id: 10, name: "מגש מיני קיש",           price: 195, qty_desc: "24 יח'",       cat: "מאפים חמים" },
+  { id: 11, name: "מגש פיצוניות",           price: 160, qty_desc: "24 יח'",       cat: "מאפים חמים" },
+  { id: 12, name: "פוקצ'ינות",              price: 160, qty_desc: "24 יח'",       cat: "מאפים חמים" },
+  { id: 13, name: "מיני לחם שום",           price: 120, qty_desc: "24 יח'",       cat: "מאפים חמים" },
+  { id: 14, name: "מגש מאפים טריים",        price: 100, qty_desc: "20 יח'",       cat: "מאפים חמים" },
+  { id: 15, name: "פסטה",                   price: 120, qty_desc: "כ-10 מנות",    cat: "מנות חמות" },
+  { id: 16, name: "מגש שקשוקה",             price: 180, qty_desc: "כ-8 מנות",     cat: "מנות חמות" },
+  { id: 17, name: "מגש מיני גחנון",         price: 180, qty_desc: "כ-8 מנות",     cat: "מנות חמות" },
+  { id: 18, name: "מגש מקושקשת",            price: 180, qty_desc: "כ-12 מנות",    cat: "מנות חמות" },
+  { id: 19, name: "פלטת גבינות קשות",       price: 380, qty_desc: "כ-18 מנות",    cat: "פלטות" },
+  { id: 20, name: "פלטת ירקות שוק",         price: 160, qty_desc: "כ-2.5 ק\"ג",  cat: "פלטות" },
+  { id: 21, name: "שיפודי מוצרלה",          price: 180, qty_desc: "24 יח'",       cat: "פלטות" },
+  { id: 22, name: "אנטיפסטי",               price: 195, qty_desc: "כ-1.5 ק\"ג",  cat: "פלטות" },
+  { id: 23, name: "סלטים טריים (קיסר)",     price: 120, qty_desc: "כ-12 מנות",    cat: "סלטים" },
+  { id: 24, name: "סלטים טריים",            price: 165, qty_desc: "כ-12 מנות",    cat: "סלטים" },
+  { id: 25, name: "פלטת פירות העונה",       price: 250, qty_desc: "כ-2.4 ק\"ג",  cat: "פירות וקינוחים" },
+  { id: 26, name: "מגש מתוקים",             price: 295, qty_desc: "50 יח'",       cat: "פירות וקינוחים" },
+  { id: 27, name: "מגש כדורי שוקולד",       price: 180, qty_desc: "35 יח'",       cat: "פירות וקינוחים" },
+  { id: 28, name: "מגש קוקיז חמאה",         price: 180, qty_desc: "35 יח'",       cat: "פירות וקינוחים" },
+  { id: 29, name: "מגש פחזניות",            price: 180, qty_desc: "24 יח'",       cat: "פירות וקינוחים" },
+  { id: 30, name: "מגש עוגות בחושות",       price: 170, qty_desc: "30 יח'",       cat: "פירות וקינוחים" },
 ];
 
 const CATEGORIES = [...new Set(PRODUCTS.map(p => p.cat))];
@@ -105,16 +102,16 @@ function App() {
 
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);
 
-  const filtered = PRODUCTS.filter(p => {
-    return (filterCat === "הכל" || p.cat === filterCat) && (!search || p.name.includes(search));
-  });
+  const filtered = PRODUCTS.filter(p =>
+    (filterCat === "הכל" || p.cat === filterCat) && (!search || p.name.includes(search))
+  );
 
   const waText = () => {
     let t = `🏪 *הזמנה — בית קפה מאפיית השומרון*\n━━━━━━━━━━━━━━━━━━\n`;
-    if (client.name) t += `👤 ${client.name}\n`;
-    if (client.phone) t += `📱 ${client.phone}\n`;
-    if (client.date) t += `📅 ${client.date}\n`;
-    if (client.event) t += `🎉 ${client.event}\n`;
+    if (client.name)   t += `👤 ${client.name}\n`;
+    if (client.phone)  t += `📱 ${client.phone}\n`;
+    if (client.date)   t += `📅 ${client.date}\n`;
+    if (client.event)  t += `🎉 ${client.event}\n`;
     if (client.guests) t += `👥 ${client.guests} אורחים\n`;
     t += `━━━━━━━━━━━━━━━━━━\n\n`;
     items.forEach(i => { t += `• ${i.name} (${i.qty_desc}) × ${i.qty} — ${fmt(i.price * i.qty)}\n`; });
@@ -158,13 +155,20 @@ function App() {
     try { await navigator.clipboard.writeText(waText()); showToast("✓ הועתק!"); } catch { showToast("לא הצלחתי להעתיק"); }
   };
 
+  const SendButtons = () => (
+    <>
+      <button onClick={() => sendWhatsApp(PHONES.uri)}     style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לאורי</button>
+      <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לבת חן</button>
+    </>
+  );
+
   // ========== PREVIEW ==========
   if (view === "preview") {
     return (
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px" }}>
         <div id="preview-card" style={{ background: "#fff", borderRadius: 20, boxShadow: "0 4px 30px rgba(120,80,40,0.1)", padding: 32, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: "linear-gradient(90deg, #5c3d2e, #a0785c, #5c3d2e)" }} />
-          
+
           <div style={{ textAlign: "center", marginBottom: 24 }}>
             <img src="logo.jpeg" alt="לוגו" style={{ width: 90, height: 90, borderRadius: "50%", marginBottom: 8, border: "3px solid #f5ebe0", objectFit: "cover" }} />
             <h2 style={{ margin: 0, fontSize: 20, color: "#5c3d2e" }}>בית קפה מאפיית השומרון</h2>
@@ -172,10 +176,10 @@ function App() {
           </div>
 
           <div style={{ background: "#fdf6ee", borderRadius: 12, padding: 14, marginBottom: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: 14, color: "#5c3d2e" }}>
-            {client.name && <div><strong>לקוח:</strong> {client.name}</div>}
-            {client.phone && <div><strong>טלפון:</strong> {client.phone}</div>}
-            {client.date && <div><strong>תאריך:</strong> {client.date}</div>}
-            {client.event && <div><strong>אירוע:</strong> {client.event}</div>}
+            {client.name   && <div><strong>לקוח:</strong> {client.name}</div>}
+            {client.phone  && <div><strong>טלפון:</strong> {client.phone}</div>}
+            {client.date   && <div><strong>תאריך:</strong> {client.date}</div>}
+            {client.event  && <div><strong>אירוע:</strong> {client.event}</div>}
             {client.guests && <div><strong>אורחים:</strong> {client.guests}</div>}
           </div>
 
@@ -200,8 +204,8 @@ function App() {
             </tbody>
           </table>
 
-          <div style={{ marginTop: 16, borderTop: "2px solid #f5ebe0", paddingTop: 14, fontSize: 15, color: "#5c3d2e" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22 }}><span>סה"כ כולל מע"מ</span><span>{fmt(total)}</span></div>
+          <div style={{ marginTop: 16, borderTop: "2px solid #f5ebe0", paddingTop: 14, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22, color: "#5c3d2e" }}>
+            <span>סה"כ כולל מע"מ</span><span>{fmt(total)}</span>
           </div>
 
           {client.notes && <div style={{ marginTop: 14, padding: 10, background: "#fdf6ee", borderRadius: 8, fontSize: 13, color: "#5c3d2e" }}>💬 {client.notes}</div>}
@@ -211,8 +215,7 @@ function App() {
         <div className="no-print btn-row" style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
           <button onClick={() => setView("build")} style={btnStyle("#e0d5c7", "#5c3d2e")}>← חזרה</button>
           <button onClick={copyText} style={btnStyle("#5c3d2e", "#fff")}>📋 העתק טקסט</button>
-          <button onClick={() => sendWhatsApp(PHONES.uri)} style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לאורי</button>
-          <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לבת חן</button>
+          <SendButtons />
         </div>
 
         {toast && <Toast msg={toast}/>}
@@ -223,29 +226,25 @@ function App() {
   // ========== BUILD ==========
   return (
     <div style={{ maxWidth: 880, margin: "0 auto", padding: "16px 16px 60px" }}>
-      {/* Header */}
       <div style={{ textAlign: "center", padding: "20px 0 12px" }}>
         <img src="logo.jpeg" alt="לוגו" style={{ width: 80, height: 80, borderRadius: "50%", border: "3px solid #e0d5c7", objectFit: "cover" }} />
         <h1 style={{ margin: "8px 0 2px", fontSize: 22, color: "#5c3d2e" }}>בית קפה מאפיית השומרון</h1>
         <p style={{ margin: 0, color: "#a0785c", fontSize: 13 }}>הרכיבו את ההזמנה שלכם</p>
       </div>
 
-      {/* Client Details */}
       <div style={cardStyle}>
         <h3 style={sectionTitle}>📋 פרטים</h3>
         <div className="form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <input style={inputStyle} placeholder="שם מלא *" value={client.name} onChange={e => setClient({...client, name: e.target.value})} />
-          <input style={inputStyle} placeholder="טלפון *" type="tel" value={client.phone} onChange={e => setClient({...client, phone: e.target.value})} />
-          <input style={inputStyle} placeholder="תאריך אירוע" type="date" value={client.date} onChange={e => setClient({...client, date: e.target.value})} />
-          <input style={inputStyle} placeholder="סוג אירוע" value={client.event} onChange={e => setClient({...client, event: e.target.value})} />
+          <input style={inputStyle} placeholder="שם מלא *"       value={client.name}   onChange={e => setClient({...client, name:   e.target.value})} />
+          <input style={inputStyle} placeholder="טלפון *" type="tel" value={client.phone} onChange={e => setClient({...client, phone:  e.target.value})} />
+          <input style={inputStyle} placeholder="תאריך אירוע" type="date" value={client.date} onChange={e => setClient({...client, date:   e.target.value})} />
+          <input style={inputStyle} placeholder="סוג אירוע"      value={client.event}  onChange={e => setClient({...client, event:  e.target.value})} />
           <input style={inputStyle} placeholder="מספר אורחים" type="number" value={client.guests} onChange={e => setClient({...client, guests: e.target.value})} />
-          <input style={inputStyle} placeholder="הערות" value={client.notes} onChange={e => setClient({...client, notes: e.target.value})} />
+          <input style={inputStyle} placeholder="הערות"          value={client.notes}  onChange={e => setClient({...client, notes:  e.target.value})} />
         </div>
       </div>
 
-      {/* Two columns */}
       <div className="two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        {/* Catalog */}
         <div style={cardStyle}>
           <h3 style={sectionTitle}>🛒 תפריט</h3>
           <input style={{...inputStyle, marginBottom: 10}} placeholder="🔍 חיפוש מוצר..." value={search} onChange={e => setSearch(e.target.value)} />
@@ -281,7 +280,6 @@ function App() {
           </div>
         </div>
 
-        {/* Cart */}
         <div style={cardStyle}>
           <h3 style={sectionTitle}>📝 ההזמנה שלי ({items.length})</h3>
           {items.length === 0 ? (
@@ -309,14 +307,13 @@ function App() {
                 ))}
               </div>
 
-              <div style={{ marginTop: 16, paddingTop: 14, borderTop: "2px solid #f5ebe0" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 20, color: "#5c3d2e" }}><span>סה"כ כולל מע"מ</span><span>{fmt(total)}</span></div>
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: "2px solid #f5ebe0", display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 20, color: "#5c3d2e" }}>
+                <span>סה"כ כולל מע"מ</span><span>{fmt(total)}</span>
               </div>
 
               <div className="btn-row" style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
                 <button onClick={() => { if (!client.name) { showToast("נא למלא שם לקוח"); return; } setView("preview"); }} style={btnStyle("#5c3d2e", "#fff")}>👁️ תצוגה מקדימה</button>
-                <button onClick={() => sendWhatsApp(PHONES.uri)} style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לאורי</button>
-                <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לבת חן</button>
+                <SendButtons />
               </div>
             </>
           )}
@@ -329,11 +326,11 @@ function App() {
 }
 
 // Styles
-const cardStyle = { background: "white", borderRadius: 16, boxShadow: "0 2px 16px rgba(120,80,40,0.08)", padding: 20, marginBottom: 16 };
+const cardStyle    = { background: "white", borderRadius: 16, boxShadow: "0 2px 16px rgba(120,80,40,0.08)", padding: 20, marginBottom: 16 };
 const sectionTitle = { margin: "0 0 12px", fontSize: 15, color: "#5c3d2e" };
-const inputStyle = { width: "100%", padding: "10px 14px", border: "1px solid #e0d5c7", borderRadius: 10, fontSize: 14, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fdfbf8", fontFamily: "inherit" };
-const qtyBtnStyle = { width: 32, height: 32, borderRadius: "50%", border: "1px solid #e0d5c7", background: "#fdfbf8", cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" };
-const btnStyle = (bg, color) => ({ padding: "14px 20px", borderRadius: 12, border: "none", background: bg, color, fontSize: 15, fontWeight: 700, cursor: "pointer", flex: 1, fontFamily: "inherit" });
+const inputStyle   = { width: "100%", padding: "10px 14px", border: "1px solid #e0d5c7", borderRadius: 10, fontSize: 14, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fdfbf8", fontFamily: "inherit" };
+const qtyBtnStyle  = { width: 32, height: 32, borderRadius: "50%", border: "1px solid #e0d5c7", background: "#fdfbf8", cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" };
+const btnStyle     = (bg, color) => ({ padding: "14px 20px", borderRadius: 12, border: "none", background: bg, color, fontSize: 15, fontWeight: 700, cursor: "pointer", flex: 1, fontFamily: "inherit" });
 
 function Toast({ msg }) {
   return <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "#5c3d2e", color: "#fff", padding: "12px 28px", borderRadius: 30, fontSize: 14, fontWeight: 600, zIndex: 999, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>{msg}</div>;
