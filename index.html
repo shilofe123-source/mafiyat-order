@@ -34,8 +34,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 
 <script type="text/babel">
 const { useState } = React;
@@ -124,15 +124,27 @@ function App() {
   };
 
   const savePDF = async () => {
+    if (!client.name || items.length === 0) {
+      showToast("נא למלא שם ולבחור מוצרים");
+      return;
+    }
     showToast("מכין PDF...");
-    await html2pdf().set({
-      margin: 8,
-      filename: `הזמנה-${client.name}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-    }).from(document.getElementById("preview-card")).save();
-    showToast("✓ PDF הורד!");
+    try {
+      const el = document.getElementById("preview-card");
+      if (!el) { showToast("שגיאה: עבור לתצוגה מקדימה קודם"); return; }
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: "הזמנה-" + (client.name || "מאפייה") + ".pdf",
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, windowWidth: el.scrollWidth },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      };
+      await window.html2pdf().set(opt).from(el).save();
+      showToast("✓ PDF הורד!");
+    } catch (err) {
+      console.error("PDF error:", err);
+      showToast("שגיאה ביצירת PDF — נסה הדפסה");
+    }
   };
 
   const copyText = async () => {
