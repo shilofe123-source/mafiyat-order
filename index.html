@@ -139,7 +139,7 @@ function App() {
     }
     showToast("מכין PDF...");
     const el = document.getElementById("preview-card");
-    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" });
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -153,7 +153,7 @@ function App() {
     if (view === "preview" && pendingPhone) {
       const phone = pendingPhone;
       setPendingPhone(null);
-      setTimeout(() => sendWhatsApp(phone), 100);
+      setTimeout(() => sendWhatsApp(phone), 400);
     }
   }, [view, pendingPhone]);
 
