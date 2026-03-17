@@ -39,7 +39,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script type="text/babel">
-const { useState, useEffect } = React;
+const { useState } = React;
 
 // ⚙️ הגדרות
 const PHONES = { uri: "972524767233", batchen: "972542031448" };
@@ -88,7 +88,6 @@ function App() {
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState("");
   const [view, setView] = useState("build");
-  const [pendingPhone, setPendingPhone] = useState(null);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
@@ -127,10 +126,12 @@ function App() {
       return;
     }
     if (view !== "preview") {
-      setPendingPhone(phone);
       setView("preview");
+      showToast("עברת לתצוגה מקדימה — לחץ שוב לשליחה");
       return;
     }
+    // פתח וואטסאפ מיד (לפני await — חיוני כדי שהדפדפן לא יחסום)
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waText())}`, "_blank");
     showToast("מכין PDF...");
     const el = document.getElementById("preview-card");
     const canvas = await html2canvas(el, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: "#ffffff" });
@@ -140,16 +141,7 @@ function App() {
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
     pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pdfWidth, pdfHeight);
     pdf.save(`הזמנה-${client.name}.pdf`);
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waText())}`, "_blank");
   };
-
-  useEffect(() => {
-    if (view === "preview" && pendingPhone) {
-      const phone = pendingPhone;
-      setPendingPhone(null);
-      setTimeout(() => sendWhatsApp(phone), 400);
-    }
-  }, [view, pendingPhone]);
 
   const copyText = async () => {
     try { await navigator.clipboard.writeText(waText()); showToast("✓ הועתק!"); } catch { showToast("לא הצלחתי להעתיק"); }
