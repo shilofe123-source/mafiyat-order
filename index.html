@@ -83,6 +83,7 @@ const PRODUCTS = [
 
 const CATEGORIES = [...new Set(PRODUCTS.map(p => p.cat))];
 const fmt = n => "₪" + n.toLocaleString("he-IL");
+const inclVAT = price => Math.round(price * 1.17);
 
 function App() {
   const [client, setClient] = useState({ name: "", phone: "", date: "", event: "", guests: "", notes: "" });
@@ -119,11 +120,9 @@ function App() {
     if (client.event) t += `🎉 ${client.event}\n`;
     if (client.guests) t += `👥 ${client.guests} אורחים\n`;
     t += `━━━━━━━━━━━━━━━━━━\n\n`;
-    items.forEach(i => { t += `• ${i.name} (${i.qty_desc}) × ${i.qty} — ${fmt(i.price * i.qty)}\n`; });
+    items.forEach(i => { t += `• ${i.name} (${i.qty_desc}) × ${i.qty} — ${fmt(inclVAT(i.price) * i.qty)}\n`; });
     t += `\n━━━━━━━━━━━━━━━━━━\n`;
-    t += `לפני מע"מ: ${fmt(subtotal)}\n`;
-    t += `מע"מ 17%: ${fmt(vat)}\n`;
-    t += `*סה"כ: ${fmt(total)}*\n`;
+    t += `*סה"כ כולל מע"מ: ${fmt(total)}*\n`;
     if (client.notes) t += `\n💬 ${client.notes}`;
     return t;
   };
@@ -197,17 +196,15 @@ function App() {
                 <tr key={item.id} style={{ background: idx % 2 ? "#fdf6ee" : "#fff" }}>
                   <td style={{ padding: "10px 12px" }}>{item.name}<br/><span style={{ fontSize: 11, color: "#a0785c" }}>{item.qty_desc}</span></td>
                   <td style={{ padding: "10px 8px", textAlign: "center" }}>{item.qty}</td>
-                  <td style={{ padding: "10px 8px", textAlign: "center" }}>{fmt(item.price)}</td>
-                  <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>{fmt(item.price * item.qty)}</td>
+                  <td style={{ padding: "10px 8px", textAlign: "center" }}>{fmt(inclVAT(item.price))}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>{fmt(inclVAT(item.price) * item.qty)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
           <div style={{ marginTop: 16, borderTop: "2px solid #f5ebe0", paddingTop: 14, fontSize: 15, color: "#5c3d2e" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span>לפני מע"מ</span><span>{fmt(subtotal)}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, color: "#a0785c", fontSize: 13 }}><span>מע"מ 17%</span><span>{fmt(vat)}</span></div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22, borderTop: "3px solid #5c3d2e", paddingTop: 10, marginTop: 6 }}><span>סה"כ</span><span>{fmt(total)}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22 }}><span>סה"כ כולל מע"מ</span><span>{fmt(total)}</span></div>
           </div>
 
           {client.notes && <div style={{ marginTop: 14, padding: 10, background: "#fdf6ee", borderRadius: 8, fontSize: 13, color: "#5c3d2e" }}>💬 {client.notes}</div>}
@@ -280,7 +277,7 @@ function App() {
                     </div>
                     <div style={{ fontSize: 11, color: "#a0785c" }}>{p.qty_desc} למגש</div>
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#5c3d2e" }}>{fmt(p.price)}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#5c3d2e" }}>{fmt(inclVAT(p.price))}</div>
                 </div>
               );
             })}
@@ -302,7 +299,7 @@ function App() {
                   <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f5ebe0" }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 14, fontWeight: 600, color: "#3d2b1f" }}>{item.name}</div>
-                      <div style={{ fontSize: 12, color: "#a0785c" }}>{fmt(item.price)} × {item.qty} = {fmt(item.price * item.qty)}</div>
+                      <div style={{ fontSize: 12, color: "#a0785c" }}>{fmt(inclVAT(item.price))} × {item.qty} = {fmt(inclVAT(item.price) * item.qty)}</div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <button onClick={(e) => { e.stopPropagation(); updateQty(item.id, item.qty - 1); }} style={qtyBtnStyle}>−</button>
@@ -316,9 +313,7 @@ function App() {
               </div>
 
               <div style={{ marginTop: 16, paddingTop: 14, borderTop: "2px solid #f5ebe0" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 14, color: "#5c3d2e" }}><span>לפני מע"מ</span><span>{fmt(subtotal)}</span></div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 13, color: "#a0785c" }}><span>מע"מ 17%</span><span>{fmt(vat)}</span></div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 20, color: "#5c3d2e", borderTop: "3px solid #5c3d2e", paddingTop: 8, marginTop: 4 }}><span>סה"כ</span><span>{fmt(total)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 20, color: "#5c3d2e" }}><span>סה"כ כולל מע"מ</span><span>{fmt(total)}</span></div>
               </div>
 
               <div className="btn-row" style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
