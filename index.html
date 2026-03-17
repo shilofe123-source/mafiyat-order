@@ -35,6 +35,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script type="text/babel">
 const { useState } = React;
@@ -137,11 +139,23 @@ function App() {
     try { await navigator.clipboard.writeText(waText()); showToast("✓ הועתק!"); } catch { showToast("לא הצלחתי להעתיק"); }
   };
 
+  const saveAsPDF = async () => {
+    const el = document.getElementById("preview-card");
+    showToast("מכין PDF...");
+    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`הזמנה-${client.name || "מאפיית-השומרון"}.pdf`);
+  };
+
   // ========== PREVIEW ==========
   if (view === "preview") {
     return (
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px" }}>
-        <div style={{ background: "#fff", borderRadius: 20, boxShadow: "0 4px 30px rgba(120,80,40,0.1)", padding: 32, position: "relative", overflow: "hidden" }}>
+        <div id="preview-card" style={{ background: "#fff", borderRadius: 20, boxShadow: "0 4px 30px rgba(120,80,40,0.1)", padding: 32, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: "linear-gradient(90deg, #5c3d2e, #a0785c, #5c3d2e)" }} />
           
           <div style={{ textAlign: "center", marginBottom: 24 }}>
@@ -194,7 +208,7 @@ function App() {
           <button onClick={copyText} style={btnStyle("#5c3d2e", "#fff")}>📋 העתק טקסט</button>
           <button onClick={() => sendWhatsApp(PHONES.uri)} style={btnStyle("#25D366", "#fff")}>💬 שלח לאורי</button>
           <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>💬 שלח לבת חן</button>
-          <button onClick={() => window.print()} style={btnStyle("#a0785c", "#fff")}>🖨️ שמור PDF</button>
+          <button onClick={saveAsPDF} style={btnStyle("#a0785c", "#fff")}>⬇️ שמור PDF</button>
         </div>
 
         {toast && <Toast msg={toast}/>}
