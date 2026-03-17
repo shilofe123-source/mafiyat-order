@@ -119,40 +119,25 @@ function App() {
     return t;
   };
 
-  const sendWhatsApp = async (phone) => {
-    if (!client.name || items.length === 0) {
-      showToast("נא למלא שם ולבחור מוצרים");
-      return;
-    }
-    if (view !== "preview") {
-      setView("preview");
-      showToast("עברת לתצוגה מקדימה — לחץ שוב לשליחה");
-      return;
-    }
-    // פתח וואטסאפ מיד (לפני await — חיוני כדי שהדפדפן לא יחסום)
+  const sendWhatsApp = (phone) => {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waText())}`, "_blank");
+  };
+
+  const savePDF = async () => {
     showToast("מכין PDF...");
-    const el = document.getElementById("preview-card");
     await html2pdf().set({
       margin: 8,
       filename: `הזמנה-${client.name}.pdf`,
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-    }).from(el).save();
+    }).from(document.getElementById("preview-card")).save();
     showToast("✓ PDF הורד!");
   };
 
   const copyText = async () => {
     try { await navigator.clipboard.writeText(waText()); showToast("✓ הועתק!"); } catch { showToast("לא הצלחתי להעתיק"); }
   };
-
-  const SendButtons = () => (
-    <>
-      <button onClick={() => sendWhatsApp(PHONES.uri)}     style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לאורי</button>
-      <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לבת חן</button>
-    </>
-  );
 
   // ========== PREVIEW ==========
   if (view === "preview") {
@@ -205,9 +190,11 @@ function App() {
         </div>
 
         <div className="no-print btn-row" style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
-          <button onClick={() => setView("build")} style={btnStyle("#e0d5c7", "#5c3d2e")}>← חזרה</button>
-          <button onClick={copyText} style={btnStyle("#5c3d2e", "#fff")}>📋 העתק טקסט</button>
-          <SendButtons />
+          <button onClick={() => setView("build")}              style={btnStyle("#e0d5c7", "#5c3d2e")}>← חזרה</button>
+          <button onClick={savePDF}                             style={btnStyle("#a0785c", "#fff")}>⬇️ צור PDF</button>
+          <button onClick={copyText}                            style={btnStyle("#5c3d2e", "#fff")}>📋 העתק טקסט</button>
+          <button onClick={() => sendWhatsApp(PHONES.uri)}     style={btnStyle("#25D366", "#fff")}>💬 שלח לאורי</button>
+          <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>💬 שלח לבת חן</button>
         </div>
 
         {toast && <Toast msg={toast}/>}
@@ -303,9 +290,8 @@ function App() {
                 <span>סה"כ כולל מע"מ</span><span>{fmt(total)}</span>
               </div>
 
-              <div className="btn-row" style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
-                <button onClick={() => { if (!client.name) { showToast("נא למלא שם לקוח"); return; } setView("preview"); }} style={btnStyle("#5c3d2e", "#fff")}>👁️ תצוגה מקדימה</button>
-                <SendButtons />
+              <div style={{ marginTop: 14 }}>
+                <button onClick={() => { if (!client.name) { showToast("נא למלא שם לקוח"); return; } setView("preview"); }} style={{...btnStyle("#5c3d2e", "#fff"), width: "100%"}}>✅ ביצוע ההזמנה</button>
               </div>
             </>
           )}
