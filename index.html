@@ -13,9 +13,18 @@
   body { font-family: 'Heebo', sans-serif; direction: rtl; background: linear-gradient(135deg, #fdf6ee 0%, #f5ebe0 50%, #eddfcc 100%); min-height: 100vh; }
 
   @media print {
-    body { background: white !important; }
+    body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .no-print { display: none !important; }
     .print-only { display: block !important; }
+    #root > div { padding: 0 !important; }
+    #preview-card {
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      padding: 20px 30px !important;
+      max-width: 100% !important;
+    }
+    table { page-break-inside: avoid; }
+    tr { page-break-inside: avoid; }
   }
   .print-only { display: none; }
 
@@ -34,7 +43,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 
 <script type="text/babel">
@@ -123,28 +132,8 @@ function App() {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waText())}`, "_blank");
   };
 
-  const savePDF = async () => {
-    if (!client.name || items.length === 0) {
-      showToast("נא למלא שם ולבחור מוצרים");
-      return;
-    }
-    showToast("מכין PDF...");
-    try {
-      const el = document.getElementById("preview-card");
-      if (!el) { showToast("שגיאה: עבור לתצוגה מקדימה קודם"); return; }
-      const opt = {
-        margin: [10, 10, 10, 10],
-        filename: "הזמנה-" + (client.name || "מאפייה") + ".pdf",
-        image: { type: "jpeg", quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0, windowWidth: el.scrollWidth },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-      };
-      await window.html2pdf().set(opt).from(el).save();
-      showToast("✓ PDF הורד!");
-    } catch (err) {
-      console.error("PDF error:", err);
-      showToast("שגיאה ביצירת PDF — נסה הדפסה");
-    }
+  const savePDF = () => {
+    window.print();
   };
 
   const copyText = async () => {
@@ -203,7 +192,7 @@ function App() {
 
         <div className="no-print btn-row" style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
           <button onClick={() => setView("build")}              style={btnStyle("#e0d5c7", "#5c3d2e")}>← חזרה</button>
-          <button onClick={savePDF}                             style={btnStyle("#a0785c", "#fff")}>⬇️ צור PDF</button>
+          <button onClick={savePDF}                             style={btnStyle("#a0785c", "#fff")}>🖨️ הדפס / שמור PDF</button>
           <button onClick={copyText}                            style={btnStyle("#5c3d2e", "#fff")}>📋 העתק טקסט</button>
           <button onClick={() => sendWhatsApp(PHONES.uri)}     style={btnStyle("#25D366", "#fff")}>💬 שלח לאורי</button>
           <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>💬 שלח לבת חן</button>
