@@ -39,7 +39,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script type="text/babel">
-const { useState } = React;
+const { useState, useEffect } = React;
 
 // =============================================
 // ⚙️ הגדרות — שנה כאן
@@ -91,6 +91,7 @@ function App() {
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState("");
   const [view, setView] = useState("build");
+  const [pendingPhone, setPendingPhone] = useState(null);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
@@ -127,28 +128,38 @@ function App() {
     return t;
   };
 
-  const sendWhatsApp = (phone) => {
+  const sendWhatsApp = async (phone) => {
     if (!client.name || items.length === 0) {
       showToast("נא למלא שם ולבחור מוצרים");
       return;
     }
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waText())}`, "_blank");
-  };
-
-  const copyText = async () => {
-    try { await navigator.clipboard.writeText(waText()); showToast("✓ הועתק!"); } catch { showToast("לא הצלחתי להעתיק"); }
-  };
-
-  const saveAsPDF = async () => {
-    const el = document.getElementById("preview-card");
+    if (view !== "preview") {
+      setPendingPhone(phone);
+      setView("preview");
+      return;
+    }
     showToast("מכין PDF...");
+    const el = document.getElementById("preview-card");
     const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
     pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`הזמנה-${client.name || "מאפיית-השומרון"}.pdf`);
+    pdf.save(`הזמנה-${client.name}.pdf`);
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waText())}`, "_blank");
+  };
+
+  useEffect(() => {
+    if (view === "preview" && pendingPhone) {
+      const phone = pendingPhone;
+      setPendingPhone(null);
+      setTimeout(() => sendWhatsApp(phone), 100);
+    }
+  }, [view, pendingPhone]);
+
+  const copyText = async () => {
+    try { await navigator.clipboard.writeText(waText()); showToast("✓ הועתק!"); } catch { showToast("לא הצלחתי להעתיק"); }
   };
 
   // ========== PREVIEW ==========
@@ -206,9 +217,8 @@ function App() {
         <div className="no-print btn-row" style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
           <button onClick={() => setView("build")} style={btnStyle("#e0d5c7", "#5c3d2e")}>← חזרה</button>
           <button onClick={copyText} style={btnStyle("#5c3d2e", "#fff")}>📋 העתק טקסט</button>
-          <button onClick={() => sendWhatsApp(PHONES.uri)} style={btnStyle("#25D366", "#fff")}>💬 שלח לאורי</button>
-          <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>💬 שלח לבת חן</button>
-          <button onClick={saveAsPDF} style={btnStyle("#a0785c", "#fff")}>⬇️ שמור PDF</button>
+          <button onClick={() => sendWhatsApp(PHONES.uri)} style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לאורי</button>
+          <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לבת חן</button>
         </div>
 
         {toast && <Toast msg={toast}/>}
@@ -313,8 +323,8 @@ function App() {
 
               <div className="btn-row" style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
                 <button onClick={() => { if (!client.name) { showToast("נא למלא שם לקוח"); return; } setView("preview"); }} style={btnStyle("#5c3d2e", "#fff")}>👁️ תצוגה מקדימה</button>
-                <button onClick={() => sendWhatsApp(PHONES.uri)} style={btnStyle("#25D366", "#fff")}>💬 שלח לאורי</button>
-                <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>💬 שלח לבת חן</button>
+                <button onClick={() => sendWhatsApp(PHONES.uri)} style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לאורי</button>
+                <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>⬇️💬 הורד כ-PDF ושלח לבת חן</button>
               </div>
             </>
           )}
