@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מאפיית השומרון — הזמנה</title>
+<meta name="description" content="הזמינו מגשי אירוח, מאפים וקינוחים ממאפיית השומרון">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥐</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Heebo', sans-serif; direction: rtl; background: linear-gradient(135deg, #fdf6ee 0%, #f5ebe0 50%, #eddfcc 100%); min-height: 100vh; }
+  
+  @media print {
+    body { background: white !important; }
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+  }
+  .print-only { display: none; }
+
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type="number"] { -moz-appearance: textfield; }
+
+  @media (max-width: 700px) {
+    .two-col { grid-template-columns: 1fr !important; }
+    .form-grid { grid-template-columns: 1fr !important; }
+    .btn-row { flex-direction: column !important; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState } = React;
+
+// =============================================
+// ⚙️ הגדרות — שנה כאן
+// =============================================
+const PHONES = { uri: "972524767233", batchen: "972542031448" };
+const KASHRUT = "מהדרין רבנות קרני שומרון";
+// =============================================
+
+const PRODUCTS = [
+  { id: 1, name: "מגש כירכוני ביס", price: 180, qty_desc: "12 יח'", cat: "מגשי אירוח" },
+  { id: 2, name: "מיני פיתה סביח", price: 180, qty_desc: "12 יח'", cat: "מגשי אירוח" },
+  { id: 3, name: "כריכוני קרואסון חמאה", price: 140, qty_desc: "12 יח'", cat: "מגשי אירוח" },
+  { id: 4, name: "חצאי טורטיה (12)", price: 105, qty_desc: "12 יח'", cat: "מגשי אירוח" },
+  { id: 5, name: "חצאי טורטיה (24)", price: 195, qty_desc: "24 יח'", cat: "מגשי אירוח" },
+  { id: 6, name: "מיני טורטיה", price: 195, qty_desc: "כ-40 יח'", cat: "מגשי אירוח" },
+  { id: 7, name: "בוריקיטס", price: 180, qty_desc: "20 יח'", cat: "מגשי אירוח" },
+  { id: 8, name: "בוריקיטס סביח", price: 180, qty_desc: "20 יח'", cat: "מגשי אירוח" },
+  { id: 9, name: "פריקסה", price: 195, qty_desc: "20 יח'", cat: "מגשי אירוח" },
+  { id: 10, name: "מגש מיני קיש", price: 195, qty_desc: "24 יח'", cat: "מאפים חמים" },
+  { id: 11, name: "מגש פיצוניות", price: 160, qty_desc: "24 יח'", cat: "מאפים חמים" },
+  { id: 12, name: "פוקצ'ינות", price: 160, qty_desc: "24 יח'", cat: "מאפים חמים" },
+  { id: 13, name: "מיני לחם שום", price: 120, qty_desc: "24 יח'", cat: "מאפים חמים" },
+  { id: 14, name: "מגש מאפים טריים", price: 100, qty_desc: "20 יח'", cat: "מאפים חמים" },
+  { id: 15, name: "פסטה", price: 120, qty_desc: "כ-10 מנות", cat: "מנות חמות" },
+  { id: 16, name: "מגש שקשוקה", price: 180, qty_desc: "כ-8 מנות", cat: "מנות חמות" },
+  { id: 17, name: "מגש מיני גחנון", price: 180, qty_desc: "כ-8 מנות", cat: "מנות חמות" },
+  { id: 18, name: "מגש מקושקשת", price: 180, qty_desc: "כ-12 מנות", cat: "מנות חמות" },
+  { id: 19, name: "פלטת גבינות קשות", price: 380, qty_desc: "כ-18 מנות", cat: "פלטות" },
+  { id: 20, name: "פלטת ירקות שוק", price: 160, qty_desc: "כ-2.5 ק\"ג", cat: "פלטות" },
+  { id: 21, name: "שיפודי מוצרלה", price: 180, qty_desc: "24 יח'", cat: "פלטות" },
+  { id: 22, name: "אנטיפסטי", price: 195, qty_desc: "כ-1.5 ק\"ג", cat: "פלטות" },
+  { id: 23, name: "סלטים טריים (קיסר)", price: 120, qty_desc: "כ-12 מנות", cat: "סלטים" },
+  { id: 24, name: "סלטים טריים", price: 165, qty_desc: "כ-12 מנות", cat: "סלטים" },
+  { id: 25, name: "פלטת פירות העונה", price: 250, qty_desc: "כ-2.4 ק\"ג", cat: "פירות וקינוחים" },
+  { id: 26, name: "מגש מתוקים", price: 295, qty_desc: "50 יח'", cat: "פירות וקינוחים" },
+  { id: 27, name: "מגש כדורי שוקולד", price: 180, qty_desc: "35 יח'", cat: "פירות וקינוחים" },
+  { id: 28, name: "מגש קוקיז חמאה", price: 180, qty_desc: "35 יח'", cat: "פירות וקינוחים" },
+  { id: 29, name: "מגש פחזניות", price: 180, qty_desc: "24 יח'", cat: "פירות וקינוחים" },
+  { id: 30, name: "מגש עוגות בחושות", price: 170, qty_desc: "30 יח'", cat: "פירות וקינוחים" },
+];
+
+const CATEGORIES = [...new Set(PRODUCTS.map(p => p.cat))];
+const fmt = n => "₪" + n.toLocaleString("he-IL");
+
+function App() {
+  const [client, setClient] = useState({ name: "", phone: "", date: "", event: "", guests: "", notes: "" });
+  const [items, setItems] = useState([]);
+  const [filterCat, setFilterCat] = useState("הכל");
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState("");
+  const [view, setView] = useState("build");
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
+
+  const addItem = (p) => {
+    const ex = items.find(i => i.id === p.id);
+    if (ex) setItems(items.map(i => i.id === p.id ? { ...i, qty: i.qty + 1 } : i));
+    else setItems([...items, { ...p, qty: 1 }]);
+  };
+  const updateQty = (id, q) => q <= 0 ? setItems(items.filter(i => i.id !== id)) : setItems(items.map(i => i.id === id ? { ...i, qty: q } : i));
+  const removeItem = (id) => setItems(items.filter(i => i.id !== id));
+
+  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const vat = Math.round(subtotal * 0.17);
+  const total = subtotal + vat;
+
+  const filtered = PRODUCTS.filter(p => {
+    return (filterCat === "הכל" || p.cat === filterCat) && (!search || p.name.includes(search));
+  });
+
+  const waText = () => {
+    let t = `🏪 *הזמנה — בית קפה מאפיית השומרון*\n━━━━━━━━━━━━━━━━━━\n`;
+    if (client.name) t += `👤 ${client.name}\n`;
+    if (client.phone) t += `📱 ${client.phone}\n`;
+    if (client.date) t += `📅 ${client.date}\n`;
+    if (client.event) t += `🎉 ${client.event}\n`;
+    if (client.guests) t += `👥 ${client.guests} אורחים\n`;
+    t += `━━━━━━━━━━━━━━━━━━\n\n`;
+    items.forEach(i => { t += `• ${i.name} (${i.qty_desc}) × ${i.qty} — ${fmt(i.price * i.qty)}\n`; });
+    t += `\n━━━━━━━━━━━━━━━━━━\n`;
+    t += `לפני מע"מ: ${fmt(subtotal)}\n`;
+    t += `מע"מ 17%: ${fmt(vat)}\n`;
+    t += `*סה"כ: ${fmt(total)}*\n`;
+    if (client.notes) t += `\n💬 ${client.notes}`;
+    return t;
+  };
+
+  const sendWhatsApp = (phone) => {
+    if (!client.name || items.length === 0) {
+      showToast("נא למלא שם ולבחור מוצרים");
+      return;
+    }
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waText())}`, "_blank");
+  };
+
+  const copyText = async () => {
+    try { await navigator.clipboard.writeText(waText()); showToast("✓ הועתק!"); } catch { showToast("לא הצלחתי להעתיק"); }
+  };
+
+  // ========== PREVIEW ==========
+  if (view === "preview") {
+    return (
+      <div style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px" }}>
+        <div style={{ background: "#fff", borderRadius: 20, boxShadow: "0 4px 30px rgba(120,80,40,0.1)", padding: 32, position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: "linear-gradient(90deg, #5c3d2e, #a0785c, #5c3d2e)" }} />
+          
+          <div style={{ textAlign: "center", marginBottom: 24 }}>
+            <img src="logo.jpeg" alt="לוגו" style={{ width: 90, height: 90, borderRadius: "50%", marginBottom: 8, border: "3px solid #f5ebe0", objectFit: "cover" }} />
+            <h2 style={{ margin: 0, fontSize: 20, color: "#5c3d2e" }}>בית קפה מאפיית השומרון</h2>
+            <p style={{ margin: "2px 0 0", color: "#a0785c", fontSize: 13 }}>כשרות {KASHRUT}</p>
+          </div>
+
+          <div style={{ background: "#fdf6ee", borderRadius: 12, padding: 14, marginBottom: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: 14, color: "#5c3d2e" }}>
+            {client.name && <div><strong>לקוח:</strong> {client.name}</div>}
+            {client.phone && <div><strong>טלפון:</strong> {client.phone}</div>}
+            {client.date && <div><strong>תאריך:</strong> {client.date}</div>}
+            {client.event && <div><strong>אירוע:</strong> {client.event}</div>}
+            {client.guests && <div><strong>אורחים:</strong> {client.guests}</div>}
+          </div>
+
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+            <thead>
+              <tr style={{ background: "#5c3d2e", color: "#fff" }}>
+                <th style={{ padding: "10px 12px", textAlign: "right", borderRadius: "10px 0 0 0" }}>מוצר</th>
+                <th style={{ padding: "10px 8px", textAlign: "center" }}>כמות</th>
+                <th style={{ padding: "10px 8px", textAlign: "center" }}>מחיר</th>
+                <th style={{ padding: "10px 12px", textAlign: "center", borderRadius: "0 10px 0 0" }}>סה"כ</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, idx) => (
+                <tr key={item.id} style={{ background: idx % 2 ? "#fdf6ee" : "#fff" }}>
+                  <td style={{ padding: "10px 12px" }}>{item.name}<br/><span style={{ fontSize: 11, color: "#a0785c" }}>{item.qty_desc}</span></td>
+                  <td style={{ padding: "10px 8px", textAlign: "center" }}>{item.qty}</td>
+                  <td style={{ padding: "10px 8px", textAlign: "center" }}>{fmt(item.price)}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>{fmt(item.price * item.qty)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div style={{ marginTop: 16, borderTop: "2px solid #f5ebe0", paddingTop: 14, fontSize: 15, color: "#5c3d2e" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span>לפני מע"מ</span><span>{fmt(subtotal)}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, color: "#a0785c", fontSize: 13 }}><span>מע"מ 17%</span><span>{fmt(vat)}</span></div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22, borderTop: "3px solid #5c3d2e", paddingTop: 10, marginTop: 6 }}><span>סה"כ</span><span>{fmt(total)}</span></div>
+          </div>
+
+          {client.notes && <div style={{ marginTop: 14, padding: 10, background: "#fdf6ee", borderRadius: 8, fontSize: 13, color: "#5c3d2e" }}>💬 {client.notes}</div>}
+          <p style={{ textAlign: "center", color: "#c4a882", fontSize: 11, marginTop: 20 }}>since 2001 · הצעה תקפה ל-14 ימים</p>
+        </div>
+
+        <div className="no-print btn-row" style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
+          <button onClick={() => setView("build")} style={btnStyle("#e0d5c7", "#5c3d2e")}>← חזרה</button>
+          <button onClick={copyText} style={btnStyle("#5c3d2e", "#fff")}>📋 העתק טקסט</button>
+          <button onClick={() => sendWhatsApp(PHONES.uri)} style={btnStyle("#25D366", "#fff")}>💬 שלח לאורי</button>
+          <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>💬 שלח לבת חן</button>
+          <button onClick={() => window.print()} style={btnStyle("#a0785c", "#fff")}>🖨️ שמור PDF</button>
+        </div>
+
+        {toast && <Toast msg={toast}/>}
+      </div>
+    );
+  }
+
+  // ========== BUILD ==========
+  return (
+    <div style={{ maxWidth: 880, margin: "0 auto", padding: "16px 16px 60px" }}>
+      {/* Header */}
+      <div style={{ textAlign: "center", padding: "20px 0 12px" }}>
+        <img src="logo.jpeg" alt="לוגו" style={{ width: 80, height: 80, borderRadius: "50%", border: "3px solid #e0d5c7", objectFit: "cover" }} />
+        <h1 style={{ margin: "8px 0 2px", fontSize: 22, color: "#5c3d2e" }}>בית קפה מאפיית השומרון</h1>
+        <p style={{ margin: 0, color: "#a0785c", fontSize: 13 }}>הרכיבו את ההזמנה שלכם</p>
+      </div>
+
+      {/* Client Details */}
+      <div style={cardStyle}>
+        <h3 style={sectionTitle}>📋 פרטים</h3>
+        <div className="form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <input style={inputStyle} placeholder="שם מלא *" value={client.name} onChange={e => setClient({...client, name: e.target.value})} />
+          <input style={inputStyle} placeholder="טלפון *" type="tel" value={client.phone} onChange={e => setClient({...client, phone: e.target.value})} />
+          <input style={inputStyle} placeholder="תאריך אירוע" type="date" value={client.date} onChange={e => setClient({...client, date: e.target.value})} />
+          <input style={inputStyle} placeholder="סוג אירוע" value={client.event} onChange={e => setClient({...client, event: e.target.value})} />
+          <input style={inputStyle} placeholder="מספר אורחים" type="number" value={client.guests} onChange={e => setClient({...client, guests: e.target.value})} />
+          <input style={inputStyle} placeholder="הערות" value={client.notes} onChange={e => setClient({...client, notes: e.target.value})} />
+        </div>
+      </div>
+
+      {/* Two columns */}
+      <div className="two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        {/* Catalog */}
+        <div style={cardStyle}>
+          <h3 style={sectionTitle}>🛒 תפריט</h3>
+          <input style={{...inputStyle, marginBottom: 10}} placeholder="🔍 חיפוש מוצר..." value={search} onChange={e => setSearch(e.target.value)} />
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+            {["הכל", ...CATEGORIES].map(c => (
+              <button key={c} onClick={() => setFilterCat(c)}
+                style={{ padding: "6px 14px", borderRadius: 20, border: "none", fontSize: 13,
+                  fontWeight: filterCat === c ? 700 : 400,
+                  background: filterCat === c ? "#5c3d2e" : "#f5ebe0",
+                  color: filterCat === c ? "#fff" : "#5c3d2e", cursor: "pointer" }}>
+                {c}
+              </button>
+            ))}
+          </div>
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+            {filtered.map(p => {
+              const inCart = items.find(i => i.id === p.id);
+              return (
+                <div key={p.id} onClick={() => addItem(p)}
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+                    padding: "12px 14px", borderBottom: "1px solid #f5ebe0", cursor: "pointer",
+                    background: inCart ? "#f0fdf4" : "transparent", borderRadius: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: "#3d2b1f" }}>
+                      {p.name} {inCart && <span style={{ color: "#16a34a", fontSize: 12, fontWeight: 700 }}>✓ {inCart.qty}</span>}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#a0785c" }}>{p.qty_desc} למגש</div>
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#5c3d2e" }}>{fmt(p.price)}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Cart */}
+        <div style={cardStyle}>
+          <h3 style={sectionTitle}>📝 ההזמנה שלי ({items.length})</h3>
+          {items.length === 0 ? (
+            <div style={{ textAlign: "center", padding: 50, color: "#c4a882" }}>
+              <div style={{ fontSize: 40, marginBottom: 8 }}>🥐</div>
+              <div>בחרו מוצרים מהתפריט</div>
+            </div>
+          ) : (
+            <>
+              <div style={{ maxHeight: 320, overflowY: "auto" }}>
+                {items.map(item => (
+                  <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid #f5ebe0" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "#3d2b1f" }}>{item.name}</div>
+                      <div style={{ fontSize: 12, color: "#a0785c" }}>{fmt(item.price)} × {item.qty} = {fmt(item.price * item.qty)}</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <button onClick={(e) => { e.stopPropagation(); updateQty(item.id, item.qty - 1); }} style={qtyBtnStyle}>−</button>
+                      <span style={{ minWidth: 24, textAlign: "center", fontWeight: 700, color: "#5c3d2e" }}>{item.qty}</span>
+                      <button onClick={(e) => { e.stopPropagation(); updateQty(item.id, item.qty + 1); }} style={qtyBtnStyle}>+</button>
+                      <button onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
+                        style={{ ...qtyBtnStyle, background: "#fee2e2", border: "none", color: "#dc2626", marginRight: 4 }}>✕</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: "2px solid #f5ebe0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 14, color: "#5c3d2e" }}><span>לפני מע"מ</span><span>{fmt(subtotal)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 13, color: "#a0785c" }}><span>מע"מ 17%</span><span>{fmt(vat)}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 20, color: "#5c3d2e", borderTop: "3px solid #5c3d2e", paddingTop: 8, marginTop: 4 }}><span>סה"כ</span><span>{fmt(total)}</span></div>
+              </div>
+
+              <div className="btn-row" style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" }}>
+                <button onClick={() => { if (!client.name) { showToast("נא למלא שם לקוח"); return; } setView("preview"); }} style={btnStyle("#5c3d2e", "#fff")}>👁️ תצוגה מקדימה</button>
+                <button onClick={() => sendWhatsApp(PHONES.uri)} style={btnStyle("#25D366", "#fff")}>💬 שלח לאורי</button>
+                <button onClick={() => sendWhatsApp(PHONES.batchen)} style={btnStyle("#25D366", "#fff")}>💬 שלח לבת חן</button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {toast && <Toast msg={toast}/>}
+    </div>
+  );
+}
+
+// Styles
+const cardStyle = { background: "white", borderRadius: 16, boxShadow: "0 2px 16px rgba(120,80,40,0.08)", padding: 20, marginBottom: 16 };
+const sectionTitle = { margin: "0 0 12px", fontSize: 15, color: "#5c3d2e" };
+const inputStyle = { width: "100%", padding: "10px 14px", border: "1px solid #e0d5c7", borderRadius: 10, fontSize: 14, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fdfbf8", fontFamily: "inherit" };
+const qtyBtnStyle = { width: 32, height: 32, borderRadius: "50%", border: "1px solid #e0d5c7", background: "#fdfbf8", cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" };
+const btnStyle = (bg, color) => ({ padding: "14px 20px", borderRadius: 12, border: "none", background: bg, color, fontSize: 15, fontWeight: 700, cursor: "pointer", flex: 1, fontFamily: "inherit" });
+
+function Toast({ msg }) {
+  return <div style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "#5c3d2e", color: "#fff", padding: "12px 28px", borderRadius: 30, fontSize: 14, fontWeight: 600, zIndex: 999, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>{msg}</div>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
