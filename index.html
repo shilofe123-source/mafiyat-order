@@ -341,14 +341,15 @@ function PinModal({ onClose, onSuccess }) {
   `;
 }
 
-function ApprovalModal({ isEditorMode, discount, setDiscount, totalPrice, onConfirm, onClose }) {
+function ApprovalModal({ isEditorMode, discount, setDiscount, totalPrice, onConfirm, onClose, recipientName }) {
   const [checked, setChecked] = useState(false);
   const finalPrice = totalPrice - (Number(discount) || 0);
 
   return html`
     <div class="modal-overlay" onClick=${onClose}>
       <div class="modal-box" onClick=${e => e.stopPropagation()}>
-        <h3 style=${{ marginBottom: 20, color: C.pri, fontSize: 18 }}>✅ אישור הצעת מחיר</h3>
+        <h3 style=${{ marginBottom: 4, color: C.pri, fontSize: 17, fontWeight: 700 }}>${recipientName ? "שליחה ל" + recipientName : "אישור הצעת מחיר"}</h3>
+        ${recipientName && html`<p style=${{ color: C.txtL, fontSize: 12, marginBottom: 16 }}>ההזמנה תישמר בגיליון ותישלח כ-PDF בוואטסאפ</p>`}
 
         ${isEditorMode && html`
           <div style=${{ marginBottom: 16 }}>
@@ -401,7 +402,7 @@ function ApprovalModal({ isEditorMode, discount, setDiscount, totalPrice, onConf
               color: "#fff", fontSize: 15, fontWeight: 700,
               cursor: checked ? "pointer" : "not-allowed"
             }}
-          >📊 אישור ושליחה</button>
+          >${recipientName ? "✅ שמור ושלח ל" + recipientName : "✅ אישור ושמירה"}</button>
           <button onClick=${onClose} style=${{ flex: 1, padding: "13px", borderRadius: 10, border: "1px solid " + C.creamB, background: "#fff", color: C.txt, fontSize: 15, cursor: "pointer" }}>ביטול</button>
         </div>
       </div>
@@ -459,6 +460,14 @@ function App() {
   };
 
   const sendWA = (ph) => { window.open("https://wa.me/" + ph + "?text=" + encodeURIComponent(waText()), "_blank"); };
+
+  const [pendingRecipient, setPendingRecipient] = useState(null);
+
+  const sendWAPdf = (ph, name) => {
+    setPendingRecipient({ ph, name });
+    setDiscount(0);
+    setShowApprovalModal(true);
+  };
 
   const sendToSheets = async (discountAmt) => {
     try {
@@ -558,7 +567,7 @@ function App() {
 
   const iS = { width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fff", fontFamily: "inherit", WebkitAppearance: "none" };
   const cS = { background: "white", borderRadius: 16, boxShadow: "0 2px 16px rgba(27,73,101,0.07)", padding: 20, marginBottom: 16 };
-  const bS = (bg, co) => ({ padding: "14px 20px", borderRadius: 12, border: "none", background: bg, color: co, fontSize: 15, fontWeight: 700, cursor: "pointer", flex: 1, fontFamily: "inherit", WebkitAppearance: "none" });
+  const bS = (bg, co, border) => ({ padding: "9px 18px", borderRadius: 8, border: border || "none", background: bg, color: co, fontSize: 13, fontWeight: 600, cursor: "pointer", flex: 1, fontFamily: "inherit", WebkitAppearance: "none", letterSpacing: "0.3px", transition: "opacity 0.15s" });
   const qS = { width: 44, height: 44, borderRadius: "50%", border: "1px solid " + C.creamB, background: "#fff", cursor: "pointer", fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center", WebkitAppearance: "none" };
 
   const currentLogo = customLogo || LOGO;
@@ -606,16 +615,10 @@ function App() {
         ${client.notes && html`<div style=${{ marginTop: 14, padding: 10, background: C.cream, borderRadius: 8, fontSize: 13, color: C.txt }}>💬 ${client.notes}</div>`}
         <p style=${{ textAlign: "center", color: C.creamB, fontSize: 11, marginTop: 20 }}>since 2001 · הצעה תקפה ל-14 ימים</p>
       </div>
-      <div className="no-print btn-row" style=${{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
-        <button onClick=${() => setView("build")} style=${bS(C.creamD, C.pri)}>← חזרה</button>
-        <button onClick=${() => window.print()} style=${bS(C.priL, "#fff")}>🖨️ הדפס / PDF</button>
-        <button onClick=${copyTxt} style=${bS(C.pri, "#fff")}>📋 העתק טקסט</button>
-        <button onClick=${() => sendWA(PHONES.uri)} style=${bS(C.green, "#fff")}>💬 שלח לאורי</button>
-        <button onClick=${() => sendWA(PHONES.batchen)} style=${bS(C.green, "#fff")}>💬 שלח לבת חן</button>
-        <button
-          onClick=${() => { setDiscount(0); setShowApprovalModal(true); }}
-          style=${bS(C.editorGreen, "#fff")}
-        >✅ אישור ושמירה</button>
+      <div className="no-print btn-row" style=${{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+        <button onClick=${() => setView("build")} style=${bS("#f1f5f9", C.txt, "1px solid #cbd5e1")}>← חזרה</button>
+        <button onClick=${() => sendWAPdf(PHONES.uri, "אורי")} style=${bS(C.pri, "#fff")}>שלח לאורי ›</button>
+        <button onClick=${() => sendWAPdf(PHONES.batchen, "בת חן")} style=${bS(C.priL, "#fff")}>שלח לבת חן ›</button>
       </div>
       ${showApprovalModal && html`
         <${ApprovalModal}
@@ -805,6 +808,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
 (function() {
   // ── מוצרי המאפייה ──
   const PRODUCTS = [
@@ -1019,6 +1023,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
   sendBtn.addEventListener('click', handleSend);
   inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') handleSend(); });
 })();
+}); // DOMContentLoaded
 </script>
 
 </body>
