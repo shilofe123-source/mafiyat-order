@@ -845,6 +845,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
 
   // ── State ──
   let messages = [];
+  let chatHistory = [];
   let allowFill = false;
   let isTyping = false;
   let isCollapsed = false;
@@ -911,15 +912,19 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
     };
 
     try {
-      const res = await fetch('https://api.base44.com/api/apps/69bbcdddb779ce2d84204e35/chat', {
+      const res = await fetch('https://app-84204e35.base44.app/functions/bakeryChat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg, context: context.systemPrompt })
+        body: JSON.stringify({ 
+          message: userMsg,
+          history: chatHistory.slice(-10), // שמור עד 10 הודעות אחרונות
+          systemPrompt: context.systemPrompt
+        })
       });
       
       if (!res.ok) throw new Error('API error');
       const data = await res.json();
-      return data.response || data.message || 'מצטער, לא הצלחתי להתחבר. נסה שוב.';
+      return data.response || 'מצטער, לא הצלחתי להתחבר. נסה שוב.';
     } catch(e) {
       // fallback חכם מקומי
       return localResponse(userMsg, context);
@@ -971,6 +976,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
     
     inputEl.value = '';
     addMsg('user', msg);
+    chatHistory.push({ role: 'user', content: msg });
     isTyping = true;
     showTyping();
     
@@ -993,6 +999,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
       } catch(e) {}
     }
     
+    chatHistory.push({ role: 'assistant', content: response });
     addMsg('bot', response);
   }
 
