@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="format-detection" content="telephone=no">
+<title>יצירת הזמנה מאפית השומרון</title>
+<meta name="description" content="הזמינו מגשי אירוח, מאפים וקינוחים ממאפיית השומרון">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥐</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥐</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; direction: rtl; background: linear-gradient(135deg, #c8f0d4 0%, #e2d0f5 50%, #f5e0c0 100%); min-height: 100vh; }
+  input, textarea, button, select { font-family: inherit; font-size: 16px; }
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type="number"] { -moz-appearance: textfield; }
+  textarea { resize: vertical; }
+
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  .modal-box {
+    background: #fff; border-radius: 18px; padding: 28px 24px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+    direction: rtl;
+  }
+
+  .editor-bar {
+    background: linear-gradient(90deg, #1a5c30, #5a2d82);
+    color: #fff; border-radius: 12px; padding: 14px 18px;
+    margin-bottom: 14px; display: flex; align-items: center;
+    gap: 12px; flex-wrap: wrap;
+  }
+
+  @media print {
+    body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    #root > div { padding: 0 !important; }
+    #preview-card { box-shadow: none !important; border-radius: 0 !important; padding: 20px 30px !important; max-width: 100% !important; }
+    table { page-break-inside: avoid; }
+    tr { page-break-inside: avoid; }
+  }
+
+  @media (max-width: 700px) {
+    .two-col { grid-template-columns: 1fr !important; }
+    .form-grid { grid-template-columns: 1fr !important; }
+    .btn-row { flex-direction: column !important; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+
+<script>
+const { useState, useRef } = React;
+const html = htm.bind(React.createElement);
+
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const CONFIG = {
+  CLIENT_SELF_APPROVE: false,   // false = preview before approval; true = approval modal directly
+  EDITOR_PIN: "2001",
+  GEMINI_API_KEY: ""   // אל תכניס כאן — המפתח נשמר בצד-שרת ב-Code.gs
+};
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const PHONES = { uri: "972524767233", batchen: "972542031448" };
+const KASHRUT = "מהדרין רבנות קרני שומרון";
+const LOGO = "data:image/jpeg;base64,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";
+
+const PRODUCTS = [
+  { id: 1,  name: "מגש כריכוני ביס",       price: 180, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
+  { id: 2,  name: "מיני פיתה סביח",         price: 180, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
+  { id: 3,  name: "כריכוני קרואסון חמאה",   price: 140, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
+  { id: 4,  name: "חצאי טורטיה (12)",       price: 105, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
+  { id: 5,  name: "חצאי טורטיה (24)",       price: 195, qty_desc: "24 יח'",       cat: "מגשי אירוח" },
+  { id: 6,  name: "מיני טורטיה",            price: 195, qty_desc: "כ-40 יח'",     cat: "מגשי אירוח" },
+  { id: 7,  name: "בוריקיטס",               price: 180, qty_desc: "20 יח'",       cat: "מגשי אירוח" },
+  { id: 8,  name: "בוריקיטס סביח",          price: 180, qty_desc: "20 יח'",       cat: "מגשי אירוח" },
+  { id: 9,  name: "פריקסה",                 price: 195, qty_desc: "20 יח'",       cat: "מגשי אירוח" },
+  { id: 10, name: "מגש מיני קיש",           price: 195, qty_desc: "24 יח'",       cat: "מאפים חמים" },
+  { id: 11, name: "מגש פיצוניות",           price: 160, qty_desc: "24 יח'",       cat: "מאפים חמים" },
+  { id: 12, name: "פוקצ'ינות",              price: 160, qty_desc: "24 יח'",       cat: "מאפים חמים" },
+  { id: 13, name: "מיני לחם שום",           price: 120, qty_desc: "24 יח'",       cat: "מאפים חמים" },
+  { id: 14, name: "מגש מאפים טריים",        price: 100, qty_desc: "20 יח'",       cat: "מאפים חמים" },
+  { id: 15, name: "פסטה",                   price: 120, qty_desc: "כ-10 מנות",    cat: "מנות חמות" },
+  { id: 16, name: "מגש שקשוקה",             price: 180, qty_desc: "כ-8 מנות",     cat: "מנות חמות" },
+  { id: 17, name: "מגש מיני גחנון",         price: 180, qty_desc: "כ-8 מנות",     cat: "מנות חמות" },
+  { id: 18, name: "מגש מקושקשת",            price: 180, qty_desc: "כ-12 מנות",    cat: "מנות חמות" },
+  { id: 19, name: "פלטת גבינות קשות",       price: 380, qty_desc: "כ-18 מנות",    cat: "פלטות" },
+  { id: 20, name: "פלטת ירקות שוק",         price: 160, qty_desc: 'כ-2.5 ק"ג',   cat: "פלטות" },
+  { id: 21, name: "שיפודי מוצרלה",          price: 180, qty_desc: "24 יח'",       cat: "פלטות" },
+  { id: 22, name: "אנטיפסטי",               price: 195, qty_desc: 'כ-1.5 ק"ג',   cat: "פלטות" },
+  { id: 23, name: "סלטים טריים (קיסר)",     price: 120, qty_desc: "כ-12 מנות",    cat: "סלטים" },
+  { id: 24, name: "סלטים טריים",            price: 165, qty_desc: "כ-12 מנות",    cat: "סלטים" },
+  { id: 25, name: "פלטת פירות העונה",       price: 250, qty_desc: 'כ-2.4 ק"ג',   cat: "פירות וקינוחים" },
+  { id: 26, name: "מגש מתוקים",             price: 295, qty_desc: "50 יח'",       cat: "פירות וקינוחים" },
+  { id: 27, name: "מגש כדורי שוקולד",       price: 180, qty_desc: "35 יח'",       cat: "פירות וקינוחים" },
+  { id: 28, name: "מגש קוקיז חמאה",         price: 180, qty_desc: "35 יח'",       cat: "פירות וקינוחים" },
+  { id: 29, name: "מגש פחזניות",            price: 180, qty_desc: "24 יח'",       cat: "פירות וקינוחים" },
+  { id: 30, name: "מגש עוגות בחושות",       price: 170, qty_desc: "30 יח'",       cat: "פירות וקינוחים" },
+];
+
+const CATEGORIES = [...new Set(PRODUCTS.map(p => p.cat))];
+const fmt = n => "\u20AA" + n.toLocaleString("he-IL");
+
+const C = {
+  pri: "#0d3b6e", priL: "#1565c0", acc: "#1e88e5",
+  cream: "#fef9e7", creamD: "#f5e6c0", creamB: "#c9a96e",
+  txt: "#0d2b40", txtL: "#5a7fa0", green: "#25D366",
+  editorGreen: "#1a5c30", editorPurple: "#5a2d82",
+};
+
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbyrMfxn0CiEa0U7IEfn12nxZMYmIIudBELP8Zbc2Gc0QkliVsELJV7iwMG7As5QKSRT/exec";
+
+// ─── COMPONENTS ───────────────────────────────────────────────────────────────
+
+function Toast({ msg }) {
+  return html`<div style=${{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: C.pri, color: "#fff", padding: "12px 28px", borderRadius: 30, fontSize: 14, fontWeight: 600, zIndex: 999, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>${msg}</div>`;
+}
+
+function GearButton({ onClick }) {
+  return html`
+    <button
+      onClick=${onClick}
+      title="ממשק עורך"
+      style=${{
+        position: "fixed", bottom: 20, left: 20,
+        width: 48, height: 48, borderRadius: "50%",
+        background: "rgba(255,255,255,0.92)",
+        border: "1px solid #ccc",
+        fontSize: 22, cursor: "pointer",
+        zIndex: 100, boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        WebkitAppearance: "none"
+      }}
+    >⚙️</button>
+  `;
+}
+
+function PinModal({ onClose, onSuccess }) {
+  const [pin, setPin] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = () => {
+    if (pin === CONFIG.EDITOR_PIN) {
+      onSuccess();
+      onClose();
+    } else {
+      setError("PIN שגוי, נסה שוב");
+      setPin("");
+    }
+  };
+
+  return html`
+    <div class="modal-overlay" onClick=${onClose}>
+      <div class="modal-box" onClick=${e => e.stopPropagation()}>
+        <h3 style=${{ marginBottom: 16, color: C.pri, fontSize: 18 }}>🔒 כניסה לממשק עורך</h3>
+        <input
+          type="password"
+          placeholder="הכנס PIN"
+          value=${pin}
+          onInput=${e => { setPin(e.target.value); setError(""); }}
+          onKeyDown=${e => e.key === "Enter" && handleSubmit()}
+          style=${{ width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 18, textAlign: "center", marginBottom: 8, letterSpacing: 6 }}
+          autoFocus
+        />
+        ${error && html`<div style=${{ color: "#dc2626", fontSize: 13, marginBottom: 8, textAlign: "center" }}>${error}</div>`}
+        <div style=${{ display: "flex", gap: 10, marginTop: 8 }}>
+          <button onClick=${handleSubmit} style=${{ flex: 1, padding: "12px", borderRadius: 10, border: "none", background: C.pri, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>כניסה</button>
+          <button onClick=${onClose} style=${{ flex: 1, padding: "12px", borderRadius: 10, border: "1px solid " + C.creamB, background: "#fff", color: C.txt, fontSize: 15, cursor: "pointer" }}>ביטול</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function ApprovalModal({ isEditorMode, discount, setDiscount, totalPrice, onConfirm, onClose }) {
+  const [checked, setChecked] = useState(false);
+  const finalPrice = totalPrice - (Number(discount) || 0);
+
+  return html`
+    <div class="modal-overlay" onClick=${onClose}>
+      <div class="modal-box" onClick=${e => e.stopPropagation()}>
+        <h3 style=${{ marginBottom: 20, color: C.pri, fontSize: 18 }}>✅ אישור הצעת מחיר</h3>
+
+        ${isEditorMode && html`
+          <div style=${{ marginBottom: 16 }}>
+            <label style=${{ display: "block", fontSize: 13, color: C.txtL, marginBottom: 6 }}>הנחה (₪)</label>
+            <input
+              type="number"
+              min="0"
+              max=${totalPrice}
+              value=${discount}
+              onInput=${e => setDiscount(Math.max(0, Math.min(totalPrice, Number(e.target.value))))}
+              style=${{ width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "ltr", textAlign: "center" }}
+            />
+          </div>
+        `}
+
+        <div style=${{ background: C.cream, borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 15 }}>
+          <div style=${{ display: "flex", justifyContent: "space-between", marginBottom: isEditorMode && discount > 0 ? 6 : 0 }}>
+            <span>סה"כ לפני הנחה:</span>
+            <span style=${{ fontWeight: 700 }}>${fmt(totalPrice)}</span>
+          </div>
+          ${isEditorMode && discount > 0 && html`
+            <div style=${{ display: "flex", justifyContent: "space-between", color: "#dc2626", marginBottom: 6 }}>
+              <span>הנחה:</span>
+              <span style=${{ fontWeight: 700 }}>-${fmt(Number(discount))}</span>
+            </div>
+          `}
+          <div style=${{ display: "flex", justifyContent: "space-between", borderTop: (isEditorMode && discount > 0) ? "1px solid " + C.creamD : "none", paddingTop: (isEditorMode && discount > 0) ? 8 : 0, fontWeight: 800, fontSize: 18, color: C.pri }}>
+            <span>סכום סופי לתשלום:</span>
+            <span>${fmt(finalPrice)}</span>
+          </div>
+        </div>
+
+        <label style=${{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 20, fontSize: 14, color: C.txt }}>
+          <input
+            type="checkbox"
+            checked=${checked}
+            onChange=${e => setChecked(e.target.checked)}
+            style=${{ width: 18, height: 18, marginTop: 1, cursor: "pointer", flexShrink: 0 }}
+          />
+          <span>אני מאשר/ת את ההזמנה ואת הפרטים המפורטים לעיל</span>
+        </label>
+
+        <div style=${{ display: "flex", gap: 10 }}>
+          <button
+            onClick=${() => checked && onConfirm(Number(discount) || 0)}
+            disabled=${!checked}
+            style=${{
+              flex: 1, padding: "13px", borderRadius: 10, border: "none",
+              background: checked ? C.editorGreen : "#ccc",
+              color: "#fff", fontSize: 15, fontWeight: 700,
+              cursor: checked ? "pointer" : "not-allowed"
+            }}
+          >📊 אישור ושליחה</button>
+          <button onClick=${onClose} style=${{ flex: 1, padding: "13px", borderRadius: 10, border: "1px solid " + C.creamB, background: "#fff", color: C.txt, fontSize: 15, cursor: "pointer" }}>ביטול</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+
+function App() {
+  const [client, setClient] = useState({ name: "", phone: "", date: "", event: "", guests: "", notes: "" });
+  const [items, setItems] = useState([]);
+  const [filterCat, setFilterCat] = useState("הכל");
+  const [search, setSearch] = useState("");
+  const [toast, setToast] = useState("");
+  const [view, setView] = useState("build");
+
+  // editor state
+  const [isEditorMode, setIsEditorMode] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [discount, setDiscount] = useState(0);
+  const [customLogo, setCustomLogo] = useState(null);
+  const imageInputRef = useRef(null);
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
+
+  const addItem = (p) => {
+    const ex = items.find(i => i.id === p.id);
+    if (ex) setItems(items.map(i => i.id === p.id ? Object.assign({}, i, { qty: i.qty + 1 }) : i));
+    else setItems([...items, Object.assign({}, p, { qty: 1 })]);
+  };
+  const updateQty = (id, q) => q <= 0 ? setItems(items.filter(i => i.id !== id)) : setItems(items.map(i => i.id === id ? Object.assign({}, i, { qty: q }) : i));
+  const removeItem = (id) => setItems(items.filter(i => i.id !== id));
+
+  const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const filtered = PRODUCTS.filter(p => (filterCat === "הכל" || p.cat === filterCat) && (!search || p.name.includes(search)));
+
+  const fmtDate = (v) => { if (!v) return ""; const parts = v.split("-"); return parts[2] + "." + parts[1] + "." + parts[0]; };
+  const wordCount = (s) => s.trim() ? s.trim().split(/\s+/).length : 0;
+
+  const waText = () => {
+    let t = "🏪 *הזמנה — בית קפה מאפיית השומרון*\n━━━━━━━━━━━━━━━━━━\n";
+    if (client.name)   t += "👤 " + client.name + "\n";
+    if (client.phone)  t += "📱 " + client.phone + "\n";
+    if (client.date)   t += "📅 " + fmtDate(client.date) + "\n";
+    if (client.event)  t += "🎉 " + client.event + "\n";
+    if (client.guests) t += "👥 " + client.guests + " אורחים\n";
+    t += "━━━━━━━━━━━━━━━━━━\n\n";
+    items.forEach(i => { t += "• " + i.name + " (" + i.qty_desc + ") × " + i.qty + " — " + fmt(i.price * i.qty) + "\n"; });
+    t += "\n━━━━━━━━━━━━━━━━━━\n";
+    t += '*סה"כ כולל מע"מ: ' + fmt(total) + "*\n";
+    if (client.notes) t += "\n💬 " + client.notes;
+    return t;
+  };
+
+  const sendWA = (ph) => { window.open("https://wa.me/" + ph + "?text=" + encodeURIComponent(waText()), "_blank"); };
+
+  const sendToSheets = async (discountAmt) => {
+    try {
+      showToast("שולח הזמנה לגיליון...");
+      const itemsText = items.filter(i => i.qty > 0).map(i => i.name + " x" + i.qty).join(", ");
+      const disc = Number(discountAmt) || 0;
+      const payload = {
+        orderDate: client.date ? fmtDate(client.date) : new Date().toLocaleDateString("he-IL"),
+        customerName: client.name || "",
+        phone: client.phone || "",
+        event: client.event || "",
+        guests: client.guests || "",
+        items: itemsText,
+        totalPrice: total,
+        discount: disc,
+        finalPrice: total - disc,
+        notes: client.notes || "",
+        approvedAt: new Date().toISOString()
+      };
+      const res = await fetch(SHEETS_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        showToast("✓ ההזמנה נשמרה בגיליון!");
+        setShowApprovalModal(false);
+      } else {
+        showToast("שגיאה: " + (data.message || "נסה שוב"));
+      }
+    } catch (err) {
+      showToast("שגיאת רשת – לא נשמר");
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const dataUrl = ev.target.result;
+      setCustomLogo(dataUrl); // תצוגה מקדימה מיידית
+
+      const base64 = dataUrl.split(",")[1];
+      showToast("מנתח תמונה עם Gemini...");
+      try {
+        const res = await fetch(SHEETS_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "analyzeImage", base64, mimeType: file.type })
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+          showToast("✓ " + (data.description || "תמונה נטענה"));
+        } else if (data.status === "no_key") {
+          showToast("תמונה הועלתה (Gemini לא מוגדר ב-Apps Script)");
+        } else {
+          showToast("שגיאת Gemini: " + (data.message || "נסה שוב"));
+        }
+      } catch {
+        showToast("תמונה הועלתה (שגיאת רשת — Gemini לא זמין)");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const copyTxt = () => {
+    const txt = waText();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(() => showToast("✓ הועתק!")).catch(() => fallbackCopy(txt));
+    } else {
+      fallbackCopy(txt);
+    }
+  };
+  const fallbackCopy = (txt) => {
+    const ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand("copy"); showToast("✓ הועתק!"); } catch { showToast("לא הצלחתי להעתיק"); }
+    document.body.removeChild(ta);
+  };
+
+  const handleOrderAction = () => {
+    if (!client.name) { showToast("נא למלא שם לקוח"); return; }
+    if (items.length === 0) { showToast("נא לבחור מוצרים"); return; }
+    if (CONFIG.CLIENT_SELF_APPROVE) {
+      setDiscount(0);
+      setShowApprovalModal(true);
+    } else {
+      setView("preview");
+    }
+  };
+
+  const iS = { width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fff", fontFamily: "inherit", WebkitAppearance: "none" };
+  const cS = { background: "white", borderRadius: 16, boxShadow: "0 2px 16px rgba(27,73,101,0.07)", padding: 20, marginBottom: 16 };
+  const bS = (bg, co) => ({ padding: "14px 20px", borderRadius: 12, border: "none", background: bg, color: co, fontSize: 15, fontWeight: 700, cursor: "pointer", flex: 1, fontFamily: "inherit", WebkitAppearance: "none" });
+  const qS = { width: 44, height: 44, borderRadius: "50%", border: "1px solid " + C.creamB, background: "#fff", cursor: "pointer", fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center", WebkitAppearance: "none" };
+
+  const currentLogo = customLogo || LOGO;
+
+  // ── PREVIEW VIEW ──
+  if (view === "preview") return html`
+    <div style=${{ maxWidth: 640, margin: "0 auto", padding: "24px 16px" }}>
+      <div id="preview-card" style=${{ background: "#fff", borderRadius: 20, boxShadow: "0 4px 30px rgba(27,73,101,0.1)", padding: 32, position: "relative", overflow: "hidden" }}>
+        <div style=${{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: "linear-gradient(90deg," + C.pri + "," + C.acc + "," + C.pri + ")" }} />
+        <div style=${{ textAlign: "center", marginBottom: 24 }}>
+          <img src=${currentLogo} alt="לוגו" style=${{ width: 90, height: 90, borderRadius: "50%", marginBottom: 8, border: "3px solid " + C.creamD, objectFit: "cover" }} />
+          <h2 style=${{ margin: 0, fontSize: 20, color: C.pri }}>בית קפה מאפיית השומרון</h2>
+          <p style=${{ margin: "2px 0 0", color: C.txtL, fontSize: 13 }}>כשרות ${KASHRUT}</p>
+        </div>
+        <div style=${{ background: C.cream, borderRadius: 12, padding: 14, marginBottom: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px 20px", fontSize: 14, color: C.txt }}>
+          ${client.name && html`<div><strong>לקוח:</strong> ${client.name}</div>`}
+          ${client.phone && html`<div><strong>טלפון:</strong> ${client.phone}</div>`}
+          ${client.date && html`<div><strong>תאריך:</strong> ${fmtDate(client.date)}</div>`}
+          ${client.event && html`<div><strong>אירוע:</strong> ${client.event}</div>`}
+          ${client.guests && html`<div><strong>אורחים:</strong> ${client.guests}</div>`}
+        </div>
+        <table style=${{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+          <thead>
+            <tr style=${{ background: C.pri, color: "#fff" }}>
+              <th style=${{ padding: "10px 12px", textAlign: "right", borderRadius: "10px 0 0 0" }}>מוצר</th>
+              <th style=${{ padding: "10px 8px", textAlign: "center" }}>כמות</th>
+              <th style=${{ padding: "10px 8px", textAlign: "center" }}>מחיר</th>
+              <th style=${{ padding: "10px 12px", textAlign: "center", borderRadius: "0 10px 0 0" }}>סה"כ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map((it, idx) => html`
+              <tr key=${it.id} style=${{ background: idx % 2 ? C.cream : "#fff" }}>
+                <td style=${{ padding: "10px 12px" }}>${it.name}<br/><span style=${{ fontSize: 11, color: C.txtL }}>${it.qty_desc}</span></td>
+                <td style=${{ padding: "10px 8px", textAlign: "center" }}>${it.qty}</td>
+                <td style=${{ padding: "10px 8px", textAlign: "center" }}>${fmt(it.price)}</td>
+                <td style=${{ padding: "10px 12px", textAlign: "center", fontWeight: 700 }}>${fmt(it.price * it.qty)}</td>
+              </tr>
+            `)}
+          </tbody>
+        </table>
+        <div style=${{ marginTop: 16, borderTop: "2px solid " + C.creamD, paddingTop: 14, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 22, color: C.pri }}>
+          <span>סה"כ כולל מע"מ</span><span>${fmt(total)}</span>
+        </div>
+        ${client.notes && html`<div style=${{ marginTop: 14, padding: 10, background: C.cream, borderRadius: 8, fontSize: 13, color: C.txt }}>💬 ${client.notes}</div>`}
+        <p style=${{ textAlign: "center", color: C.creamB, fontSize: 11, marginTop: 20 }}>since 2001 · הצעה תקפה ל-14 ימים</p>
+      </div>
+      <div className="no-print btn-row" style=${{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
+        <button onClick=${() => setView("build")} style=${bS(C.creamD, C.pri)}>← חזרה</button>
+        <button onClick=${() => window.print()} style=${bS(C.priL, "#fff")}>🖨️ הדפס / PDF</button>
+        <button onClick=${copyTxt} style=${bS(C.pri, "#fff")}>📋 העתק טקסט</button>
+        <button onClick=${() => sendWA(PHONES.uri)} style=${bS(C.green, "#fff")}>💬 שלח לאורי</button>
+        <button onClick=${() => sendWA(PHONES.batchen)} style=${bS(C.green, "#fff")}>💬 שלח לבת חן</button>
+        <button
+          onClick=${() => { setDiscount(0); setShowApprovalModal(true); }}
+          style=${bS(C.editorGreen, "#fff")}
+        >✅ אישור ושמירה</button>
+      </div>
+      ${showApprovalModal && html`
+        <${ApprovalModal}
+          isEditorMode=${isEditorMode}
+          discount=${discount}
+          setDiscount=${setDiscount}
+          totalPrice=${total}
+          onConfirm=${sendToSheets}
+          onClose=${() => setShowApprovalModal(false)}
+        />
+      `}
+      ${toast && html`<${Toast} msg=${toast}/>`}
+    </div>
+  `;
+
+  // ── BUILD VIEW ──
+  return html`
+    <div style=${{ maxWidth: 880, margin: "0 auto", padding: "16px 16px 80px" }}>
+      <div style=${{ textAlign: "center", padding: "20px 0 12px" }}>
+        <img src=${currentLogo} alt="לוגו" style=${{ width: 80, height: 80, borderRadius: "50%", border: "3px solid " + C.creamD, objectFit: "cover" }} />
+        <h1 style=${{ margin: "8px 0 2px", fontSize: 22, color: C.pri }}>בית קפה מאפיית השומרון</h1>
+        <p style=${{ margin: 0, color: C.txtL, fontSize: 13 }}>הרכיבו את ההזמנה שלכם</p>
+      </div>
+
+      ${isEditorMode && html`
+        <div class="editor-bar no-print">
+          <span style=${{ fontWeight: 700, fontSize: 14 }}>🛠️ מצב עורך</span>
+          <input
+            type="file"
+            accept="image/*"
+            ref=${imageInputRef}
+            style=${{ display: "none" }}
+            onChange=${handleImageUpload}
+          />
+          <button
+            onClick=${() => imageInputRef.current && imageInputRef.current.click()}
+            style=${{ padding: "8px 14px", borderRadius: 8, border: "none", background: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 13, cursor: "pointer" }}
+          >🖼️ העלה תמונה</button>
+          ${customLogo && html`
+            <button
+              onClick=${() => setCustomLogo(null)}
+              style=${{ padding: "8px 14px", borderRadius: 8, border: "none", background: "rgba(255,100,100,0.3)", color: "#fff", fontSize: 13, cursor: "pointer" }}
+            >✕ הסר תמונה</button>
+          `}
+          <button
+            onClick=${() => setIsEditorMode(false)}
+            style=${{ padding: "8px 14px", borderRadius: 8, border: "none", background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: 13, cursor: "pointer", marginRight: "auto" }}
+          >יציאה ממצב עורך</button>
+        </div>
+      `}
+
+      <div style=${cS}>
+        <h3 style=${{ margin: "0 0 12px", fontSize: 15, color: C.pri }}>📋 פרטים</h3>
+        <div className="form-grid" style=${{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <input style=${iS} placeholder="שם מלא *" value=${client.name} onInput=${e => setClient(Object.assign({}, client, { name: e.target.value }))} />
+          <input style=${iS} placeholder="טלפון *" type="tel" value=${client.phone} onInput=${e => setClient(Object.assign({}, client, { phone: e.target.value }))} />
+          <input style=${iS} type="date" value=${client.date} onChange=${e => setClient(Object.assign({}, client, { date: e.target.value }))} />
+          <input style=${iS} placeholder="סוג אירוע" value=${client.event} onInput=${e => setClient(Object.assign({}, client, { event: e.target.value }))} />
+          <input style=${iS} placeholder="מספר אורחים" type="number" value=${client.guests} onInput=${e => setClient(Object.assign({}, client, { guests: e.target.value }))} />
+          <div style=${{ position: "relative" }}>
+            <textarea
+              style=${{ width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fff", fontFamily: "inherit", WebkitAppearance: "none", minHeight: 44, maxHeight: 120, resize: "vertical" }}
+              placeholder="הערות (עד 300 מילים)"
+              maxLength="2000"
+              onInput=${e => { if (wordCount(e.target.value) <= 300) setClient(Object.assign({}, client, { notes: e.target.value })); }}
+            >${client.notes}</textarea>
+            <span style=${{ position: "absolute", left: 10, bottom: 6, fontSize: 11, color: wordCount(client.notes) > 280 ? "#c00" : C.txtL }}>${wordCount(client.notes)}/300</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="two-col" style=${{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div style=${cS}>
+          <h3 style=${{ margin: "0 0 10px", fontSize: 15, color: C.pri }}>🛒 תפריט</h3>
+          <input style=${{ width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fff", fontFamily: "inherit", WebkitAppearance: "none", marginBottom: 10 }} placeholder="🔍 חיפוש מוצר..." value=${search} onInput=${e => setSearch(e.target.value)} />
+          <div style=${{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+            ${["הכל", ...CATEGORIES].map(c => html`
+              <button key=${c} onClick=${() => setFilterCat(c)}
+                style=${{ padding: "6px 14px", borderRadius: 20, border: "none", fontSize: 13, fontWeight: filterCat === c ? 700 : 400, background: filterCat === c ? C.pri : C.creamD, color: filterCat === c ? "#fff" : C.pri, cursor: "pointer", WebkitAppearance: "none" }}>
+                ${c}
+              </button>
+            `)}
+          </div>
+          <div style=${{ maxHeight: 400, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+            ${filtered.map(p => {
+              const ic = items.find(i => i.id === p.id);
+              return html`
+                <div key=${p.id} onClick=${() => addItem(p)} style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: "1px solid " + C.creamD, cursor: "pointer", background: ic ? "#eef6ff" : "transparent", borderRadius: 10 }}>
+                  <div>
+                    <div style=${{ fontSize: 14, fontWeight: 500, color: C.txt }}>
+                      ${p.name} ${ic && html`<span style=${{ color: "#2563eb", fontSize: 12, fontWeight: 700 }}>✓ ${ic.qty}</span>`}
+                    </div>
+                    <div style=${{ fontSize: 11, color: C.txtL }}>${p.qty_desc} למגש</div>
+                  </div>
+                  <div style=${{ fontSize: 15, fontWeight: 700, color: C.pri }}>${fmt(p.price)}</div>
+                </div>
+              `;
+            })}
+          </div>
+        </div>
+
+        <div style=${cS}>
+          <h3 style=${{ margin: "0 0 10px", fontSize: 15, color: C.pri }}>📝 ההזמנה שלי (${items.length})</h3>
+          ${items.length === 0 ? html`
+            <div style=${{ textAlign: "center", padding: 50, color: C.creamB }}>
+              <div style=${{ fontSize: 40, marginBottom: 8 }}>🥐</div>
+              <div>בחרו מוצרים מהתפריט</div>
+            </div>
+          ` : html`
+            <div style=${{ maxHeight: 320, overflowY: "auto", WebkitOverflowScrolling: "touch" }}>
+              ${items.map(it => html`
+                <div key=${it.id} style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid " + C.creamD }}>
+                  <div style=${{ flex: 1 }}>
+                    <div style=${{ fontSize: 14, fontWeight: 600, color: C.txt }}>${it.name}</div>
+                    <div style=${{ fontSize: 12, color: C.txtL }}>${fmt(it.price)} × ${it.qty} = ${fmt(it.price * it.qty)}</div>
+                  </div>
+                  <div style=${{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <button onClick=${e => { e.stopPropagation(); updateQty(it.id, it.qty - 1); }} style=${qS}>−</button>
+                    <span style=${{ minWidth: 24, textAlign: "center", fontWeight: 700, color: C.pri }}>${it.qty}</span>
+                    <button onClick=${e => { e.stopPropagation(); updateQty(it.id, it.qty + 1); }} style=${qS}>+</button>
+                    <button onClick=${e => { e.stopPropagation(); removeItem(it.id); }} style=${{ width: 44, height: 44, borderRadius: "50%", border: "none", background: "#fee2e2", cursor: "pointer", fontSize: 20, display: "flex", alignItems: "center", justifyContent: "center", color: "#dc2626", marginRight: 4 }}>✕</button>
+                  </div>
+                </div>
+              `)}
+            </div>
+            <div style=${{ marginTop: 16, paddingTop: 14, borderTop: "2px solid " + C.creamD, display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 20, color: C.pri }}>
+              <span>סה"כ כולל מע"מ</span><span>${fmt(total)}</span>
+            </div>
+            <div style=${{ marginTop: 14 }}>
+              <button onClick=${handleOrderAction} style=${{ padding: "14px 20px", borderRadius: 12, border: "none", background: C.pri, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", width: "100%", fontFamily: "inherit", WebkitAppearance: "none" }}>✅ ביצוע ההזמנה</button>
+            </div>
+          `}
+        </div>
+      </div>
+
+      <${GearButton} onClick=${() => setShowPinModal(true)} />
+
+      ${showPinModal && html`
+        <${PinModal}
+          onClose=${() => setShowPinModal(false)}
+          onSuccess=${() => { setIsEditorMode(true); showToast("✓ ברוך הבא למצב עורך"); }}
+        />
+      `}
+
+      ${showApprovalModal && html`
+        <${ApprovalModal}
+          isEditorMode=${isEditorMode}
+          discount=${discount}
+          setDiscount=${setDiscount}
+          totalPrice=${total}
+          onConfirm=${sendToSheets}
+          onClose=${() => setShowApprovalModal(false)}
+        />
+      `}
+
+      ${toast && html`<${Toast} msg=${toast}/>`}
+    </div>
+  `;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
+</script>
+</body>
+</html>
