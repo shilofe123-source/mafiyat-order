@@ -56,19 +56,6 @@
 
 ---
 
-## 📊 אינטגרציה עם Google Sheets
-
-כל הזמנה שנשלחת דרך כפתור **"שמור בגיליון"** נשמרת אוטומטית ב-Google Sheets.
-
-### פרטים טכניים
-- **Google Sheets**: [הזמנות מגשי אירוח](https://docs.google.com/spreadsheets/d/1PKmjoeC5mvv8IKcelHF_VNnViGeEjtIaICbIrU34j5Y/edit)
-- **Apps Script Web App URL**: `https://script.google.com/macros/s/AKfycbzpQTpRMGfb5qmywdaWSnGcw9qPHuC5ZnsAeg6XSaF1v0Dzx4WNpG_y0Kq7mOWBjibH/exec`
-- **הזמנות** — תאריך הזמנה | שם לקוח | טלפון | פירוט מוצרים | סך הכל לתשלום
-- **סיכום** — שם לקוח | סכום הזמנה | סיכום חודשי
-- הגדרות פריסה: Execute as Me, Who has access: Anyone
-
----
-
 ## 📂 קבצים
 - `index.html` — האפליקציה (קובץ אחד, אפס תלויות)
 - `logo.jpeg` — לוגו המאפייה
