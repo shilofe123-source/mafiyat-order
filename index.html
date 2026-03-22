@@ -139,7 +139,7 @@ const html = htm.bind(React.createElement);
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const CONFIG = {
   CLIENT_SELF_APPROVE: false,   // false = preview before approval; true = approval modal directly
-  EDITOR_PIN: "2001",
+  EDITOR_PIN: "S199",
   GEMINI_API_KEY: ""   // אל תכניס כאן — המפתח נשמר בצד-שרת ב-Code.gs
 };
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -428,7 +428,8 @@ function App() {
         discount: disc,
         finalPrice: total - disc,
         notes: client.notes || "",
-        approvedAt: new Date().toISOString()
+        approvedAt: new Date().toISOString(),
+        editorMode: isEditorMode
       };
       const res = await fetch(SHEETS_URL, {
         method: "POST",
@@ -454,25 +455,38 @@ function App() {
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const dataUrl = ev.target.result;
-      setCustomLogo(dataUrl); // תצוגה מקדימה מיידית
-
       const base64 = dataUrl.split(",")[1];
-      showToast("מנתח תמונה עם Gemini...");
+      showToast("מחלץ הזמנה מהתמונה...");
       try {
         const res = await fetch(SHEETS_URL, {
           method: "POST",
-          body: JSON.stringify({ action: "analyzeImage", base64, mimeType: file.type })
+          body: JSON.stringify({ action: "extractOrder", base64, mimeType: file.type })
         });
         const data = await res.json();
-        if (data.status === "success") {
-          showToast("✓ " + (data.description || "תמונה נטענה"));
+        if (data.status === "success" && data.order && data.order.items && data.order.items.length > 0) {
+          var newItems = [];
+          data.order.items.forEach(function(oi) {
+            var prod = PRODUCTS.find(function(p) { return p.id === oi.id; });
+            if (prod) newItems.push(Object.assign({}, prod, { qty: oi.qty || 1 }));
+          });
+          if (newItems.length > 0) setItems(newItems);
+          var o = data.order;
+          setClient(Object.assign({}, client, {
+            name: o.customerName || client.name,
+            phone: o.phone || client.phone,
+            date: o.date || client.date,
+            event: o.event || client.event,
+            guests: o.guests || client.guests,
+            notes: o.notes || client.notes
+          }));
+          showToast("זוהו " + newItems.length + " פריטים — בדוק ואשר");
         } else if (data.status === "no_key") {
-          showToast("תמונה הועלתה (Gemini לא מוגדר ב-Apps Script)");
+          showToast("Gemini לא מוגדר ב-Apps Script");
         } else {
-          showToast("שגיאת Gemini: " + (data.message || "נסה שוב"));
+          showToast("לא זוהו פריטים בתמונה");
         }
       } catch {
-        showToast("תמונה הועלתה (שגיאת רשת — Gemini לא זמין)");
+        showToast("שגיאת רשת — לא ניתן לחלץ הזמנה");
       }
     };
     reader.readAsDataURL(file);
@@ -615,7 +629,7 @@ function App() {
           <button
             onClick=${() => imageInputRef.current && imageInputRef.current.click()}
             style=${{ padding: "8px 14px", borderRadius: 8, border: "none", background: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 13, cursor: "pointer" }}
-          >🖼️ העלה תמונה</button>
+          >📄 טען הזמנה מתמונה</button>
           ${customLogo && html`
             <button
               onClick=${() => setCustomLogo(null)}

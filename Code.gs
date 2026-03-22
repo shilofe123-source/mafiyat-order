@@ -19,13 +19,22 @@ function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
 
-    // ── ניתוח תמונה עם Gemini Vision ──────────────────────────────────────────
+    // ── ניתוח תמונה עם Gemini Vision (legacy) ──────────────────────────────
     if (data.action === "analyzeImage") {
       if (!GEMINI_API_KEY) {
         return jsonResponse({ status: "no_key" });
       }
       const description = callGeminiVision(data.base64, data.mimeType);
       return jsonResponse({ status: "success", description });
+    }
+
+    // ── חילוץ הזמנה מתמונה/PDF עם Gemini ───────────────────────────────────
+    if (data.action === "extractOrder") {
+      if (!GEMINI_API_KEY) {
+        return jsonResponse({ status: "no_key" });
+      }
+      const order = extractOrderFromImage(data.base64, data.mimeType);
+      return jsonResponse({ status: "success", order: order });
     }
 
     // ── שמירת הזמנה לגיליון ───────────────────────────────────────────────────
@@ -40,7 +49,7 @@ function doPost(e) {
       ]);
     }
 
-    sheet.appendRow([
+    const rowData = [
       new Date(),
       data.orderDate    || "",
       data.customerName || "",
@@ -53,7 +62,28 @@ function doPost(e) {
       data.finalPrice   || 0,
       data.notes        || "",
       data.approvedAt   || ""
-    ]);
+    ];
+
+    // ── מצב עורך: חפש והחלף שורה קיימת לפי שם + טלפון ──────────────────────
+    if (data.editorMode === true && data.customerName && data.phone) {
+      const lastRow = sheet.getLastRow();
+      var found = false;
+      for (var r = lastRow; r >= 2; r--) {
+        var nameCell = sheet.getRange(r, 3).getValue();
+        var phoneCell = sheet.getRange(r, 4).getValue();
+        if (String(nameCell).trim() === String(data.customerName).trim() &&
+            String(phoneCell).trim() === String(data.phone).trim()) {
+          sheet.getRange(r, 1, 1, 12).setValues([rowData]);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        sheet.appendRow(rowData);
+      }
+    } else {
+      sheet.appendRow(rowData);
+    }
 
     return jsonResponse({ status: "success" });
 
@@ -62,9 +92,64 @@ function doPost(e) {
   }
 }
 
-// ─── Gemini Vision ────────────────────────────────────────────────────────────
+// ─── חילוץ הזמנה מתמונה ──────────────────────────────────────────────────────
+function extractOrderFromImage(base64Image, mimeType) {
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_API_KEY;
+
+  const productList = [
+    "id:1 מגש כריכוני ביס 180₪", "id:2 מיני פיתה סביח 180₪",
+    "id:3 כריכוני קרואסון חמאה 140₪", "id:4 חצאי טורטיה (12) 105₪",
+    "id:5 חצאי טורטיה (24) 195₪", "id:6 מיני טורטיה 195₪",
+    "id:7 בוריקיטס 180₪", "id:8 בוריקיטס סביח 180₪",
+    "id:9 פריקסה 195₪", "id:10 מגש מיני קיש 195₪",
+    "id:11 מגש פיצוניות 160₪", "id:12 פוקצ'ינות 160₪",
+    "id:13 מיני לחם שום 120₪", "id:14 מגש מאפים טריים 100₪",
+    "id:15 פסטה 120₪", "id:16 מגש שקשוקה 180₪",
+    "id:17 מגש מיני גחנון 180₪", "id:18 מגש מקושקשת 180₪",
+    "id:19 פלטת גבינות קשות 380₪", "id:20 פלטת ירקות שוק 160₪",
+    "id:21 שיפודי מוצרלה 180₪", "id:22 אנטיפסטי 195₪",
+    "id:23 סלטים טריים (קיסר) 120₪", "id:24 סלטים טריים 165₪",
+    "id:25 פלטת פירות העונה 250₪", "id:26 מגש מתוקים 295₪",
+    "id:27 מגש כדורי שוקולד 180₪", "id:28 מגש קוקיז חמאה 180₪",
+    "id:29 מגש פחזניות 180₪", "id:30 מגש עוגות בחושות 170₪"
+  ].join(", ");
+
+  const prompt = 'בתמונה הזו יש הזמנה (צילום מסך וואטסאפ, רשימה כתובה ביד, PDF, או כל פורמט אחר). '
+    + 'זהה את המוצרים והכמויות, והתאם אותם לרשימת המוצרים הבאה: ' + productList + '. '
+    + 'החזר JSON בלבד (ללא markdown, ללא הסברים) בפורמט הבא: '
+    + '{"items":[{"id":1,"qty":2}],"customerName":"...","phone":"...","date":"...","event":"...","guests":"","notes":"..."} '
+    + 'אם לא ניתן לזהות שדה מסוים, השאר אותו כמחרוזת ריקה. items חייב להכיל לפחות פריט אחד.';
+
+  const payload = {
+    contents: [{
+      parts: [
+        { text: prompt },
+        { inline_data: { mime_type: mimeType || "image/jpeg", data: base64Image } }
+      ]
+    }],
+    generationConfig: { maxOutputTokens: 1024 }
+  };
+
+  const response = UrlFetchApp.fetch(url, {
+    method: "POST",
+    contentType: "application/json",
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+
+  const result = JSON.parse(response.getContentText());
+  if (result.candidates && result.candidates[0]) {
+    var text = result.candidates[0].content.parts[0].text;
+    // ניקוי markdown wrapping
+    text = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+    return JSON.parse(text);
+  }
+  return { items: [], customerName: "", phone: "", date: "", event: "", guests: "", notes: "" };
+}
+
+// ─── Gemini Vision (תיאור תמונה) ─────────────────────────────────────────────
 function callGeminiVision(base64Image, mimeType) {
-  const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY;
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_API_KEY;
 
   const payload = {
     contents: [{
