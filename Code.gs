@@ -130,7 +130,7 @@ function extractOrderFromImage(base64Image, mimeType) {
         { inline_data: { mime_type: mimeType || "image/jpeg", data: base64Image } }
       ]
     }],
-    generationConfig: { maxOutputTokens: 1024 }
+    generationConfig: { maxOutputTokens: 2048, temperature: 0.1 }
   };
 
   const response = UrlFetchApp.fetch(url, {
@@ -140,12 +140,25 @@ function extractOrderFromImage(base64Image, mimeType) {
     muteHttpExceptions: true
   });
 
-  const result = JSON.parse(response.getContentText());
-  if (result.candidates && result.candidates[0]) {
-    var text = result.candidates[0].content.parts[0].text;
-    // ניקוי markdown wrapping
-    text = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-    return JSON.parse(text);
+  const responseText = response.getContentText();
+  try {
+    const result = JSON.parse(responseText);
+    if (result.candidates && result.candidates[0] && result.candidates[0].content) {
+      var text = result.candidates[0].content.parts[0].text;
+      text = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+      // חיפוש JSON בתוך הטקסט אם יש טקסט נוסף
+      var jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      return JSON.parse(text);
+    }
+    // אם אין candidates — בדוק אם יש שגיאה
+    if (result.error) {
+      Logger.log("Gemini error: " + JSON.stringify(result.error));
+    }
+  } catch (parseErr) {
+    Logger.log("JSON parse error: " + parseErr.toString() + " | Response: " + responseText.substring(0, 500));
   }
   return { items: [], customerName: "", phone: "", date: "", event: "", guests: "", notes: "" };
 }

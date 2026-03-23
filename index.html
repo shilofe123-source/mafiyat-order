@@ -422,6 +422,23 @@ function App() {
     });
   };
 
+  window.__removeItemsFromChat = function(itemIds) {
+    setItems(function(prev) {
+      return prev.filter(function(item) {
+        return itemIds.indexOf(item.id) === -1;
+      });
+    });
+  };
+
+  window.__setItemsFromChat = function(chatItems) {
+    var newItems = [];
+    chatItems.forEach(function(ci) {
+      var prod = PRODUCTS.find(function(p) { return p.id === ci.id; });
+      if (prod) newItems.push(Object.assign({}, prod, { qty: ci.qty || 1 }));
+    });
+    setItems(newItems);
+  };
+
   window.__fillClientFromChat = function(data) {
     setClient(function(prev) {
       return Object.assign({}, prev, {
@@ -645,8 +662,7 @@ function App() {
             <h3 style=${{ marginBottom: 8, color: C.pri, fontSize: 18 }}>📤 שליחת הצעת מחיר</h3>
             <p style=${{ marginBottom: 20, color: C.txtL, fontSize: 14 }}>ההזמנה נשמרה. לשלוח PDF בוואטסאפ?</p>
             <div style=${{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <button onClick=${() => { setShowSendModal(false); var fn = "הצעה_" + (client.name||"לקוח").replace(/\s/g,"_") + ".pdf"; generatePdfAndShare("preview-card", fn, PHONES.uri, "הצעת מחיר — מאפיית השומרון\n" + (client.name||"") + "\nסהכ: " + fmt(total)); }} style=${{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: C.green, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>💬 שלח לאורי</button>
-              <button onClick=${() => { setShowSendModal(false); var fn = "הצעה_" + (client.name||"לקוח").replace(/\s/g,"_") + ".pdf"; generatePdfAndShare("preview-card", fn, PHONES.batchen, "הצעת מחיר — מאפיית השומרון\n" + (client.name||"") + "\nסהכ: " + fmt(total)); }} style=${{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: C.green, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>💬 שלח לבת חן</button>
+              <button onClick=${() => { setShowSendModal(false); var fn = "הצעה_" + (client.name||"לקוח").replace(/\s/g,"_") + ".pdf"; generatePdfAndShare("preview-card", fn, PHONES.uri, "הצעת מחיר — מאפיית השומרון\n" + (client.name||"") + "\nסהכ: " + fmt(total)); }} style=${{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: C.green, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>💬 שלח לאורי / בת חן</button>
               ${client.phone && normalizePhone(client.phone) && html`
                 <button onClick=${() => { setShowSendModal(false); var fn = "הצעה_" + (client.name||"לקוח").replace(/\s/g,"_") + ".pdf"; generatePdfAndShare("preview-card", fn, normalizePhone(client.phone), "הצעת מחיר — מאפיית השומרון\nסהכ: " + fmt(total)); }} style=${{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: C.priL, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📱 שלח ללקוח (${client.phone})</button>
               `}
@@ -936,17 +952,21 @@ document.addEventListener('DOMContentLoaded', function() {
     var rulesList = RULES.join('; ');
     var fillNote = allowFill
       ? 'יש לך הרשאה למלא את הטופס. '
-        + 'בכל פעם שהלקוח מזכיר מוצרים או מבקש הזמנה, השב **רק** ב-JSON (ללא טקסט נוסף) בפורמט: '
-        + '{"fill": {"name": "...", "phone": "...", "date": "...", "guests": "...", "eventType": "...", "items": [{"id": <מספר_מזהה>, "qty": <כמות>}]}} '
-        + 'חובה לכלול את מערך items עם ה-id הנכון מרשימת המוצרים. אם הכמות לא צוינה, השתמש ב-qty:1. '
-        + 'אם אין לך מידע על שדה מסוים (כמו name או phone), פשוט אל תכלול אותו ב-JSON.'
+        + 'כשהלקוח מזכיר מוצרים, השב **רק** ב-JSON (ללא טקסט נוסף). פורמטים אפשריים: '
+        + 'הוספה: {"fill": {"name":"...", "phone":"...", "date":"...", "guests":"...", "eventType":"...", "items": [{"id":<id>, "qty":<כמות>}]}} '
+        + 'הסרה: {"fill": {"removeItems": [<id1>, <id2>]}} '
+        + 'החלפת כל העגלה: {"fill": {"replaceItems": [{"id":<id>, "qty":<כמות>}]}} '
+        + 'חובה להשתמש ב-id הנכון מרשימת המוצרים. qty ברירת מחדל: 1. '
+        + 'שדות לקוח שלא ידועים — אל תכלול ב-JSON. '
+        + 'כשהלקוח אומר "תוריד/הסר/בלי X" — השתמש ב-removeItems. כשאומר "אני רוצה רק X" — השתמש ב-replaceItems.'
       : '';
 
-    return 'אתה עוזר חכם של מאפיית השומרון. '
-      + 'היה קצר וענייני. אל תכתוב יותר ממה שנדרש. לשאלות פשוטות — משפט-שניים. לבניית הצעה מפורטת — מותר להאריך. '
+    return 'אתה יועץ מקצועי של מאפיית השומרון — מומחה לתכנון מגשי אירוח. '
+      + 'היה קצר וענייני. לשאלות פשוטות — משפט-שניים. להצעות מפורטות — מותר להאריך. '
       + 'דבר רק בעברית. התייחס רק לנושאי האוכל והמאפייה. '
-      + 'הכשרות: מהדרין רבנות קרני שומרון. '
-      + 'בסוף כל ייעוץ הצע לעזור למלא את הטופס. '
+      + 'כשרות: מהדרין רבנות קרני שומרון. '
+      + 'כשלקוח מתאר אירוע — תן הצעה קונקרטית עם שמות מוצרים, כמויות ומחיר כולל. '
+      + 'כשלקוח מבקש לשנות/להוריד/להוסיף מוצרים — בצע מיד. '
       + fillNote + ' '
       + 'מוצרים זמינים: ' + productList + '. '
       + 'כללים: ' + rulesList;
@@ -1010,6 +1030,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof window.__fillClientFromChat === 'function') {
       window.__fillClientFromChat(data);
     }
+    if (data.removeItems && data.removeItems.length > 0 && typeof window.__removeItemsFromChat === 'function') {
+      window.__removeItemsFromChat(data.removeItems);
+    }
+    if (data.replaceItems && data.replaceItems.length > 0 && typeof window.__setItemsFromChat === 'function') {
+      window.__setItemsFromChat(data.replaceItems);
+    }
     if (data.items && data.items.length > 0 && typeof window.__addItemsFromChat === 'function') {
       window.__addItemsFromChat(data.items);
     }
@@ -1038,9 +1064,13 @@ document.addEventListener('DOMContentLoaded', function() {
           if (fillData.fill) {
             fillForm(fillData.fill);
             var itemCount = (fillData.fill.items && fillData.fill.items.length) || 0;
-            var msg2 = itemCount > 0
-              ? '✅ הוספתי ' + itemCount + ' מוצרים להזמנה ומילאתי את הפרטים! בדוק שהכל נכון.'
-              : '✅ מילאתי את הפרטים! בדוק שהכל נכון ולאחר מכן לחץ על ביצוע ההזמנה.';
+            var removeCount = (fillData.fill.removeItems && fillData.fill.removeItems.length) || 0;
+            var replaceCount = (fillData.fill.replaceItems && fillData.fill.replaceItems.length) || 0;
+            var msg2;
+            if (removeCount > 0) msg2 = '✅ הסרתי ' + removeCount + ' מוצרים מההזמנה.';
+            else if (replaceCount > 0) msg2 = '✅ עדכנתי את ההזמנה ל-' + replaceCount + ' מוצרים. בדוק שהכל נכון.';
+            else if (itemCount > 0) msg2 = '✅ הוספתי ' + itemCount + ' מוצרים להזמנה! בדוק שהכל נכון.';
+            else msg2 = '✅ מילאתי את הפרטים! בדוק ולחץ על ביצוע ההזמנה.';
             addMsg('bot', msg2);
             chatHistory.push({ role: 'assistant', content: response });
             return;

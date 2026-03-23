@@ -25,7 +25,7 @@
 - **Google Sheets** — שמירת הזמנות אוטומטית (תאריך, לקוח, טלפון, פריטים, סכום). במצב עורך — עדכון הזמנה קיימת לפי מזהה הזמנה ייחודי (עמודה M). גיליון "סיכום" מתעדכן אוטומטית עם שם לקוח וסכום סופי (אחרי הנחה)
 - **WhatsApp** — שליחת PDF הצעת מחיר ישירות ללקוח/לבעלים
 - **Gemini 2.5 Flash** — חילוץ הזמנות מתמונות ו-PDF (דרך Apps Script)
-- **Base44 AI** — צ'אט ייעוץ חכם (`bakeryChat` endpoint עם Claude), עם fallback מקומי אם ה-API לא זמין
+- **Base44 AI** — צ'אט ייעוץ חכם (`bakeryChat` endpoint עם Claude Sonnet 4.6), עם fallback מקומי אם ה-API לא זמין
 
 ## עדכון מוצרים ומחירים
 
@@ -48,13 +48,15 @@
 ## ארכיטקטורה — גשר React ↔ Vanilla JS
 
 הצ'אט (vanilla JS) מתקשר עם React דרך פונקציות גלובליות:
-- `window.__addItemsFromChat(items)` — מוסיף מוצרים לעגלה (merge, לא replace)
+- `window.__addItemsFromChat(items)` — מוסיף מוצרים לעגלה (merge)
+- `window.__removeItemsFromChat(ids)` — מסיר מוצרים לפי id
+- `window.__setItemsFromChat(items)` — מחליף את כל העגלה
 - `window.__fillClientFromChat(data)` — מעדכן פרטי לקוח ישירות ב-React state
-- `fillForm(data)` — קורא ל-`__fillClientFromChat` + `__addItemsFromChat`
+- `fillForm(data)` — מנתב ל-fill/remove/replace לפי השדות ב-data
 
 ### מנגנון מילוי אוטומטי (AI → טופס)
 1. כשה-checkbox "אפשר לסוכן למלא" מסומן, ה-system prompt מורה ל-AI להחזיר JSON עם `{"fill": {...}}`
-2. ה-AI חייב לכלול `items` עם ה-`id` הנכון מרשימת המוצרים (כמות ברירת מחדל: 1)
+2. פורמטים: `items` (הוספה), `removeItems` (הסרה), `replaceItems` (החלפת כל העגלה)
 3. תגובת ה-AI מנוקה מ-markdown wrapping לפני פרסור
 4. שדות לקוח שלא ידועים ל-AI פשוט לא נכללים ב-JSON (לא נדרסים)
 
