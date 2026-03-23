@@ -352,13 +352,17 @@ async function generatePdfAndShare(elementId, filename, phone, message) {
     return;
   }
   try {
+    var origStyle = el.style.cssText;
+    el.style.maxHeight = "none";
+    el.style.overflow = "visible";
     var blob = await html2pdf().set({
-      margin: [8, 4, 8, 4], filename: filename,
+      margin: [10, 6, 10, 6], filename: filename,
       image: { type: "jpeg", quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      pagebreak: { mode: ['css', 'legacy'] }
     }).from(el).outputPdf("blob");
+    el.style.cssText = origStyle;
 
     var file = new File([blob], filename, { type: "application/pdf" });
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -370,6 +374,7 @@ async function generatePdfAndShare(elementId, filename, phone, message) {
     URL.revokeObjectURL(url);
     if (phone) setTimeout(function() { window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(message + "\n\nהקובץ הורד למכשיר — צרף אותו כאן"), "_blank"); }, 800);
   } catch(e) {
+    el.style.cssText = origStyle;
     if (phone) window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(message || ""), "_blank");
   }
 }
@@ -389,6 +394,7 @@ function App() {
   const [discount, setDiscount] = useState(0);
   const [customLogo, setCustomLogo] = useState(null);
   const [showSendModal, setShowSendModal] = useState(false);
+  const [orderId, setOrderId] = useState("");
   const imageInputRef = useRef(null);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
@@ -413,6 +419,19 @@ function App() {
         }
       });
       return merged;
+    });
+  };
+
+  window.__fillClientFromChat = function(data) {
+    setClient(function(prev) {
+      return Object.assign({}, prev, {
+        name: data.name || prev.name,
+        phone: data.phone || prev.phone,
+        date: data.date || prev.date,
+        event: data.eventType || prev.event,
+        guests: data.guests ? String(data.guests) : prev.guests,
+        notes: data.notes || prev.notes
+      });
     });
   };
 
@@ -444,6 +463,8 @@ function App() {
       showToast("שולח הזמנה לגיליון...");
       const itemsText = items.filter(i => i.qty > 0).map(i => i.name + " x" + i.qty).join(", ");
       const disc = Number(discountAmt) || 0;
+      const currentOrderId = orderId || ("ORD-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4));
+      if (!orderId) setOrderId(currentOrderId);
       const payload = {
         orderDate: client.date ? fmtDate(client.date) : new Date().toLocaleDateString("he-IL"),
         customerName: client.name || "",
@@ -456,7 +477,8 @@ function App() {
         finalPrice: total - disc,
         notes: client.notes || "",
         approvedAt: new Date().toISOString(),
-        editorMode: isEditorMode
+        editorMode: isEditorMode,
+        orderId: currentOrderId
       };
       const res = await fetch(SHEETS_URL, {
         method: "POST",
@@ -507,6 +529,9 @@ function App() {
             notes: o.notes || client.notes
           }));
           showToast("זוהו " + newItems.length + " פריטים — בדוק ואשר");
+          if (isEditorMode && newItems.length > 0 && (o.customerName || client.name)) {
+            setTimeout(() => setView("preview"), 1200);
+          }
         } else if (data.status === "no_key") {
           showToast("Gemini לא מוגדר ב-Apps Script");
         } else {
@@ -673,11 +698,11 @@ function App() {
       <div style=${cS}>
         <h3 style=${{ margin: "0 0 12px", fontSize: 15, color: C.pri }}>📋 פרטים</h3>
         <div className="form-grid" style=${{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <input style=${iS} placeholder="שם מלא *" value=${client.name} onInput=${e => setClient(Object.assign({}, client, { name: e.target.value }))} />
-          <input style=${iS} placeholder="טלפון *" type="tel" value=${client.phone} onInput=${e => setClient(Object.assign({}, client, { phone: e.target.value }))} />
-          <input style=${iS} type="date" value=${client.date} onChange=${e => setClient(Object.assign({}, client, { date: e.target.value }))} />
-          <input style=${iS} placeholder="סוג אירוע" value=${client.event} onInput=${e => setClient(Object.assign({}, client, { event: e.target.value }))} />
-          <input style=${iS} placeholder="מספר אורחים" type="number" value=${client.guests} onInput=${e => setClient(Object.assign({}, client, { guests: e.target.value }))} />
+          <input id="field-name" style=${iS} placeholder="שם מלא *" value=${client.name} onInput=${e => setClient(Object.assign({}, client, { name: e.target.value }))} />
+          <input id="field-phone" style=${iS} placeholder="טלפון *" type="tel" value=${client.phone} onInput=${e => setClient(Object.assign({}, client, { phone: e.target.value }))} />
+          <input id="field-date" style=${iS} type="date" value=${client.date} onChange=${e => setClient(Object.assign({}, client, { date: e.target.value }))} />
+          <input id="field-event" style=${iS} placeholder="סוג אירוע" value=${client.event} onInput=${e => setClient(Object.assign({}, client, { event: e.target.value }))} />
+          <input id="field-guests" style=${iS} placeholder="מספר אורחים" type="number" value=${client.guests} onInput=${e => setClient(Object.assign({}, client, { guests: e.target.value }))} />
           <div style=${{ position: "relative" }}>
             <textarea
               style=${{ width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fff", fontFamily: "inherit", WebkitAppearance: "none", minHeight: 44, maxHeight: 120, resize: "vertical" }}
@@ -793,7 +818,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
     <button id="ai-chat-toggle" title="סגור/פתח צ'אט">‹</button>
   </div>
   <div id="ai-chat-messages">
-    <div class="chat-msg bot">שלום! אני כאן לעזור לך לתכנן את ההזמנה המושלמת 🎉<br>ספר לי על האירוע שלך — כמה אנשים, מה המועד, ומי יהיו האורחים?</div>
+    <div class="chat-msg bot">שלום! ספר לי על האירוע — כמה אנשים ומתי? 🎉</div>
   </div>
   <div id="ai-chat-permission">
     <label>
@@ -918,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() {
       : '';
 
     return 'אתה עוזר חכם של מאפיית השומרון. '
-      + 'תפקידך לייעץ ללקוחות בבחירת מוצרים מתאימים לאירוע שלהם. '
+      + 'היה קצר וענייני. אל תכתוב יותר ממה שנדרש. לשאלות פשוטות — משפט-שניים. לבניית הצעה מפורטת — מותר להאריך. '
       + 'דבר רק בעברית. התייחס רק לנושאי האוכל והמאפייה. '
       + 'הכשרות: מהדרין רבנות קרני שומרון. '
       + 'בסוף כל ייעוץ הצע לעזור למלא את הטופס. '
@@ -952,46 +977,39 @@ document.addEventListener('DOMContentLoaded', function() {
     var lm = msg.toLowerCase();
     var month = new Date().getMonth() + 1;
     var isWinter = month >= 11 || month <= 3;
-    
+
     if (lm.includes('שלום') || lm.includes('היי') || lm.includes('הי')) {
-      return 'שלום! אשמח לעזור לך לבחור את המנות המושלמות לאירוע שלך 😊\nספר לי — כמה אנשים, מה סוג האירוע, ומתי?';
+      return 'שלום! כמה אנשים באירוע ומתי?';
     }
     if (lm.includes('כשר') || lm.includes('כשרות')) {
-      return 'המאפייה בכשרות מהדרין רבנות קרני שומרון ✅';
+      return 'כשרות מהדרין רבנות קרני שומרון ✅';
     }
     if (lm.includes('ילד') || lm.includes('ילדים')) {
-      return 'לאירוע עם ילדים אני ממליץ:\n• מגש פיצוניות (160₪ | 24 יח\')\n• מגש כדורי שוקולד (180₪ | 35 יח\')\n• פלטת פירות העונה (250₪)\n• מגש קוקיז חמאה (180₪)\n\nרוצה שאעזור להוסיף לטופס?';
+      return 'לילדים: פיצוניות 160₪, כדורי שוקולד 180₪, פירות 250₪, קוקיז 180₪. להוסיף לטופס?';
     }
     if (lm.includes('חורף') || lm.includes('קר') || (isWinter && (lm.includes('אירוע') || lm.includes('מה')))) {
-      return 'לאירוע חורפי אני ממליץ:\n• מגש שקשוקה (180₪ | 8 מנות)\n• מגש גחנון (180₪ | 8 מנות)\n• מגש מיני קיש (195₪ | 24 יח\')\n• מגש מאפים טריים (100₪)\n\nמנות חמות תמיד הולכות טוב בחורף 🔥';
+      return 'לחורף: שקשוקה 180₪, גחנון 180₪, קיש 195₪, מאפים 100₪. להוסיף?';
     }
     if (lm.includes('כמה') || lm.includes('כמות')) {
       var guests = msg.match(/\d+/);
       if (guests) {
         var n = parseInt(guests[0]);
-        var trays = Math.ceil(n / 10);
-        return 'לאירוע של ' + n + ' אנשים אני ממליץ:\n• כ-' + trays + ' מגשי ביס\n• ' + Math.ceil(n/15) + ' מגשי קינוחים\n• ' + Math.ceil(n/20) + ' פלטות\n\nרוצה שאפרט מה בדיוק?';
+        return 'ל-' + n + ' אנשים: כ-' + Math.ceil(n / 10) + ' מגשי ביס, ' + Math.ceil(n/15) + ' קינוחים, ' + Math.ceil(n/20) + ' פלטות. לפרט?';
       }
     }
     if (lm.includes('מחיר') || lm.includes('עולה') || lm.includes('עלות')) {
-      return 'המחירים נעים בין 100₪ ל-380₪ למגש.\nמגשי ביס: 105-195₪ | מאפים חמים: 100-195₪ | מנות חמות: 120-180₪ | קינוחים: 170-295₪\n\nרוצה המלצה לפי תקציב?';
+      return 'מגשים: 100-380₪. ביס 105-195₪, מאפים 100-195₪, חמים 120-180₪, קינוחים 170-295₪.';
     }
     if (lm.includes('בוקר') || lm.includes('ארוחת בוקר')) {
-      return 'לארוחת בוקר אני ממליץ:\n• מגש כריכוני ביס (180₪ | 12 יח\')\n• בוריקיטס (180₪ | 20 יח\')\n• מגש מקושקשת (180₪ | 12 מנות)\n• פלטת ירקות שוק (160₪)\n• סלטים טריים (165₪)\n\nמה גודל האירוע?';
+      return 'לבוקר: כריכוני ביס 180₪, בוריקיטס 180₪, מקושקשת 180₪, ירקות 160₪. כמה אנשים?';
     }
-    return 'אשמח לעזור! ספר לי יותר על האירוע — כמה אנשים יגיעו, מה סוג האירוע (בר מצווה, יום הולדת, ישיבת עבודה...) ומתי זה? 😊';
+    return 'ספר לי על האירוע — כמה אנשים, סוג ומתי?';
   }
 
   function fillForm(data) {
-    var setVal = function(sel, val) {
-      var el = document.querySelector(sel);
-      if (el) { el.value = val; el.dispatchEvent(new Event('input', {bubbles:true})); el.dispatchEvent(new Event('change', {bubbles:true})); }
-    };
-    if (data.name) setVal('input[placeholder*="שם"]', data.name);
-    if (data.phone) setVal('input[placeholder*="טלפון"]', data.phone);
-    if (data.guests) setVal('input[placeholder*="אורחים"]', data.guests);
-    if (data.date) setVal('input[type="date"]', data.date);
-    if (data.eventType) setVal('input[placeholder*="סוג"]', data.eventType);
+    if (typeof window.__fillClientFromChat === 'function') {
+      window.__fillClientFromChat(data);
+    }
     if (data.items && data.items.length > 0 && typeof window.__addItemsFromChat === 'function') {
       window.__addItemsFromChat(data.items);
     }

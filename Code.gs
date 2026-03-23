@@ -46,7 +46,7 @@ function doPost(e) {
       sheet.appendRow([
         "חותמת זמן קבלה", "תאריך הזמנה", "שם לקוח", "טלפון",
         "סוג אירוע", "מספר אורחים", "פריטים", 'סה"כ לפני הנחה',
-        "הנחה", "סכום סופי", "הערות", "אושר בתאריך"
+        "הנחה", "סכום סופי", "הערות", "אושר בתאריך", "מזהה הזמנה"
       ]);
     }
 
@@ -62,19 +62,18 @@ function doPost(e) {
       data.discount     || 0,
       data.finalPrice   || 0,
       data.notes        || "",
-      data.approvedAt   || ""
+      data.approvedAt   || "",
+      data.orderId      || ""
     ];
 
-    // ── מצב עורך: חפש והחלף שורה קיימת לפי שם + טלפון ──────────────────────
-    if (data.editorMode === true && data.customerName && data.phone) {
+    // ── מצב עורך: חפש והחלף שורה קיימת לפי מזהה הזמנה (עמודה M) ────────────
+    if (data.editorMode === true && data.orderId) {
       const lastRow = sheet.getLastRow();
       var found = false;
       for (var r = lastRow; r >= 2; r--) {
-        var nameCell = sheet.getRange(r, 3).getValue();
-        var phoneCell = sheet.getRange(r, 4).getValue();
-        if (String(nameCell).trim() === String(data.customerName).trim() &&
-            String(phoneCell).trim() === String(data.phone).trim()) {
-          sheet.getRange(r, 1, 1, 12).setValues([rowData]);
+        var idCell = sheet.getRange(r, 13).getValue();
+        if (String(idCell).trim() === String(data.orderId).trim()) {
+          sheet.getRange(r, 1, 1, 13).setValues([rowData]);
           found = true;
           break;
         }
