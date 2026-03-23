@@ -487,7 +487,7 @@ function App() {
               ${[
                 {label:"💬 שלח לאורי / בת חן", bg:C.green, ph:PHONES.uri, msg:"הצעת מחיר — מאפיית השומרון\n"+(client.name||"")+"\nסהכ: "+fmt(total)}
               ].map(btn => html`
-                <button key=${btn.ph} onClick=${() => { setShowSendModal(false); var fn="הצעה_"+(client.name||"לקוח").replace(/\s/g,"_")+".pdf"; generatePdfAndShare("preview-card",fn,btn.ph,btn.msg); }} style=${{ width:"100%", padding:"14px", borderRadius:12, border:"none", background:btn.bg, color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer" }}>${btn.label}</button>
+                <button key=${btn.ph} onClick=${() => { setShowSendModal(false); var d=(client.date||new Date().toISOString().slice(0,10)).replace(/-/g,""); var fn="Mafiyat-Order_"+d+"_"+(orderId||Date.now())+".pdf"; generatePdfAndShare("preview-card",fn,btn.ph,btn.msg); }} style=${{ width:"100%", padding:"14px", borderRadius:12, border:"none", background:btn.bg, color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer" }}>${btn.label}</button>
               `)}
               <button onClick=${() => setShowSendModal(false)} style=${{ width:"100%", padding:"12px", borderRadius:10, border:"1px solid "+C.creamB, background:"#fff", color:C.txt, fontSize:14, cursor:"pointer", marginTop:4 }}>סגור</button>
             </div>
