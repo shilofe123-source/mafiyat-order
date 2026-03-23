@@ -909,8 +909,12 @@ document.addEventListener('DOMContentLoaded', function() {
       return 'id:' + p.id + ' ' + p.name + ' (' + p.price + ' שח, ' + p.qty + ' יח)';
     }).join(', ');
     var rulesList = RULES.join('; ');
-    var fillNote = allowFill 
-      ? 'יש לך הרשאה למלא את הטופס. אם הלקוח מוכן, השב בפורמט JSON: {"fill": {"name": "...", "phone": "...", "date": "...", "guests": "...", "eventType": "...", "items": [{"id": 1, "qty": 2}]}}' 
+    var fillNote = allowFill
+      ? 'יש לך הרשאה למלא את הטופס. '
+        + 'בכל פעם שהלקוח מזכיר מוצרים או מבקש הזמנה, השב **רק** ב-JSON (ללא טקסט נוסף) בפורמט: '
+        + '{"fill": {"name": "...", "phone": "...", "date": "...", "guests": "...", "eventType": "...", "items": [{"id": <מספר_מזהה>, "qty": <כמות>}]}} '
+        + 'חובה לכלול את מערך items עם ה-id הנכון מרשימת המוצרים. אם הכמות לא צוינה, השתמש ב-qty:1. '
+        + 'אם אין לך מידע על שדה מסוים (כמו name או phone), פשוט אל תכלול אותו ב-JSON.'
       : '';
 
     return 'אתה עוזר חכם של מאפיית השומרון. '
@@ -1009,12 +1013,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (allowFill && response.includes('"fill"')) {
       try {
-        var jsonMatch = response.match(/\{[\s\S]*"fill"[\s\S]*\}/);
+        var cleaned = response.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+        var jsonMatch = cleaned.match(/\{"fill"\s*:\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}\s*\}/);
         if (jsonMatch) {
           var fillData = JSON.parse(jsonMatch[0]);
           if (fillData.fill) {
             fillForm(fillData.fill);
-            addMsg('bot', '✅ מילאתי את הפרטים והוספתי מוצרים להזמנה! בדוק שהכל נכון ולאחר מכן לחץ על ביצוע ההזמנה.');
+            var itemCount = (fillData.fill.items && fillData.fill.items.length) || 0;
+            var msg2 = itemCount > 0
+              ? '✅ הוספתי ' + itemCount + ' מוצרים להזמנה ומילאתי את הפרטים! בדוק שהכל נכון.'
+              : '✅ מילאתי את הפרטים! בדוק שהכל נכון ולאחר מכן לחץ על ביצוע ההזמנה.';
+            addMsg('bot', msg2);
             chatHistory.push({ role: 'assistant', content: response });
             return;
           }
