@@ -1163,7 +1163,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     chatHistory.push({ role: 'assistant', content: response });
-    addMsg('bot', response);
+    // Strip any JSON code blocks from display (agent sometimes returns JSON even without fill)
+    var cleanResponse = response.replace(/```json[\s\S]*?```/g, '').trim();
+    addMsg('bot', cleanResponse || response);
   }
 
   sendBtn.addEventListener('click', handleSend);
