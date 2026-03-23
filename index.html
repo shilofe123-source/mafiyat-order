@@ -518,6 +518,11 @@ function App() {
     const file = e.target.files[0];
     if (!file) return;
 
+    if (file.size > 4 * 1024 * 1024) {
+      showToast("הקובץ גדול מדי (" + Math.round(file.size / 1024 / 1024) + "MB). מקסימום 4MB");
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const dataUrl = ev.target.result;
@@ -552,7 +557,12 @@ function App() {
         } else if (data.status === "no_key") {
           showToast("Gemini לא מוגדר ב-Apps Script");
         } else {
-          showToast("לא זוהו פריטים בקובץ");
+          var errMsg = "לא זוהו פריטים בקובץ";
+          if (data.debug && data.debug.error) {
+            errMsg += " (" + data.debug.error + ")";
+            console.error("Extraction debug:", data.debug);
+          }
+          showToast(errMsg);
         }
       } catch {
         showToast("שגיאת רשת — לא ניתן לחלץ הזמנה");
@@ -952,7 +962,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var rulesList = RULES.join('; ');
     var fillNote = allowFill
       ? 'יש לך הרשאה למלא את הטופס. '
-        + 'כשהלקוח מזכיר מוצרים, השב **רק** ב-JSON (ללא טקסט נוסף). פורמטים אפשריים: '
+        + 'כשהלקוח מזכיר מוצרים או נותן פרטים, השב **רק** ב-JSON compact בשורה אחת (ללא טקסט לפני או אחרי, בלי markdown, בלי הסברים). פורמטים אפשריים: '
         + 'הוספה: {"fill": {"name":"...", "phone":"...", "date":"...", "guests":"...", "eventType":"...", "items": [{"id":<id>, "qty":<כמות>}]}} '
         + 'הסרה: {"fill": {"removeItems": [<id1>, <id2>]}} '
         + 'החלפת כל העגלה: {"fill": {"replaceItems": [{"id":<id>, "qty":<כמות>}]}} '
@@ -1041,44 +1051,64 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  function extractFillJson(text) {
+    var cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    var startIdx = cleaned.search(/\{\s*"fill"\s*:/);
+    if (startIdx === -1) return null;
+    var depth = 0, inString = false, esc = false;
+    for (var i = startIdx; i < cleaned.length; i++) {
+      var ch = cleaned[i];
+      if (esc) { esc = false; continue; }
+      if (ch === '\\' && inString) { esc = true; continue; }
+      if (ch === '"') { inString = !inString; continue; }
+      if (inString) continue;
+      if (ch === '{') depth++;
+      else if (ch === '}') { depth--; if (depth === 0) {
+        try { return JSON.parse(cleaned.substring(startIdx, i + 1)); }
+        catch(e) { console.warn('Fill JSON parse error:', e); return null; }
+      }}
+    }
+    return null;
+  }
+
   async function handleSend() {
     var msg = inputEl.value.trim();
     if (!msg || isTyping) return;
-    
+
     inputEl.value = '';
     addMsg('user', msg);
     chatHistory.push({ role: 'user', content: msg });
     isTyping = true;
     showTyping();
-    
+
     var response = await sendToAgent(msg);
     removeTyping();
     isTyping = false;
-    
+
     if (allowFill && response.includes('"fill"')) {
-      try {
-        var cleaned = response.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
-        var jsonMatch = cleaned.match(/\{"fill"\s*:\s*\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}\s*\}/);
-        if (jsonMatch) {
-          var fillData = JSON.parse(jsonMatch[0]);
-          if (fillData.fill) {
-            fillForm(fillData.fill);
-            var itemCount = (fillData.fill.items && fillData.fill.items.length) || 0;
-            var removeCount = (fillData.fill.removeItems && fillData.fill.removeItems.length) || 0;
-            var replaceCount = (fillData.fill.replaceItems && fillData.fill.replaceItems.length) || 0;
-            var msg2;
-            if (removeCount > 0) msg2 = '✅ הסרתי ' + removeCount + ' מוצרים מההזמנה.';
-            else if (replaceCount > 0) msg2 = '✅ עדכנתי את ההזמנה ל-' + replaceCount + ' מוצרים. בדוק שהכל נכון.';
-            else if (itemCount > 0) msg2 = '✅ הוספתי ' + itemCount + ' מוצרים להזמנה! בדוק שהכל נכון.';
-            else msg2 = '✅ מילאתי את הפרטים! בדוק ולחץ על ביצוע ההזמנה.';
-            addMsg('bot', msg2);
-            chatHistory.push({ role: 'assistant', content: response });
-            return;
-          }
-        }
-      } catch(e) { console.warn('Fill parse error:', e); }
+      var fillData = extractFillJson(response);
+      if (fillData && fillData.fill) {
+        fillForm(fillData.fill);
+        var itemCount = (fillData.fill.items && fillData.fill.items.length) || 0;
+        var removeCount = (fillData.fill.removeItems && fillData.fill.removeItems.length) || 0;
+        var replaceCount = (fillData.fill.replaceItems && fillData.fill.replaceItems.length) || 0;
+        var msg2;
+        if (removeCount > 0) msg2 = '✅ הסרתי ' + removeCount + ' מוצרים מההזמנה.';
+        else if (replaceCount > 0) msg2 = '✅ עדכנתי את ההזמנה ל-' + replaceCount + ' מוצרים.';
+        else if (itemCount > 0) msg2 = '✅ הוספתי ' + itemCount + ' מוצרים להזמנה!';
+        else msg2 = '✅ מילאתי את הפרטים!';
+        addMsg('bot', msg2);
+        chatHistory.push({ role: 'assistant', content: response });
+        return;
+      }
+      // Fill expected but parse failed — strip JSON from display
+      var displayResponse = response.replace(/```json[\s\S]*?```/g, '').replace(/\{\s*"fill"\s*:[\s\S]*\}/g, '').trim();
+      if (!displayResponse) displayResponse = 'קיבלתי את הבקשה, אבל הייתה שגיאה בעיבוד. נסה שוב.';
+      chatHistory.push({ role: 'assistant', content: response });
+      addMsg('bot', displayResponse);
+      return;
     }
-    
+
     chatHistory.push({ role: 'assistant', content: response });
     addMsg('bot', response);
   }

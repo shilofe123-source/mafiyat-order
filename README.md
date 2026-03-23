@@ -57,8 +57,14 @@
 ### מנגנון מילוי אוטומטי (AI → טופס)
 1. כשה-checkbox "אפשר לסוכן למלא" מסומן, ה-system prompt מורה ל-AI להחזיר JSON עם `{"fill": {...}}`
 2. פורמטים: `items` (הוספה), `removeItems` (הסרה), `replaceItems` (החלפת כל העגלה)
-3. תגובת ה-AI מנוקה מ-markdown wrapping לפני פרסור
-4. שדות לקוח שלא ידועים ל-AI פשוט לא נכללים ב-JSON (לא נדרסים)
+3. חילוץ ה-JSON מתבצע ב-**bracket-counting parser** (`extractFillJson`) — עמיד בפני pretty-printing, רווחים, וקינון עמוק
+4. אם הפרסור נכשל — JSON מוסר מהתצוגה (הלקוח לעולם לא רואה JSON גולמי)
+5. שדות לקוח שלא ידועים ל-AI פשוט לא נכללים ב-JSON (לא נדרסים)
+
+### חילוץ הזמנות מתמונות/PDF
+- במצב עורך, ניתן להעלות תמונה או PDF → Gemini 2.5 Flash מחלץ מוצרים ופרטי לקוח
+- מגבלת גודל קובץ: 4MB
+- `Code.gs` מחזיר **debug info** בכל כשל (HTTP error, safety block, parse error) — מוצג בפרונטנד
 
 ## הפעלה
 

@@ -35,7 +35,11 @@ function doPost(e) {
         return jsonResponse({ status: "no_key" });
       }
       const order = extractOrderFromImage(data.base64, data.mimeType);
-      return jsonResponse({ status: "success", order: order });
+      return jsonResponse({
+        status: order._error ? "extraction_error" : "success",
+        order: order,
+        debug: order._error ? { error: order._error, detail: order._detail || "" } : undefined
+      });
     }
 
     // ── שמירת הזמנה לגיליון ───────────────────────────────────────────────────
@@ -140,27 +144,49 @@ function extractOrderFromImage(base64Image, mimeType) {
     muteHttpExceptions: true
   });
 
+  var responseCode = response.getResponseCode();
   const responseText = response.getContentText();
+
+  if (responseCode !== 200) {
+    Logger.log("Gemini HTTP error: " + responseCode + " | " + responseText.substring(0, 300));
+    return { items: [], _error: "gemini_http_" + responseCode, _detail: responseText.substring(0, 200) };
+  }
+
   try {
     const result = JSON.parse(responseText);
-    if (result.candidates && result.candidates[0] && result.candidates[0].content) {
-      var text = result.candidates[0].content.parts[0].text;
-      text = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
-      // חיפוש JSON בתוך הטקסט אם יש טקסט נוסף
-      var jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
-      }
-      return JSON.parse(text);
-    }
-    // אם אין candidates — בדוק אם יש שגיאה
+
+    // בדיקת שגיאת API
     if (result.error) {
-      Logger.log("Gemini error: " + JSON.stringify(result.error));
+      Logger.log("Gemini API error: " + JSON.stringify(result.error));
+      return { items: [], _error: "gemini_api_error", _detail: result.error.message || JSON.stringify(result.error).substring(0, 200) };
     }
+
+    // בדיקת candidates
+    if (!result.candidates || !result.candidates[0]) {
+      return { items: [], _error: "no_candidates", _detail: JSON.stringify(result).substring(0, 200) };
+    }
+
+    // בדיקת חסימת תוכן
+    if (result.candidates[0].finishReason === "SAFETY") {
+      return { items: [], _error: "blocked_by_safety" };
+    }
+
+    if (!result.candidates[0].content) {
+      return { items: [], _error: "no_content", _detail: JSON.stringify(result.candidates[0]).substring(0, 200) };
+    }
+
+    var text = result.candidates[0].content.parts[0].text;
+    text = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+    // חיפוש JSON בתוך הטקסט אם יש טקסט נוסף
+    var jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return JSON.parse(text);
   } catch (parseErr) {
     Logger.log("JSON parse error: " + parseErr.toString() + " | Response: " + responseText.substring(0, 500));
+    return { items: [], _error: "parse_fail", _detail: parseErr.toString() };
   }
-  return { items: [], customerName: "", phone: "", date: "", event: "", guests: "", notes: "" };
 }
 
 // ─── Gemini Vision (תיאור תמונה) ─────────────────────────────────────────────
