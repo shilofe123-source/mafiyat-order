@@ -22,11 +22,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: "API key not configured" }, { status: 500, headers: corsHeaders });
     }
 
-    // Build user content — text or text+image
+    // Build user content — text, text+image, or text+PDF
     let userContent: any = message;
     if (image && image.base64 && image.mimeType) {
+      const isPdf = image.mimeType === "application/pdf";
       const contentParts: any[] = [
-        { type: "image", source: { type: "base64", media_type: image.mimeType, data: image.base64 } }
+        isPdf
+          ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: image.base64 } }
+          : { type: "image", source: { type: "base64", media_type: image.mimeType, data: image.base64 } }
       ];
       if (message) {
         contentParts.push({ type: "text", text: message });
