@@ -154,6 +154,8 @@ function PinModal({ onClose, onSuccess }) {
 
 function ApprovalModal({ isEditorMode, discount, setDiscount, totalPrice, onConfirm, onClose }) {
   const [checked, setChecked] = useState(false);
+  const [checkedApproval, setCheckedApproval] = useState(false);
+  const allChecked = checked && checkedApproval;
   const finalPrice = totalPrice - (Number(discount) || 0);
   const hasDiscount = isEditorMode && discount > 0;
   return html`
@@ -183,8 +185,12 @@ function ApprovalModal({ isEditorMode, discount, setDiscount, totalPrice, onConf
           <input type="checkbox" checked=${checked} onChange=${e => setChecked(e.target.checked)} style=${{ width:18, height:18, marginTop:1, cursor:"pointer", flexShrink:0 }} />
           <span>אני מאשר/ת את ההזמנה ואת הפרטים המפורטים לעיל</span>
         </label>
+        <label style=${{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer", marginBottom:20, fontSize:14, color:C.txt }}>
+          <input type="checkbox" checked=${checkedApproval} onChange=${e => setCheckedApproval(e.target.checked)} style=${{ width:18, height:18, marginTop:1, cursor:"pointer", flexShrink:0 }} />
+          <span>ידוע לי כי ההזמנה אינה סופית ובכפוף לאישור סופי של המאפייה</span>
+        </label>
         <div style=${{ display:"flex", gap:10 }}>
-          <button onClick=${() => checked && onConfirm(Number(discount)||0)} disabled=${!checked} style=${{ flex:1, padding:"13px", borderRadius:10, border:"none", background:checked ? C.editorGreen : "#ccc", color:"#fff", fontSize:15, fontWeight:700, cursor:checked ? "pointer" : "not-allowed" }}>📊 אישור ושליחה</button>
+          <button onClick=${() => allChecked && onConfirm(Number(discount)||0)} disabled=${!allChecked} style=${{ flex:1, padding:"13px", borderRadius:10, border:"none", background:allChecked ? C.editorGreen : "#ccc", color:"#fff", fontSize:15, fontWeight:700, cursor:allChecked ? "pointer" : "not-allowed" }}>📊 אישור ושליחה</button>
           <button onClick=${onClose} style=${{ flex:1, padding:"13px", borderRadius:10, border:"1px solid "+C.creamB, background:"#fff", color:C.txt, fontSize:15, cursor:"pointer" }}>ביטול</button>
         </div>
       </div>
@@ -439,8 +445,7 @@ function App() {
             <p style=${{ marginBottom:20, color:C.txtL, fontSize:14 }}>ההזמנה נשמרה. לשלוח PDF בוואטסאפ?</p>
             <div style=${{ display:"flex", flexDirection:"column", gap:10 }}>
               ${[
-                {label:"💬 שלח לאורי / בת חן", bg:C.green, ph:PHONES.uri, msg:"הצעת מחיר — מאפיית השומרון\n"+(client.name||"")+"\nסהכ: "+fmt(total)},
-                ...(client.phone && normalizePhone(client.phone) ? [{label:"📱 שלח ללקוח ("+client.phone+")", bg:C.priL, ph:normalizePhone(client.phone), msg:"הצעת מחיר — מאפיית השומרון\nסהכ: "+fmt(total)}] : [])
+                {label:"💬 שלח לאורי / בת חן", bg:C.green, ph:PHONES.uri, msg:"הצעת מחיר — מאפיית השומרון\n"+(client.name||"")+"\nסהכ: "+fmt(total)}
               ].map(btn => html`
                 <button key=${btn.ph} onClick=${() => { setShowSendModal(false); var fn="הצעה_"+(client.name||"לקוח").replace(/\s/g,"_")+".pdf"; generatePdfAndShare("preview-card",fn,btn.ph,btn.msg); }} style=${{ width:"100%", padding:"14px", borderRadius:12, border:"none", background:btn.bg, color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer" }}>${btn.label}</button>
               `)}
