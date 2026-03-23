@@ -14,7 +14,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; direction: rtl; background: linear-gradient(145deg, #eaf4fb 0%, #fdf8ee 40%, #dfedf6 75%, #fdf8ee 100%); min-height: 100vh; }
+  body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; direction: rtl; background-color: #eaf4fb; min-height: 100vh; }
+  #bg-slideshow {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1;
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+    transition: background-image 1.5s ease-in-out;
+  }
+  #bg-slideshow::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(234, 244, 251, 0.82);
+  }
   input, textarea, button, select { font-family: inherit; font-size: 16px; }
   input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
   input[type="number"] { -moz-appearance: textfield; }
@@ -109,6 +118,7 @@
     body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .no-print { display: none !important; }
     #ai-chat-panel { display: none !important; }
+    #bg-slideshow { display: none !important; }
     #root { margin-right: 0 !important; margin-bottom: 0 !important; }
     #root > div { padding: 0 !important; }
     #preview-card { box-shadow: none !important; border-radius: 0 !important; padding: 20px 30px !important; max-width: 100% !important; }
@@ -125,6 +135,7 @@
 </style>
 </head>
 <body>
+<div id="bg-slideshow"></div>
 <div id="root"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -345,7 +356,8 @@ async function generatePdfAndShare(elementId, filename, phone, message) {
       margin: [8, 4, 8, 4], filename: filename,
       image: { type: "jpeg", quality: 0.95 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     }).from(el).outputPdf("blob");
 
     var file = new File([blob], filename, { type: "application/pdf" });
@@ -388,6 +400,21 @@ function App() {
   };
   const updateQty = (id, q) => q <= 0 ? setItems(items.filter(i => i.id !== id)) : setItems(items.map(i => i.id === id ? Object.assign({}, i, { qty: q }) : i));
   const removeItem = (id) => setItems(items.filter(i => i.id !== id));
+
+  window.__addItemsFromChat = function(chatItems) {
+    setItems(function(prev) {
+      var merged = [...prev];
+      chatItems.forEach(function(ci) {
+        var existing = merged.find(function(m) { return m.id === ci.id; });
+        if (existing) existing.qty += (ci.qty || 1);
+        else {
+          var prod = PRODUCTS.find(function(p) { return p.id === ci.id; });
+          if (prod) merged.push(Object.assign({}, prod, { qty: ci.qty || 1 }));
+        }
+      });
+      return merged;
+    });
+  };
 
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);
   const filtered = PRODUCTS.filter(p => (filterCat === "הכל" || p.cat === filterCat) && (!search || p.name.includes(search)));
@@ -456,7 +483,7 @@ function App() {
     reader.onload = async (ev) => {
       const dataUrl = ev.target.result;
       const base64 = dataUrl.split(",")[1];
-      showToast("מחלץ הזמנה מהתמונה...");
+      showToast("מחלץ הזמנה מהקובץ...");
       try {
         const res = await fetch(SHEETS_URL, {
           method: "POST",
@@ -483,7 +510,7 @@ function App() {
         } else if (data.status === "no_key") {
           showToast("Gemini לא מוגדר ב-Apps Script");
         } else {
-          showToast("לא זוהו פריטים בתמונה");
+          showToast("לא זוהו פריטים בקובץ");
         }
       } catch {
         showToast("שגיאת רשת — לא ניתן לחלץ הזמנה");
@@ -533,8 +560,8 @@ function App() {
   // ── PREVIEW VIEW ──
   if (view === "preview") return html`
     <div style=${{ maxWidth: 640, margin: "0 auto", padding: "24px 16px" }}>
-      <div id="preview-card" style=${{ background: "#fff", borderRadius: 20, boxShadow: "0 4px 30px rgba(27,73,101,0.1)", padding: 32, position: "relative", overflow: "hidden", direction: "rtl", wordSpacing: "0.05em", letterSpacing: "0.01em", textRendering: "geometricPrecision" }}>
-        <div style=${{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: "linear-gradient(90deg," + C.pri + "," + C.acc + "," + C.pri + ")" }} />
+      <div id="preview-card" style=${{ background: "#fff", borderRadius: 20, boxShadow: "0 4px 30px rgba(27,73,101,0.1)", padding: 32, position: "relative", direction: "rtl", wordSpacing: "0.05em", letterSpacing: "0.01em", textRendering: "geometricPrecision" }}>
+        <div style=${{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: "linear-gradient(90deg," + C.pri + "," + C.acc + "," + C.pri + ")", borderRadius: "20px 20px 0 0" }} />
         <div style=${{ textAlign: "center", marginBottom: 24 }}>
           <img src=${currentLogo} alt="לוגו" style=${{ width: 90, height: 90, borderRadius: "50%", marginBottom: 8, border: "3px solid " + C.creamD, objectFit: "cover" }} />
           <h2 style=${{ margin: 0, fontSize: 20, color: C.pri, direction: "rtl", unicodeBidi: "embed" }}>בית קפה מאפיית השומרון</h2>
@@ -621,7 +648,7 @@ function App() {
           <span style=${{ fontWeight: 700, fontSize: 14 }}>🛠️ מצב עורך</span>
           <input
             type="file"
-            accept="image/*"
+            accept="image/*,application/pdf"
             ref=${imageInputRef}
             style=${{ display: "none" }}
             onChange=${handleImageUpload}
@@ -629,7 +656,7 @@ function App() {
           <button
             onClick=${() => imageInputRef.current && imageInputRef.current.click()}
             style=${{ padding: "8px 14px", borderRadius: 8, border: "none", background: "rgba(255,255,255,0.2)", color: "#fff", fontSize: 13, cursor: "pointer" }}
-          >📄 טען הזמנה מתמונה</button>
+          >📄 טען הזמנה מתמונה/PDF</button>
           ${customLogo && html`
             <button
               onClick=${() => setCustomLogo(null)}
@@ -784,36 +811,36 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
 document.addEventListener('DOMContentLoaded', function() {
 (function() {
   const PRODUCTS = [
-    { name: "מגש כריכוני ביס", price: 180, qty: 12, category: "מגשי אירוח", tags: ["כריכים","ביס","בוקר"] },
-    { name: "מיני פיתה סביח", price: 180, qty: 12, category: "מגשי אירוח", tags: ["פיתה","סביח","ירקות"] },
-    { name: "כריכוני קרואסון חמאה", price: 140, qty: 12, category: "מגשי אירוח", tags: ["קרואסון","חמאה","בוקר"] },
-    { name: "חצאי טורטיה (12)", price: 105, qty: 12, category: "מגשי אירוח", tags: ["טורטיה","קל"] },
-    { name: "חצאי טורטיה (24)", price: 195, qty: 24, category: "מגשי אירוח", tags: ["טורטיה","קל"] },
-    { name: "מיני טורטיה", price: 195, qty: 40, category: "מגשי אירוח", tags: ["טורטיה","ביס"] },
-    { name: "בוריקיטס", price: 180, qty: 20, category: "מגשי אירוח", tags: ["בוריקס","מלוח","בוקר"] },
-    { name: "בוריקיטס סביח", price: 180, qty: 20, category: "מגשי אירוח", tags: ["בוריקס","סביח"] },
-    { name: "פריקסה", price: 195, qty: 20, category: "מגשי אירוח", tags: ["פריקסה","תימני","חמים"] },
-    { name: "מגש מיני קיש", price: 195, qty: 24, category: "מאפים חמים", tags: ["קיש","מלוח","חמים"] },
-    { name: "מגש פיצוניות", price: 160, qty: 24, category: "מאפים חמים", tags: ["פיצה","ילדים","מלוח"] },
-    { name: "פוקצ'ינות", price: 160, qty: 24, category: "מאפים חמים", tags: ["פוקצ'ה","לחם","איטלקי"] },
-    { name: "מיני לחם שום", price: 120, qty: 24, category: "מאפים חמים", tags: ["שום","לחם","צמחוני"] },
-    { name: "מגש מאפים טריים", price: 100, qty: 20, category: "מאפים חמים", tags: ["מאפים","טרי","בוקר"] },
-    { name: "פסטה", price: 120, qty: 10, category: "מנות חמות", tags: ["פסטה","איטלקי","חמים"] },
-    { name: "מגש שקשוקה", price: 180, qty: 8, category: "מנות חמות", tags: ["שקשוקה","ביצים","חורף"] },
-    { name: "מגש מיני גחנון", price: 180, qty: 8, category: "מנות חמות", tags: ["גחנון","תימני","שבת","חורף"] },
-    { name: "מגש מקושקשת", price: 180, qty: 12, category: "מנות חמות", tags: ["ביצים","בוקר"] },
-    { name: "פלטת גבינות קשות", price: 380, qty: 18, category: "פלטות", tags: ["גבינה","מכובד","בריאות"] },
-    { name: "פלטת ירקות שוק", price: 160, qty: 0, category: "פלטות", tags: ["ירקות","בריאות","טבעוני"] },
-    { name: "שיפודי מוצרלה", price: 180, qty: 24, category: "פלטות", tags: ["גבינה","טעים"] },
-    { name: "אנטיפסטי", price: 195, qty: 0, category: "פלטות", tags: ["ירקות","אפויים","איטלקי"] },
-    { name: "סלטים טריים (קיסר)", price: 120, qty: 12, category: "סלטים", tags: ["סלט","קיסר","ירוק"] },
-    { name: "סלטים טריים", price: 165, qty: 12, category: "סלטים", tags: ["סלט","טרי","בריאות"] },
-    { name: "פלטת פירות העונה", price: 250, qty: 0, category: "פירות וקינוחים", tags: ["פירות","בריאות","קיץ","ילדים"] },
-    { name: "מגש מתוקים", price: 295, qty: 50, category: "פירות וקינוחים", tags: ["מתוק","קינוח","ילדים"] },
-    { name: "מגש כדורי שוקולד", price: 180, qty: 35, category: "פירות וקינוחים", tags: ["שוקולד","מתוק","ילדים"] },
-    { name: "מגש קוקיז חמאה", price: 180, qty: 35, category: "פירות וקינוחים", tags: ["עוגיות","מתוק","קפה"] },
-    { name: "מגש פחזניות", price: 180, qty: 24, category: "פירות וקינוחים", tags: ["פחזניות","קינוח","אלגנטי"] },
-    { name: "מגש עוגות בחושות", price: 170, qty: 30, category: "פירות וקינוחים", tags: ["עוגה","מתוק","בית"] },
+    { id: 1,  name: "מגש כריכוני ביס", price: 180, qty: 12, category: "מגשי אירוח", tags: ["כריכים","ביס","בוקר"] },
+    { id: 2,  name: "מיני פיתה סביח", price: 180, qty: 12, category: "מגשי אירוח", tags: ["פיתה","סביח","ירקות"] },
+    { id: 3,  name: "כריכוני קרואסון חמאה", price: 140, qty: 12, category: "מגשי אירוח", tags: ["קרואסון","חמאה","בוקר"] },
+    { id: 4,  name: "חצאי טורטיה (12)", price: 105, qty: 12, category: "מגשי אירוח", tags: ["טורטיה","קל"] },
+    { id: 5,  name: "חצאי טורטיה (24)", price: 195, qty: 24, category: "מגשי אירוח", tags: ["טורטיה","קל"] },
+    { id: 6,  name: "מיני טורטיה", price: 195, qty: 40, category: "מגשי אירוח", tags: ["טורטיה","ביס"] },
+    { id: 7,  name: "בוריקיטס", price: 180, qty: 20, category: "מגשי אירוח", tags: ["בוריקס","מלוח","בוקר"] },
+    { id: 8,  name: "בוריקיטס סביח", price: 180, qty: 20, category: "מגשי אירוח", tags: ["בוריקס","סביח"] },
+    { id: 9,  name: "פריקסה", price: 195, qty: 20, category: "מגשי אירוח", tags: ["פריקסה","תימני","חמים"] },
+    { id: 10, name: "מגש מיני קיש", price: 195, qty: 24, category: "מאפים חמים", tags: ["קיש","מלוח","חמים"] },
+    { id: 11, name: "מגש פיצוניות", price: 160, qty: 24, category: "מאפים חמים", tags: ["פיצה","ילדים","מלוח"] },
+    { id: 12, name: "פוקצ'ינות", price: 160, qty: 24, category: "מאפים חמים", tags: ["פוקצ'ה","לחם","איטלקי"] },
+    { id: 13, name: "מיני לחם שום", price: 120, qty: 24, category: "מאפים חמים", tags: ["שום","לחם","צמחוני"] },
+    { id: 14, name: "מגש מאפים טריים", price: 100, qty: 20, category: "מאפים חמים", tags: ["מאפים","טרי","בוקר"] },
+    { id: 15, name: "פסטה", price: 120, qty: 10, category: "מנות חמות", tags: ["פסטה","איטלקי","חמים"] },
+    { id: 16, name: "מגש שקשוקה", price: 180, qty: 8, category: "מנות חמות", tags: ["שקשוקה","ביצים","חורף"] },
+    { id: 17, name: "מגש מיני גחנון", price: 180, qty: 8, category: "מנות חמות", tags: ["גחנון","תימני","שבת","חורף"] },
+    { id: 18, name: "מגש מקושקשת", price: 180, qty: 12, category: "מנות חמות", tags: ["ביצים","בוקר"] },
+    { id: 19, name: "פלטת גבינות קשות", price: 380, qty: 18, category: "פלטות", tags: ["גבינה","מכובד","בריאות"] },
+    { id: 20, name: "פלטת ירקות שוק", price: 160, qty: 0, category: "פלטות", tags: ["ירקות","בריאות","טבעוני"] },
+    { id: 21, name: "שיפודי מוצרלה", price: 180, qty: 24, category: "פלטות", tags: ["גבינה","טעים"] },
+    { id: 22, name: "אנטיפסטי", price: 195, qty: 0, category: "פלטות", tags: ["ירקות","אפויים","איטלקי"] },
+    { id: 23, name: "סלטים טריים (קיסר)", price: 120, qty: 12, category: "סלטים", tags: ["סלט","קיסר","ירוק"] },
+    { id: 24, name: "סלטים טריים", price: 165, qty: 12, category: "סלטים", tags: ["סלט","טרי","בריאות"] },
+    { id: 25, name: "פלטת פירות העונה", price: 250, qty: 0, category: "פירות וקינוחים", tags: ["פירות","בריאות","קיץ","ילדים"] },
+    { id: 26, name: "מגש מתוקים", price: 295, qty: 50, category: "פירות וקינוחים", tags: ["מתוק","קינוח","ילדים"] },
+    { id: 27, name: "מגש כדורי שוקולד", price: 180, qty: 35, category: "פירות וקינוחים", tags: ["שוקולד","מתוק","ילדים"] },
+    { id: 28, name: "מגש קוקיז חמאה", price: 180, qty: 35, category: "פירות וקינוחים", tags: ["עוגיות","מתוק","קפה"] },
+    { id: 29, name: "מגש פחזניות", price: 180, qty: 24, category: "פירות וקינוחים", tags: ["פחזניות","קינוח","אלגנטי"] },
+    { id: 30, name: "מגש עוגות בחושות", price: 170, qty: 30, category: "פירות וקינוחים", tags: ["עוגה","מתוק","בית"] },
   ];
 
   const RULES = [
@@ -879,7 +906,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function buildSystemPrompt() {
     var productList = PRODUCTS.map(function(p) {
-      return p.name + ' (' + p.price + ' שח, ' + p.qty + ' יח)';
+      return 'id:' + p.id + ' ' + p.name + ' (' + p.price + ' שח, ' + p.qty + ' יח)';
     }).join(', ');
     var rulesList = RULES.join('; ');
     var fillNote = allowFill 
@@ -961,6 +988,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (data.guests) setVal('input[placeholder*="אורחים"]', data.guests);
     if (data.date) setVal('input[type="date"]', data.date);
     if (data.eventType) setVal('input[placeholder*="סוג"]', data.eventType);
+    if (data.items && data.items.length > 0 && typeof window.__addItemsFromChat === 'function') {
+      window.__addItemsFromChat(data.items);
+    }
   }
 
   async function handleSend() {
@@ -984,7 +1014,7 @@ document.addEventListener('DOMContentLoaded', function() {
           var fillData = JSON.parse(jsonMatch[0]);
           if (fillData.fill) {
             fillForm(fillData.fill);
-            addMsg('bot', '✅ מילאתי את הטופס בשבילך! בדוק שהכל נכון ולאחר מכן לחץ על ביצוע ההזמנה.');
+            addMsg('bot', '✅ מילאתי את הפרטים והוספתי מוצרים להזמנה! בדוק שהכל נכון ולאחר מכן לחץ על ביצוע ההזמנה.');
             chatHistory.push({ role: 'assistant', content: response });
             return;
           }
@@ -1001,6 +1031,25 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 });
 
+</script>
+
+<script>
+(function() {
+  var BG_IMAGES = [];
+  for (var i = 1; i <= 27; i++) BG_IMAGES.push('images/product' + i + '.jpeg');
+  var bgEl = document.getElementById('bg-slideshow');
+  var idx = Math.floor(Math.random() * BG_IMAGES.length);
+
+  function showNext() {
+    bgEl.style.backgroundImage = 'url(' + BG_IMAGES[idx] + ')';
+    idx = (idx + 1) % BG_IMAGES.length;
+    var preload = new Image();
+    preload.src = BG_IMAGES[idx];
+  }
+
+  showNext();
+  setInterval(showNext, 8000);
+})();
 </script>
 
 </body>
