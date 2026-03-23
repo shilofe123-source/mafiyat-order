@@ -50,7 +50,7 @@ function doPost(e) {
       sheet.appendRow([
         "חותמת זמן קבלה", "תאריך הזמנה", "שם לקוח", "טלפון",
         "סוג אירוע", "מספר אורחים", "פריטים", 'סה"כ לפני הנחה',
-        "הנחה", "סכום סופי", "הערות", "אושר בתאריך", "מזהה הזמנה"
+        "הנחה", "סכום סופי", "הערות", "אושר בתאריך", "מזהה הזמנה", "שעת איסוף"
       ]);
     }
 
@@ -67,7 +67,8 @@ function doPost(e) {
       data.finalPrice   || 0,
       data.notes        || "",
       data.approvedAt   || "",
-      data.orderId      || ""
+      data.orderId      || "",
+      data.pickupTime   || ""
     ];
 
     // ── מצב עורך: חפש והחלף שורה קיימת לפי מזהה הזמנה (עמודה M) ────────────
@@ -77,7 +78,7 @@ function doPost(e) {
       for (var r = lastRow; r >= 2; r--) {
         var idCell = sheet.getRange(r, 13).getValue();
         if (String(idCell).trim() === String(data.orderId).trim()) {
-          sheet.getRange(r, 1, 1, 13).setValues([rowData]);
+          sheet.getRange(r, 1, 1, 14).setValues([rowData]);
           found = true;
           break;
         }
@@ -88,6 +89,32 @@ function doPost(e) {
     } else {
       sheet.appendRow(rowData);
     }
+
+    // -- [EMAIL] שליחת PDF למייל — ניתן להסרה בהמשך (למעבר לוואטסאפ) --
+    if (data.pdfBase64 && data.emailTo) {
+      try {
+        var pdfBlob = Utilities.newBlob(
+          Utilities.base64Decode(data.pdfBase64),
+          "application/pdf",
+          data.pdfFilename || "הזמנה.pdf"
+        );
+        MailApp.sendEmail({
+          to: data.emailTo,
+          subject: "הזמנה חדשה — " + (data.customerName || "לקוח") + " — מאפיית השומרון",
+          body: "שלום בת חן,\n\nהתקבלה הזמנה חדשה:\n"
+            + "לקוח: " + (data.customerName || "") + "\n"
+            + "טלפון: " + (data.phone || "") + "\n"
+            + "תאריך: " + (data.orderDate || "") + "\n"
+            + "שעת איסוף: " + (data.pickupTime || "") + "\n"
+            + "סכום: " + (data.finalPrice || 0) + " ש\"ח\n\n"
+            + "PDF מצורף.\n\n— מערכת הזמנות מאפיית השומרון",
+          attachments: [pdfBlob]
+        });
+      } catch (emailErr) {
+        Logger.log("Email send error: " + emailErr.toString());
+      }
+    }
+    // -- [/EMAIL] --
 
     // עדכון גיליון סיכום
     updateSummary(data.customerName, data.finalPrice || ((data.totalPrice || 0) - (data.discount || 0)), data.editorMode === true);
