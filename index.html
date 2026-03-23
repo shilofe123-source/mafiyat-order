@@ -87,36 +87,33 @@ const KASHRUT = "מהדרין רבנות קרני שומרון";
 const LOGO ="data:image/jpeg;base64,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";
 
 const PRODUCTS = [
-  { id: 1,  name: "מגש כריכוני ביס",      price: 180, qty_desc: "12 יח'",    cat: "מגשי אירוח",       img: "images/product5.jpeg" },
-  { id: 2,  name: "מיני פיתה סביח",        price: 180, qty_desc: "12 יח'",    cat: "מגשי אירוח",       img: "images/product8.jpeg" },
-  { id: 3,  name: "כריכוני קרואסון חמאה",  price: 140, qty_desc: "12 יח'",    cat: "מגשי אירוח",       img: "images/product13.jpeg" },
-  { id: 4,  name: "חצאי טורטיה (12)",      price: 105, qty_desc: "12 יח'",    cat: "מגשי אירוח",       img: "images/product14.jpeg" },
-  { id: 5,  name: "חצאי טורטיה (24)",      price: 195, qty_desc: "24 יח'",    cat: "מגשי אירוח",       img: "images/product14.jpeg" },
-  { id: 6,  name: "מיני טורטיה",           price: 195, qty_desc: "כ-40 יח'",  cat: "מגשי אירוח",       img: "images/product18.jpeg" },
-  { id: 7,  name: "בוריקיטס",              price: 180, qty_desc: "20 יח'",    cat: "מגשי אירוח",       img: "images/product11.jpeg" },
-  { id: 8,  name: "בוריקיטס סביח",         price: 180, qty_desc: "20 יח'",    cat: "מגשי אירוח",       img: "images/product17.jpeg" },
-  { id: 9,  name: "פריקסה",                price: 195, qty_desc: "20 יח'",    cat: "מגשי אירוח",       img: "images/product18.jpeg" },
-  { id: 10, name: "מגש מיני קיש",          price: 195, qty_desc: "24 יח'",    cat: "מאפים חמים",       img: "images/product24.jpeg" },
-  { id: 11, name: "מגש פיצוניות",          price: 160, qty_desc: "24 יח'",    cat: "מאפים חמים",       img: "images/product10.jpeg" },
-  { id: 12, name: "פוקצ'ינות",             price: 160, qty_desc: "24 יח'",    cat: "מאפים חמים",       img: "images/product4.jpeg" },
-  { id: 13, name: "מיני לחם שום",          price: 120, qty_desc: "24 יח'",    cat: "מאפים חמים",       img: "images/product13.jpeg" },
-  { id: 14, name: "מגש מאפים טריים",       price: 100, qty_desc: "20 יח'",    cat: "מאפים חמים",       img: "images/product3.jpeg" },
-  { id: 15, name: "פסטה",                  price: 120, qty_desc: "כ-10 מנות", cat: "מנות חמות",        img: "images/product20.jpeg" },
-  { id: 16, name: "מגש שקשוקה",            price: 180, qty_desc: "כ-8 מנות",  cat: "מנות חמות",        img: "images/product19.jpeg" },
-  { id: 17, name: "מגש מיני גחנון",        price: 180, qty_desc: "כ-8 מנות",  cat: "מנות חמות",        img: "images/product16.jpeg" },
-  { id: 18, name: "מגש מקושקשת",           price: 180, qty_desc: "כ-12 מנות", cat: "מנות חמות",        img: "images/product27.jpeg" },
-  { id: 19, name: "פלטת גבינות קשות",      price: 380, qty_desc: "כ-18 מנות", cat: "פלטות",            img: "images/product2.jpeg" },
-  { id: 20, name: "פלטת ירקות שוק",        price: 160, qty_desc: 'כ-2.5 ק"ג', cat: "פלטות",            img: "images/product23.jpeg" },
-  { id: 21, name: "שיפודי מוצרלה",         price: 180, qty_desc: "24 יח'",    cat: "פלטות",            img: "images/product1.jpeg" },
-  { id: 22, name: "אנטיפסטי",              price: 195, qty_desc: 'כ-1.5 ק"ג', cat: "פלטות",            img: "images/product22.jpeg" },
-  { id: 23, name: "סלטים טריים (קיסר)",    price: 120, qty_desc: "כ-12 מנות", cat: "סלטים",            img: "images/product15.jpeg" },
-  { id: 24, name: "סלטים טריים",           price: 165, qty_desc: "כ-12 מנות", cat: "סלטים",            img: "images/product21.jpeg" },
-  { id: 25, name: "פלטת פירות העונה",      price: 250, qty_desc: 'כ-2.4 ק"ג', cat: "פירות וקינוחים",   img: "images/product7.jpeg" },
-  { id: 26, name: "מגש מתוקים",            price: 295, qty_desc: "50 יח'",    cat: "פירות וקינוחים",   img: "images/product9.jpeg" },
-  { id: 27, name: "מגש כדורי שוקולד",      price: 180, qty_desc: "35 יח'",    cat: "פירות וקינוחים",   img: "images/product22.jpeg" },
-  { id: 28, name: "מגש קוקיז חמאה",        price: 180, qty_desc: "35 יח'",    cat: "פירות וקינוחים",   img: "images/product26.jpeg" },
-  { id: 29, name: "מגש פחזניות",           price: 180, qty_desc: "24 יח'",    cat: "פירות וקינוחים",   img: "images/product6.jpeg" },
-  { id: 30, name: "מגש עוגות בחושות",      price: 170, qty_desc: "30 יח'",    cat: "פירות וקינוחים",   img: "images/product25.jpeg" },
+  { id: 1,  name: "שיפודי מוצרלה",         price: 180, qty_desc: "כ-24 שיפודים",  cat: "מגשי אירוח", img: "images/product1.jpeg",  ingredients: "עגבניות שרי, מיני מוצרלה, בזיליקום ובלסמי", subOptions: [] },
+  { id: 2,  name: "פלטת גבינות קשות",      price: 380, qty_desc: "כ-18 מנות",     cat: "פלטות",       img: "images/product2.jpeg",  ingredients: "מבחר של גבינות משובחות", subOptions: [] },
+  { id: 3,  name: "מגש מאפים טריים",       price: 100, qty_desc: "20 יח'",         cat: "מגשי אירוח", img: "images/product3.jpeg",  ingredients: "מגוון מאפים טריים מתוקים/מלוחים", subOptions: ["מלוח: בורקס פיצה, בוריקיטס, בורקס גבינה, בורקס תפו\"א, מאפה פטריות", "מתוק: פרלין חמאה, גבינית ריקוטה, קוקיז, קרואסון חמאה, קרואסון שוקולד, רוגעלך"] },
+  { id: 4,  name: "פוקצ'ינות",             price: 140, qty_desc: "18 יח' במגש",    cat: "מגשי אירוח", img: "images/product4.jpeg",  ingredients: "פוקאצ'ות אישיות במגוון טעמים", subOptions: ["שרי ובצל", "פטריות", "פסטו שמן זית"] },
+  { id: 5,  name: "כריכוני ביס",           price: 180, qty_desc: "12 יח' במגש",    cat: "מגשי אירוח", img: "images/product5.jpeg",  ingredients: "ניתן לבחור 3 סוגים למגש", subOptions: ["סלט ביצים", "סלמון מעושן", "אבוקדו", "סביח", "טונה", "בלקני", "קפרזה", "חביתה"] },
+  { id: 6,  name: "מגש פחזניות",           price: 180, qty_desc: "24 יח'",         cat: "מתוקים",     img: "images/product6.jpeg",  ingredients: "פחזניות טריות מלאות בקרם וניל", subOptions: [] },
+  { id: 7,  name: "פלטת פירות העונה",      price: 250, qty_desc: "כ-2.4 ק\"ג",    cat: "פלטות",       img: "images/product7.jpeg",  ingredients: "שפע של פירות העונה חתוכים ומסודרים במגש", subOptions: [] },
+  { id: 8,  name: "רול טורטיה",            price: 180, qty_desc: "16 יח' במגש",    cat: "מגשי אירוח", img: "images/product8.jpeg",  ingredients: "ניתן לבחור 3 סוגים למגש", subOptions: ["טונה", "בלקני", "אבוקדו", "סלט ביצים", "סביח"] },
+  { id: 9,  name: "מגש מתוקים",            price: 295, qty_desc: "כ-50 יח'",       cat: "מתוקים",     img: "images/product9.jpeg",  ingredients: "מגוון קינוחים אישיים", subOptions: [] },
+  { id: 10, name: "מיני פיצה מרגריטה",     price: 140, qty_desc: "18 יח' במגש",    cat: "מנות חמות",  img: "images/product10.jpeg", ingredients: "פיצות אישיות שילדים (ולא רק) אוהבים", subOptions: ["זיתים", "בצל", "פטריות"] },
+  { id: 11, name: "בוריקיטס",              price: 180, qty_desc: "20 יח' במגש",    cat: "מגשי אירוח", img: "images/product11.jpeg", ingredients: "", subOptions: ["חסה, גבינה צהובה ומלפפון", "עגבניה, ביצה ומלפפון חמוץ"] },
+  { id: 12, name: "מיני קיש",              price: 195, qty_desc: "24 יח' במגש",    cat: "מגשי אירוח", img: "images/product12.jpeg", ingredients: "", subOptions: ["בצל, פטריות וברוקולי", "תרד, פלפלים ובטטה"] },
+  { id: 13, name: "כריכוני קרואסון חמאה",  price: 140, qty_desc: "12 יח' במגש",    cat: "מגשי אירוח", img: "images/product13.jpeg", ingredients: "", subOptions: ["גבינה צהובה, פסטו, מלפפון וחסה", "סלמון מעושן, שמנת שום שמיר, מלפפון וחסה"] },
+  { id: 14, name: "סושי טורטיה",           price: 195, qty_desc: "כ-35 יח' במגש",  cat: "מגשי אירוח", img: "images/product14.jpeg", ingredients: "ניתן לבחור 3 סוגים למגש", subOptions: ["טונה", "בלקני", "אבוקדו", "סלט ביצים"] },
+  { id: 15, name: "אנטיפסטי",              price: 195, qty_desc: "כ-1.5 ק\"ג",    cat: "פלטות",       img: "images/product15.jpeg", ingredients: "ירקות שוק אפויים - חציל, בטטה, בצל סגול, פלפל, עגבניות שרי ופטריות", subOptions: [] },
+  { id: 16, name: "מגש מיני ג'חנון",       price: 180, qty_desc: "כ-10 מנות",      cat: "מנות חמות",  img: "images/product16.jpeg", ingredients: "כ-30 יח' מיני ג'חנון, רסק עגבניות, סחוג, זיתים וביצים קשות", subOptions: [] },
+  { id: 17, name: "בוריקיטס סביח",         price: 180, qty_desc: "20 יח' במגש",    cat: "מגשי אירוח", img: "images/product17.jpeg", ingredients: "חציל, מלפפון חמוץ, ביצה, פטרוזיליה", subOptions: [] },
+  { id: 18, name: "פריקסה",                price: 195, qty_desc: "20 יח' במגש",    cat: "מגשי אירוח", img: "images/product18.jpeg", ingredients: "סלט טונה, ביצים קשות, זיתים ולימון כבוש", subOptions: [] },
+  { id: 19, name: "שקשוקה",                price: 180, qty_desc: "כ-8 מנות",       cat: "מנות חמות",  img: "images/product19.jpeg", ingredients: "שקשוקה ים תיכונית טרייה", subOptions: ["בולגרית", "חצילים"] },
+  { id: 20, name: "פסטה",                  price: 120, qty_desc: "כ-8 מנות",       cat: "מנות חמות",  img: "images/product20.jpeg", ingredients: "", subOptions: ["שמנת פטריות", "רוזה", "ים תיכונית", "שמנת בטטה וערמונים", "ספגטי עגבניות"] },
+  { id: 21, name: "סלטים טריים",           price: 165, qty_desc: "כ-12 מנות",      cat: "סלטים",      img: "images/product21.jpeg", ingredients: "סלט קינואה ועדשים, קינואה, עדשים שחורות, בטטה, שרי, מלפפון, פטריות וחמוציות", subOptions: ["סלט הבית", "סלט פסטה", "סביח"] },
+  { id: 22, name: "מגש כדורי שוקולד",      price: 180, qty_desc: "35 יח'",         cat: "מתוקים",     img: "images/product22.jpeg", ingredients: "", subOptions: ["כדורי שוקולד סוכריות", "קוקוס"] },
+  { id: 23, name: "פלטת ירקות טריים",      price: 160, qty_desc: "כ-2.2 ק\"ג",    cat: "פלטות",       img: "images/product23.jpeg", ingredients: "מלפפון, שרי, גזר, פטריות, גמבה, זיתים ומטבל", subOptions: [] },
+  { id: 24, name: "מיני לחם שום",          price: 120, qty_desc: "24 יח' במגש",    cat: "מגשי אירוח", img: "images/product24.jpeg", ingredients: "לחם שום רכים וטריים", subOptions: [] },
+  { id: 25, name: "עוגות בחושות",          price: 170, qty_desc: "30 יח'",         cat: "מתוקים",     img: "images/product25.jpeg", ingredients: "", subOptions: [] },
+  { id: 26, name: "מגש קוקיז חמאה",        price: 180, qty_desc: "35 יח'",         cat: "מתוקים",     img: "images/product26.jpeg", ingredients: "קוקיז חמאה טרי ב-3 טעמים", subOptions: ["שוקו שוקולד", "וניל שוקולד", "וניל שוקולד לבן"] },
+  { id: 27, name: "ביצים מקושקשות",        price: 180, qty_desc: "כ-12 מנות",      cat: "מנות חמות",  img: "images/product27.jpeg", ingredients: "חביתה מקושקשת", subOptions: ["בולגרית", "בצל", "זעתר", "עשבי תיבול", "פטריות"] },
 ];
 
 const CATEGORIES = [...new Set(PRODUCTS.map(p => p.cat))];
@@ -270,13 +267,19 @@ function App() {
   const [discount, setDiscount] = useState(0);
   const [customLogo, setCustomLogo] = useState(null);
   const [showSendModal, setShowSendModal] = useState(false);
+  const [subOptModal, setSubOptModal] = useState(null);
   const [orderId, setOrderId] = useState("");
   const imageInputRef = useRef(null);
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
-  const addItem = (p) => {
+  const addItem = (p, selectedOpts) => {
     const ex = items.find(i => i.id === p.id);
-    setItems(ex ? items.map(i => i.id === p.id ? {...i, qty: i.qty+1} : i) : [...items, {...p, qty:1}]);
+    const opts = selectedOpts || [];
+    setItems(ex ? items.map(i => i.id === p.id ? {...i, qty: i.qty+1, options: opts.length ? opts : i.options} : i) : [...items, {...p, qty:1, options: opts}]);
+  };
+  const handleProductClick = (p) => {
+    if (p.subOptions && p.subOptions.length > 0) { setSubOptModal({ product: p, selected: [] }); }
+    else addItem(p);
   };
   const updateQty = (id, q) => q <= 0 ? setItems(items.filter(i => i.id !== id)) : setItems(items.map(i => i.id === id ? {...i, qty:q} : i));
   const removeItem = (id) => setItems(items.filter(i => i.id !== id));
@@ -323,7 +326,7 @@ function App() {
     if (client.event)  t += "🎉 " + client.event + "\n";
     if (client.guests) t += "👥 " + client.guests + " אורחים\n";
     t += SEP + "\n";
-    items.forEach(i => { t += "• " + i.name + " (" + i.qty_desc + ") × " + i.qty + " — " + fmt(i.price * i.qty) + "\n"; });
+    items.forEach(i => { t += "• " + i.name + " (" + i.qty_desc + ") × " + i.qty + " — " + fmt(i.price * i.qty) + (i.options && i.options.length ? "\n  ↳ " + i.options.join(", ") : "") + "\n"; });
     t += "\n" + SEP + '*סה"כ כולל מע"מ: ' + fmt(total) + "*\n";
     if (client.notes) t += "\n💬 " + client.notes;
     return t;
@@ -343,7 +346,7 @@ function App() {
       const res = await fetch(SHEETS_URL, { method: "POST", body: JSON.stringify({
         orderDate: client.date ? fmtDate(client.date) : new Date().toLocaleDateString("he-IL"),
         customerName: client.name||"", phone: client.phone||"", event: client.event||"",
-        guests: client.guests||"", items: items.filter(i => i.qty>0).map(i => i.name+" x"+i.qty).join(", "),
+        guests: client.guests||"", items: items.filter(i => i.qty>0).map(i => i.name + (i.options && i.options.length ? " (" + i.options.join(", ") + ")" : "") + " x" + i.qty).join(", "),
         totalPrice: total, discount: disc, finalPrice: total-disc,
         notes: client.notes||"", approvedAt: new Date().toISOString(), editorMode: isEditorMode, orderId: oid,
         pickupTime: client.pickupTime||"",
@@ -447,7 +450,7 @@ function App() {
           <tbody>
             ${items.map((it, idx) => html`
               <tr key=${it.id} style=${{ background: idx % 2 ? C.cream : "#fff" }}>
-                <td style=${{ padding: "10px 12px", direction: "rtl", unicodeBidi: "embed" }}>${it.name}<br/><span style=${{ fontSize: 11, color: C.txtL }}>${it.qty_desc}</span></td>
+                <td style=${{ padding: "10px 12px", direction: "rtl", unicodeBidi: "embed" }}>${it.name}<br/><span style=${{ fontSize: 11, color: C.txtL }}>${it.qty_desc}</span>${it.options && it.options.length > 0 ? html`<br/><span style=${{ fontSize: 10, color: C.acc }}>${it.options.join(", ")}</span>` : ""}</td>
                 <td style=${{ padding: "10px 8px", textAlign: "center", direction: "rtl", unicodeBidi: "embed" }}>${it.qty}</td>
                 <td style=${{ padding: "10px 8px", textAlign: "center", direction: "rtl", unicodeBidi: "embed" }}>${fmt(it.price)}</td>
                 <td style=${{ padding: "10px 12px", textAlign: "center", fontWeight: 700, direction: "rtl", unicodeBidi: "embed" }}>${fmt(it.price * it.qty)}</td>
@@ -572,12 +575,13 @@ function App() {
             ${filtered.map(p => {
               const ic = items.find(i => i.id === p.id);
               return html`
-                <div key=${p.id} onClick=${() => addItem(p)} style=${{ borderRadius: 12, overflow: "hidden", border: ic ? "2px solid #2563eb" : "1px solid " + C.creamD, background: "#fff", cursor: "pointer", position: "relative" }}>
+                <div key=${p.id} onClick=${() => handleProductClick(p)} style=${{ borderRadius: 12, overflow: "hidden", border: ic ? "2px solid #2563eb" : "1px solid " + C.creamD, background: "#fff", cursor: "pointer", position: "relative" }}>
                   ${p.img && html`<img src=${p.img} alt=${p.name} style=${{ width: "100%", height: 100, objectFit: "cover", display: "block" }} />`}
                   ${ic && html`<span style=${{ position: "absolute", top: 6, left: 6, background: "#2563eb", color: "#fff", borderRadius: "50%", width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700 }}>${ic.qty}</span>`}
+                  ${p.subOptions && p.subOptions.length > 0 && html`<span style=${{ position: "absolute", top: 6, right: 6, background: C.acc, color: "#fff", borderRadius: 8, padding: "1px 6px", fontSize: 10, fontWeight: 600 }}>בחירה</span>`}
                   <div style=${{ padding: "6px 8px" }}>
                     <div style=${{ fontSize: 13, fontWeight: 600, color: C.txt, marginBottom: 2 }}>${p.name}</div>
-                    <div style=${{ fontSize: 11, color: C.txtL }}>${p.qty_desc}</div>
+                    <div style=${{ fontSize: 11, color: C.txtL }}>${p.ingredients || p.qty_desc}</div>
                     <div style=${{ fontSize: 14, fontWeight: 700, color: C.pri, marginTop: 2 }}>${fmt(p.price)}</div>
                   </div>
                 </div>
@@ -599,6 +603,7 @@ function App() {
                 <div key=${it.id} style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid " + C.creamD }}>
                   <div style=${{ flex: 1 }}>
                     <div style=${{ fontSize: 14, fontWeight: 600, color: C.txt }}>${it.name}</div>
+                    ${it.options && it.options.length > 0 && html`<div style=${{ fontSize: 11, color: C.acc }}>${it.options.join(", ")}</div>`}
                     <div style=${{ fontSize: 12, color: C.txtL }}>${fmt(it.price)} × ${it.qty} = ${fmt(it.price * it.qty)}</div>
                   </div>
                   <div style=${{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -638,6 +643,38 @@ function App() {
           onConfirm=${sendToSheets}
           onClose=${() => setShowApprovalModal(false)}
         />
+      `}
+
+      ${subOptModal && html`
+        <div style=${{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick=${() => setSubOptModal(null)}>
+          <div style=${{ background: "#fff", borderRadius: 16, padding: "24px 20px", maxWidth: 380, width: "100%", maxHeight: "80vh", overflowY: "auto", direction: "rtl" }} onClick=${e => e.stopPropagation()}>
+            <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div>
+                <div style=${{ fontSize: 18, fontWeight: 700, color: C.pri }}>${subOptModal.product.name}</div>
+                <div style=${{ fontSize: 13, color: C.txtL }}>${subOptModal.product.qty_desc} — ${fmt(subOptModal.product.price)}</div>
+              </div>
+              <button onClick=${() => setSubOptModal(null)} style=${{ border: "none", background: "none", fontSize: 22, cursor: "pointer", color: C.txtL }}>✕</button>
+            </div>
+            <div style=${{ fontSize: 14, fontWeight: 600, marginBottom: 10, color: C.txt }}>בחירת אפשרויות:</div>
+            ${subOptModal.product.subOptions.map((opt, idx) => html`
+              <label key=${idx} style=${{ display: "flex", alignItems: "center", gap: 8, padding: "8px 4px", borderBottom: "1px solid " + C.creamD, cursor: "pointer", fontSize: 14 }}>
+                <input type="checkbox" checked=${subOptModal.selected.includes(opt)}
+                  onChange=${() => setSubOptModal(prev => ({ ...prev, selected: prev.selected.includes(opt) ? prev.selected.filter(s => s !== opt) : [...prev.selected, opt] }))} />
+                ${opt}
+              </label>
+            `)}
+            <div style=${{ display: "flex", gap: 10, marginTop: 16 }}>
+              <button onClick=${() => { addItem(subOptModal.product, subOptModal.selected); setSubOptModal(null); }}
+                style=${{ flex: 1, padding: "12px 0", borderRadius: 10, border: "none", background: C.pri, color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                הוסף להזמנה
+              </button>
+              <button onClick=${() => setSubOptModal(null)}
+                style=${{ padding: "12px 16px", borderRadius: 10, border: "1px solid " + C.creamD, background: "#fff", color: C.txt, fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+                ביטול
+              </button>
+            </div>
+          </div>
+        </div>
       `}
 
       ${toast && html`<${Toast} msg=${toast}/>`}
@@ -680,11 +717,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 (function() {
-  const TAGS = {1:["כריכים","ביס","בוקר"],2:["פיתה","סביח","ירקות"],3:["קרואסון","חמאה","בוקר"],4:["טורטיה","קל"],5:["טורטיה","קל"],6:["טורטיה","ביס"],7:["בוריקס","מלוח","בוקר"],8:["בוריקס","סביח"],9:["פריקסה","תימני","חמים"],10:["קיש","מלוח","חמים"],11:["פיצה","ילדים","מלוח"],12:["פוקצ'ה","לחם","איטלקי"],13:["שום","לחם","צמחוני"],14:["מאפים","טרי","בוקר"],15:["פסטה","איטלקי","חמים"],16:["שקשוקה","ביצים","חורף"],17:["גחנון","תימני","שבת","חורף"],18:["ביצים","בוקר"],19:["גבינה","מכובד","בריאות"],20:["ירקות","בריאות","טבעוני"],21:["גבינה","טעים"],22:["ירקות","אפויים","איטלקי"],23:["סלט","קיסר","ירוק"],24:["סלט","טרי","בריאות"],25:["פירות","בריאות","קיץ","ילדים"],26:["מתוק","קינוח","ילדים"],27:["שוקולד","מתוק","ילדים"],28:["עוגיות","מתוק","קפה"],29:["פחזניות","קינוח","אלגנטי"],30:["עוגה","מתוק","בית"]};
-  const QTY = {1:12,2:12,3:12,4:12,5:24,6:40,7:20,8:20,9:20,10:24,11:24,12:24,13:24,14:20,15:10,16:8,17:8,18:12,19:18,20:0,21:24,22:0,23:12,24:12,25:0,26:50,27:35,28:35,29:24,30:30};
+  const TAGS = {1:["גבינה","טעים","מוצרלה"],2:["גבינה","מכובד"],3:["מאפים","טרי","בוקר"],4:["פוקצ'ה","לחם","איטלקי"],5:["כריכים","ביס","בוקר"],6:["פחזניות","קינוח","אלגנטי"],7:["פירות","בריאות","קיץ"],8:["טורטיה","ביס"],9:["מתוק","קינוח","ילדים"],10:["פיצה","ילדים","מלוח"],11:["בוריקס","מלוח","בוקר"],12:["קיש","מלוח","חמים"],13:["קרואסון","חמאה","בוקר"],14:["טורטיה","סושי","קל"],15:["ירקות","אפויים","איטלקי"],16:["גחנון","תימני","שבת","חורף"],17:["בוריקס","סביח"],18:["פריקסה","תימני","חמים"],19:["שקשוקה","ביצים","חורף"],20:["פסטה","איטלקי","חמים"],21:["סלט","טרי","בריאות"],22:["שוקולד","מתוק","ילדים"],23:["ירקות","בריאות","טבעוני"],24:["שום","לחם","צמחוני"],25:["עוגה","מתוק","בית"],26:["עוגיות","מתוק","קפה"],27:["ביצים","בוקר","מקושקשת"]};
+  const QTY = {1:24,2:18,3:20,4:18,5:12,6:24,7:0,8:16,9:50,10:18,11:20,12:24,13:12,14:35,15:0,16:10,17:20,18:20,19:8,20:8,21:12,22:35,23:0,24:24,25:30,26:35,27:12};
   const PRODUCTS = (window.__PRODUCTS||[]).map(p => ({...p, qty: QTY[p.id]||0, category: p.cat, tags: TAGS[p.id]||[]}));
 
-  const RULES = ["חורף (נובמבר-מרץ): המלץ על מנות חמות — שקשוקה, גחנון, מאפים חמים","קיץ (אפריל-אוקטובר): המלץ על פלטת פירות, מנות קרות, עוגיות","ילדים קטנים: פיצוניות, פירות, כדורי שוקולד, עוגיות","מבוגרים: פלטת גבינות, קיש, שקשוקה — מנות מכובדות","צעירים: מגש מאפים, כריכוני קרואסון, מתוקים","בריאות: פלטת פירות, פלטת גבינות, שקשוקה","לחשב 1 מנה לכל 2-3 אנשים למגשי ביס, 1 מנה לכל 4-5 אנשים למנות עיקריות","לאירוע מעל 50 איש: המלץ על מינימום 3 סוגים שונים","תמיד לציין: כשר מהדרין רבנות קרני שומרון","בסוף כל ייעוץ: להפנות לטופס ההזמנה ולהציע לעזור למלא"];
+  const RULES = ["חורף (נובמבר-מרץ): המלץ על מנות חמות — שקשוקה, גחנון, פסטה, מקושקשת","קיץ (אפריל-אוקטובר): המלץ על פלטת פירות, מנות קרות, סלטים","ילדים קטנים: מיני פיצה, פלטת פירות, כדורי שוקולד, קוקיז","מבוגרים: פלטת גבינות, מיני קיש, שקשוקה — מנות מכובדות","צעירים: מגש מאפים, כריכוני קרואסון, מתוקים","בריאות: פלטת פירות, סלטים טריים, אנטיפסטי","לחשב 1 מנה לכל 2-3 אנשים למגשי ביס, 1 מנה לכל 4-5 אנשים למנות עיקריות","לאירוע מעל 50 איש: המלץ על מינימום 3 סוגים שונים","תמיד לציין: כשר מהדרין רבנות קרני שומרון","בסוף כל ייעוץ: להפנות לטופס ההזמנה ולהציע לעזור למלא"];
 
   var chatHistory = [], allowFill = false, isTyping = false, isCollapsed = false, pendingImage = null;
   var panel = document.getElementById('ai-chat-panel');
@@ -743,7 +780,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function removeTyping() { var el = document.getElementById('typing-indicator'); if (el) el.remove(); }
 
   function buildSystemPrompt() {
-    var productList = PRODUCTS.map(p => 'id:'+p.id+' '+p.name+' ('+p.price+' שח, '+p.qty+' יח)').join(', ');
+    var productList = PRODUCTS.map(p => 'id:'+p.id+' '+p.name+' '+p.price+'שח '+p.qty_desc + (p.subOptions && p.subOptions.length ? ' [אפשרויות: '+p.subOptions.join('/')+']' : '')).join(', ');
     var info = window.BAKERY_INFO || {};
     var infoText = (info.general || []).join(' ');
     var faqText = (info.faq || []).map(function(f) { return 'שאלה: ' + f.q + ' תשובה: ' + f.a; }).join('. ');
