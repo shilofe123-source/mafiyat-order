@@ -11,8 +11,9 @@
  *   I: הנחה  J: סכום סופי  K: הערות  L: אושר בתאריך
  */
 
-// ─── המפתח נשמר כאן בצד-שרת — לא חשוף למשתמשים ────────────────────────────
-const GEMINI_API_KEY = "AIzaSyA_ya_X9zo9ytxCZCL37lPyz2HToKnKHbs";
+// ─── המפתח נשמר ב-Script Properties — לא חשוף בקוד המקור ─────────────────────
+// להגדרה: בעורך Apps Script → Project Settings → Script Properties → הוסף GEMINI_API_KEY
+const GEMINI_API_KEY = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
 
 // ─── doPost ───────────────────────────────────────────────────────────────────
 function doPost(e) {
