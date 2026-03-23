@@ -939,7 +939,6 @@ document.addEventListener('DOMContentLoaded', function() {
   var fileInput = document.getElementById('ai-chat-file');
   var attachBar = document.getElementById('ai-chat-attachment');
   var attachName = document.getElementById('ai-chat-attach-name');
-  var attachRemove = document.getElementById('ai-chat-attach-remove');
 
   attachBtn.addEventListener('click', function() { fileInput.click(); });
   fileInput.addEventListener('change', function() {
@@ -949,16 +948,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var reader = new FileReader();
     reader.onload = function(ev) {
       pendingImage = { base64: ev.target.result.split(',')[1], mimeType: file.type, name: file.name };
-      var icon = file.type === 'application/pdf' ? '📄' : '📷';
-      attachName.textContent = icon + ' ' + file.name;
+      attachName.textContent = (file.type === 'application/pdf' ? '📄 ' : '📷 ') + file.name;
       attachBar.style.display = 'block';
     };
     reader.readAsDataURL(file);
   });
-  attachRemove.addEventListener('click', function() {
-    pendingImage = null;
-    attachBar.style.display = 'none';
-    fileInput.value = '';
+  document.getElementById('ai-chat-attach-remove').addEventListener('click', function() {
+    pendingImage = null; attachBar.style.display = 'none'; fileInput.value = '';
   });
 
   toggleBtn.addEventListener('click', function() {
@@ -1116,63 +1112,41 @@ document.addEventListener('DOMContentLoaded', function() {
     return null;
   }
 
+  function stripJson(text) {
+    return text.replace(/```json[\s\S]*?```/g, '').replace(/\{\s*"fill"\s*:[\s\S]*\}/g, '').trim();
+  }
+
   async function handleSend() {
     var msg = inputEl.value.trim();
     if (!msg && !pendingImage) return;
     if (isTyping) return;
-
     inputEl.value = '';
-    var currentImage = pendingImage;
-    if (pendingImage) {
-      pendingImage = null;
-      attachBar.style.display = 'none';
-      fileInput.value = '';
-    }
-    var isPdf = currentImage && currentImage.mimeType === 'application/pdf';
-    var fileIcon = isPdf ? '📄' : '📷';
-    var fileLabel = isPdf ? 'PDF' : 'תמונה';
-    var displayMsg = msg || (fileIcon + ' ' + fileLabel);
-    if (currentImage && msg) displayMsg = fileIcon + ' ' + msg;
-    addMsg('user', displayMsg);
-    var defaultPrompt = isPdf
-      ? 'קובץ PDF מצורף — חלץ את ההזמנה מהקובץ והחזר JSON עם fill'
-      : 'תמונה מצורפת — זהה את המוצרים מהרשימה והחזר JSON עם fill';
-    chatHistory.push({ role: 'user', content: msg || defaultPrompt });
-    isTyping = true;
-    showTyping();
+    var img = pendingImage;
+    if (img) { pendingImage = null; attachBar.style.display = 'none'; fileInput.value = ''; }
 
-    var response = await sendToAgent(msg || defaultPrompt, currentImage);
-    removeTyping();
-    isTyping = false;
+    var isPdf = img && img.mimeType === 'application/pdf';
+    var icon = img ? (isPdf ? '📄' : '📷') : '';
+    addMsg('user', img ? (icon + ' ' + (msg || (isPdf ? 'PDF' : 'תמונה'))) : msg);
+    var fallbackPrompt = isPdf ? 'קובץ PDF — חלץ הזמנה והחזר JSON עם fill' : 'תמונה — זהה מוצרים והחזר JSON עם fill';
+    chatHistory.push({ role: 'user', content: msg || fallbackPrompt });
+    isTyping = true; showTyping();
+
+    var response = await sendToAgent(msg || fallbackPrompt, img);
+    removeTyping(); isTyping = false;
+    chatHistory.push({ role: 'assistant', content: response });
 
     if (allowFill && response.includes('"fill"')) {
-      var fillData = extractFillJson(response);
-      if (fillData && fillData.fill) {
-        fillForm(fillData.fill);
-        var itemCount = (fillData.fill.items && fillData.fill.items.length) || 0;
-        var removeCount = (fillData.fill.removeItems && fillData.fill.removeItems.length) || 0;
-        var replaceCount = (fillData.fill.replaceItems && fillData.fill.replaceItems.length) || 0;
-        var msg2;
-        if (removeCount > 0) msg2 = '✅ הסרתי ' + removeCount + ' מוצרים מההזמנה.';
-        else if (replaceCount > 0) msg2 = '✅ עדכנתי את ההזמנה ל-' + replaceCount + ' מוצרים.';
-        else if (itemCount > 0) msg2 = '✅ הוספתי ' + itemCount + ' מוצרים להזמנה!';
-        else msg2 = '✅ מילאתי את הפרטים!';
-        addMsg('bot', msg2);
-        chatHistory.push({ role: 'assistant', content: response });
+      var fd = extractFillJson(response);
+      if (fd && fd.fill) {
+        fillForm(fd.fill);
+        var n = (fd.fill.removeItems||[]).length || (fd.fill.replaceItems||[]).length || (fd.fill.items||[]).length;
+        var verb = (fd.fill.removeItems||[]).length ? 'הסרתי' : (fd.fill.replaceItems||[]).length ? 'עדכנתי' : (fd.fill.items||[]).length ? 'הוספתי' : '';
+        addMsg('bot', verb ? '✅ ' + verb + ' ' + n + ' מוצרים.' : '✅ מילאתי את הפרטים!');
         return;
       }
-      // Fill expected but parse failed — strip JSON from display
-      var displayResponse = response.replace(/```json[\s\S]*?```/g, '').replace(/\{\s*"fill"\s*:[\s\S]*\}/g, '').trim();
-      if (!displayResponse) displayResponse = 'קיבלתי את הבקשה, אבל הייתה שגיאה בעיבוד. נסה שוב.';
-      chatHistory.push({ role: 'assistant', content: response });
-      addMsg('bot', displayResponse);
-      return;
     }
-
-    chatHistory.push({ role: 'assistant', content: response });
-    // Strip any JSON code blocks from display (agent sometimes returns JSON even without fill)
-    var cleanResponse = response.replace(/```json[\s\S]*?```/g, '').trim();
-    addMsg('bot', cleanResponse || response);
+    var clean = stripJson(response);
+    addMsg('bot', clean || 'קיבלתי את הבקשה, אבל הייתה שגיאה בעיבוד. נסה שוב.');
   }
 
   sendBtn.addEventListener('click', handleSend);
