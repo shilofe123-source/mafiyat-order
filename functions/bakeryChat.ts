@@ -11,9 +11,9 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const { message, history = [], systemPrompt = "" } = body;
+    const { message, history = [], systemPrompt = "", image } = body;
 
-    if (!message) {
+    if (!message && !image) {
       return Response.json({ error: "No message provided" }, { status: 400, headers: corsHeaders });
     }
 
@@ -22,9 +22,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: "API key not configured" }, { status: 500, headers: corsHeaders });
     }
 
+    // Build user content — text or text+image
+    let userContent: any = message;
+    if (image && image.base64 && image.mimeType) {
+      const contentParts: any[] = [
+        { type: "image", source: { type: "base64", media_type: image.mimeType, data: image.base64 } }
+      ];
+      if (message) {
+        contentParts.push({ type: "text", text: message });
+      }
+      userContent = contentParts;
+    }
+
     const messages = [
       ...history,
-      { role: "user", content: message }
+      { role: "user", content: userContent }
     ];
 
     const defaultSystem = `אתה עוזר חכם וחביב של מאפיית השומרון.

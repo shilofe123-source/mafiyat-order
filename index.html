@@ -441,10 +441,18 @@ function App() {
 
   window.__fillClientFromChat = function(data) {
     setClient(function(prev) {
+      var dateVal = data.date || prev.date;
+      if (data.date && !/^\d{4}-\d{2}-\d{2}$/.test(data.date)) {
+        var m = data.date.match(/(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})/);
+        if (m) {
+          var y = m[3].length === 2 ? '20' + m[3] : m[3];
+          dateVal = y + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+        }
+      }
       return Object.assign({}, prev, {
         name: data.name || prev.name,
         phone: data.phone || prev.phone,
-        date: data.date || prev.date,
+        date: dateVal,
         event: data.eventType || prev.event,
         guests: data.guests ? String(data.guests) : prev.guests,
         notes: data.notes || prev.notes
@@ -593,6 +601,7 @@ function App() {
 
   const handleOrderAction = () => {
     if (!client.name) { showToast("נא למלא שם לקוח"); return; }
+    if (!client.date) { showToast("נא למלא תאריך"); return; }
     if (items.length === 0) { showToast("נא לבחור מוצרים"); return; }
     if (CONFIG.CLIENT_SELF_APPROVE) {
       setDiscount(0);
@@ -852,9 +861,15 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
       אפשר לסוכן למלא את ההזמנה בשבילי
     </label>
   </div>
+  <div id="ai-chat-attachment" style="display:none; padding:4px 12px; background:#f0f4f8; font-size:12px; color:#555; direction:rtl;">
+    <span id="ai-chat-attach-name"></span>
+    <button id="ai-chat-attach-remove" style="border:none; background:none; color:#c00; cursor:pointer; font-size:14px; margin-right:6px;">✕</button>
+  </div>
   <div id="ai-chat-input-row">
     <button id="ai-chat-send">➤</button>
     <input id="ai-chat-input" type="text" placeholder="כתוב הודעה..." />
+    <button id="ai-chat-attach-btn" title="צרף תמונה" style="background:none; border:none; font-size:18px; cursor:pointer; padding:0 6px;">📎</button>
+    <input id="ai-chat-file" type="file" accept="image/*" style="display:none" />
   </div>
 </div>
 
@@ -911,6 +926,7 @@ document.addEventListener('DOMContentLoaded', function() {
   var allowFill = false;
   var isTyping = false;
   var isCollapsed = false;
+  var pendingImage = null; // { base64, mimeType, name }
 
   var panel = document.getElementById('ai-chat-panel');
   var msgsEl = document.getElementById('ai-chat-messages');
@@ -919,6 +935,30 @@ document.addEventListener('DOMContentLoaded', function() {
   var toggleBtn = document.getElementById('ai-chat-toggle');
   var allowCheck = document.getElementById('ai-allow-fill');
   var rootEl = document.getElementById('root');
+  var attachBtn = document.getElementById('ai-chat-attach-btn');
+  var fileInput = document.getElementById('ai-chat-file');
+  var attachBar = document.getElementById('ai-chat-attachment');
+  var attachName = document.getElementById('ai-chat-attach-name');
+  var attachRemove = document.getElementById('ai-chat-attach-remove');
+
+  attachBtn.addEventListener('click', function() { fileInput.click(); });
+  fileInput.addEventListener('change', function() {
+    var file = fileInput.files[0];
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) { addMsg('system', 'הקובץ גדול מדי (מקסימום 4MB)'); fileInput.value = ''; return; }
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      pendingImage = { base64: ev.target.result.split(',')[1], mimeType: file.type, name: file.name };
+      attachName.textContent = '📷 ' + file.name;
+      attachBar.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+  attachRemove.addEventListener('click', function() {
+    pendingImage = null;
+    attachBar.style.display = 'none';
+    fileInput.value = '';
+  });
 
   toggleBtn.addEventListener('click', function() {
     isCollapsed = !isCollapsed;
@@ -963,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var fillNote = allowFill
       ? 'יש לך הרשאה למלא את הטופס. '
         + 'כשהלקוח מזכיר מוצרים או נותן פרטים, השב **רק** ב-JSON compact בשורה אחת (ללא טקסט לפני או אחרי, בלי markdown, בלי הסברים). פורמטים אפשריים: '
-        + 'הוספה: {"fill": {"name":"...", "phone":"...", "date":"...", "guests":"...", "eventType":"...", "items": [{"id":<id>, "qty":<כמות>}]}} '
+        + 'הוספה: {"fill": {"name":"...", "phone":"...", "date":"YYYY-MM-DD", "guests":"...", "eventType":"...", "items": [{"id":<id>, "qty":<כמות>}]}} '
         + 'הסרה: {"fill": {"removeItems": [<id1>, <id2>]}} '
         + 'החלפת כל העגלה: {"fill": {"replaceItems": [{"id":<id>, "qty":<כמות>}]}} '
         + 'חובה להשתמש ב-id הנכון מרשימת המוצרים. qty ברירת מחדל: 1. '
@@ -982,16 +1022,20 @@ document.addEventListener('DOMContentLoaded', function() {
       + 'כללים: ' + rulesList;
   }
 
-  async function sendToAgent(userMsg) {
+  async function sendToAgent(userMsg, imageData) {
     try {
+      var payload = {
+        message: userMsg,
+        history: chatHistory.slice(-10),
+        systemPrompt: buildSystemPrompt()
+      };
+      if (imageData) {
+        payload.image = { base64: imageData.base64, mimeType: imageData.mimeType };
+      }
       var res = await fetch('https://app-84204e35.base44.app/functions/bakeryChat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: userMsg,
-          history: chatHistory.slice(-10),
-          systemPrompt: buildSystemPrompt()
-        })
+        body: JSON.stringify(payload)
       });
       
       if (!res.ok) throw new Error('API error: ' + res.status);
@@ -1073,15 +1117,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function handleSend() {
     var msg = inputEl.value.trim();
-    if (!msg || isTyping) return;
+    if (!msg && !pendingImage) return;
+    if (isTyping) return;
 
     inputEl.value = '';
-    addMsg('user', msg);
-    chatHistory.push({ role: 'user', content: msg });
+    var currentImage = pendingImage;
+    if (pendingImage) {
+      pendingImage = null;
+      attachBar.style.display = 'none';
+      fileInput.value = '';
+    }
+    var displayMsg = msg || '📷 תמונה';
+    if (currentImage && msg) displayMsg = '📷 ' + msg;
+    addMsg('user', displayMsg);
+    chatHistory.push({ role: 'user', content: msg || 'תמונה מצורפת — זהה מוצרים וחלץ הזמנה' });
     isTyping = true;
     showTyping();
 
-    var response = await sendToAgent(msg);
+    var response = await sendToAgent(msg || 'תמונה מצורפת — זהה את המוצרים מהרשימה והחזר JSON עם fill', currentImage);
     removeTyping();
     isTyping = false;
 
