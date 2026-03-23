@@ -15,95 +15,35 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; direction: rtl; background-color: #eaf4fb; min-height: 100vh; }
-  #bg-slideshow {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1;
-    background-size: cover; background-position: center; background-repeat: no-repeat;
-    transition: background-image 1.5s ease-in-out;
-  }
-  #bg-slideshow::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(234, 244, 251, 0.82);
-  }
+  #bg-slideshow { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; background-repeat: no-repeat; transition: background-image 1.5s ease-in-out; }
+  #bg-slideshow::after { content: ''; position: absolute; inset: 0; background: rgba(234,244,251,0.82); }
   input, textarea, button, select { font-family: inherit; font-size: 16px; }
   input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
   input[type="number"] { -moz-appearance: textfield; }
   textarea { resize: vertical; }
-
-  .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5); z-index: 200;
-    display: flex; align-items: center; justify-content: center;
-    padding: 16px;
-  }
-  .modal-box {
-    background: #fff; border-radius: 18px; padding: 28px 24px;
-    width: 100%; max-width: 400px;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
-    direction: rtl;
-  }
-
-  .editor-bar {
-    background: linear-gradient(90deg, #1a5c30, #5a2d82);
-    color: #fff; border-radius: 12px; padding: 14px 18px;
-    margin-bottom: 14px; display: flex; align-items: center;
-    gap: 12px; flex-wrap: wrap;
-  }
-
-
-  /* ─── AI CHAT PANEL ─────────────────────────────────────────── */
-  #ai-chat-panel {
-    position: fixed; top: 0; right: 0; width: 340px; height: 100vh;
-    background: linear-gradient(180deg, #0d3b6e 0%, #1565c0 100%);
-    display: flex; flex-direction: column; z-index: 100;
-    box-shadow: -4px 0 24px rgba(13,59,110,0.18);
-    font-family: 'Heebo', sans-serif; direction: rtl;
-    transition: transform 0.3s ease;
-  }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal-box { background: #fff; border-radius: 18px; padding: 28px 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 40px rgba(0,0,0,0.18); direction: rtl; }
+  .editor-bar { background: linear-gradient(90deg,#1a5c30,#5a2d82); color: #fff; border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  #ai-chat-panel { position: fixed; top: 0; right: 0; width: 340px; height: 100vh; background: linear-gradient(180deg,#0d3b6e 0%,#1565c0 100%); display: flex; flex-direction: column; z-index: 100; box-shadow: -4px 0 24px rgba(13,59,110,0.18); font-family: 'Heebo',sans-serif; direction: rtl; transition: transform 0.3s ease; }
   #ai-chat-panel.collapsed { transform: translateX(300px); }
-  #ai-chat-header {
-    padding: 16px 18px 12px; border-bottom: 1px solid rgba(255,255,255,0.15);
-    display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.15);
-  }
-  #ai-chat-header .avatar {
-    width: 38px; height: 38px; background: linear-gradient(135deg, #f8f4e8, #e8dfc0);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; flex-shrink: 0;
-  }
+  #ai-chat-header { padding: 16px 18px 12px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.15); }
+  #ai-chat-header .avatar { width: 38px; height: 38px; background: linear-gradient(135deg,#f8f4e8,#e8dfc0); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
   #ai-chat-header .title { color: #fff; font-weight: 700; font-size: 15px; flex: 1; }
   #ai-chat-header .subtitle { color: rgba(255,255,255,0.65); font-size: 11px; }
-  #ai-chat-toggle {
-    background: none; border: none; color: rgba(255,255,255,0.7);
-    cursor: pointer; font-size: 20px; padding: 4px; transition: color 0.2s;
-  }
+  #ai-chat-toggle { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 20px; padding: 4px; transition: color 0.2s; }
   #ai-chat-toggle:hover { color: #fff; }
-  #ai-chat-messages {
-    flex: 1; overflow-y: auto; padding: 14px 14px 8px;
-    display: flex; flex-direction: column; gap: 10px;
-    scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;
-  }
+  #ai-chat-messages { flex: 1; overflow-y: auto; padding: 14px 14px 8px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
   .chat-msg { max-width: 88%; padding: 10px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; word-break: break-word; }
   .chat-msg.bot { background: rgba(255,255,255,0.12); color: #fff; align-self: flex-start; border-bottom-right-radius: 4px; }
   .chat-msg.user { background: #f8f4e8; color: #0d2b40; align-self: flex-end; border-bottom-left-radius: 4px; }
   .chat-msg.system { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); font-size: 11px; align-self: center; text-align: center; border-radius: 8px; padding: 5px 10px; }
-  #ai-chat-permission {
-    padding: 10px 14px; background: rgba(255,255,255,0.07);
-    border-top: 1px solid rgba(255,255,255,0.1);
-    display: flex; align-items: center; gap: 8px;
-  }
+  #ai-chat-permission { padding: 10px 14px; background: rgba(255,255,255,0.07); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px; }
   #ai-chat-permission label { color: rgba(255,255,255,0.75); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
   #ai-chat-input-row { padding: 10px 14px 14px; display: flex; gap: 8px; border-top: 1px solid rgba(255,255,255,0.1); }
-  #ai-chat-input {
-    flex: 1; padding: 10px 13px; border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1);
-    color: #fff; font-size: 13px; font-family: 'Heebo', sans-serif; outline: none; direction: rtl;
-  }
+  #ai-chat-input { flex: 1; padding: 10px 13px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); color: #fff; font-size: 13px; font-family: 'Heebo',sans-serif; outline: none; direction: rtl; }
   #ai-chat-input::placeholder { color: rgba(255,255,255,0.4); }
   #ai-chat-input:focus { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.15); }
-  #ai-chat-send {
-    width: 40px; height: 40px; border-radius: 50%; border: none;
-    background: #f8f4e8; color: #0d3b6e; font-size: 18px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
+  #ai-chat-send { width: 40px; height: 40px; border-radius: 50%; border: none; background: #f8f4e8; color: #0d3b6e; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   #ai-chat-send:hover { background: #fff; }
   #root { margin-right: 340px; flex: 1; min-height: 100vh; transition: margin-right 0.3s ease; }
   #root.chat-collapsed { margin-right: 40px; }
@@ -113,23 +53,17 @@
     #root { margin-right: 0; margin-bottom: 40vh; }
     #root.chat-collapsed { margin-right: 0; margin-bottom: 48px; }
   }
-
   @media print {
     body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .no-print { display: none !important; }
-    #ai-chat-panel { display: none !important; }
-    #bg-slideshow { display: none !important; }
+    .no-print, #ai-chat-panel, #bg-slideshow { display: none !important; }
     #root { margin-right: 0 !important; margin-bottom: 0 !important; }
     #root > div { padding: 0 !important; }
     #preview-card { box-shadow: none !important; border-radius: 0 !important; padding: 20px 30px !important; max-width: 100% !important; }
     #preview-card, #preview-card * { word-spacing: 0.05em; letter-spacing: 0.01em; text-rendering: geometricPrecision; }
-    table { page-break-inside: avoid; }
-    tr { page-break-inside: avoid; }
+    table, tr { page-break-inside: avoid; }
   }
-
   @media (max-width: 700px) {
-    .two-col { grid-template-columns: 1fr !important; }
-    .form-grid { grid-template-columns: 1fr !important; }
+    .two-col, .form-grid { grid-template-columns: 1fr !important; }
     .btn-row { flex-direction: column !important; }
   }
 </style>
@@ -146,119 +80,72 @@
 <script>
 const { useState, useRef } = React;
 const html = htm.bind(React.createElement);
-
-// ─── CONFIG ──────────────────────────────────────────────────────────────────
-const CONFIG = {
-  CLIENT_SELF_APPROVE: false,   // false = preview before approval; true = approval modal directly
-  EDITOR_PIN: "S199",
-  GEMINI_API_KEY: ""   // אל תכניס כאן — המפתח נשמר בצד-שרת ב-Code.gs
-};
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const CONFIG = { CLIENT_SELF_APPROVE: false, EDITOR_PIN: "S199" };
 const PHONES = { uri: "972524767233", batchen: "972542031448" };
 const KASHRUT = "מהדרין רבנות קרני שומרון";
-const LOGO = "data:image/jpeg;base64,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";
+const LOGO ="data:image/jpeg;base64,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";
 
 const PRODUCTS = [
-  { id: 1,  name: "מגש כריכוני ביס",       price: 180, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
-  { id: 2,  name: "מיני פיתה סביח",         price: 180, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
-  { id: 3,  name: "כריכוני קרואסון חמאה",   price: 140, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
-  { id: 4,  name: "חצאי טורטיה (12)",       price: 105, qty_desc: "12 יח'",       cat: "מגשי אירוח" },
-  { id: 5,  name: "חצאי טורטיה (24)",       price: 195, qty_desc: "24 יח'",       cat: "מגשי אירוח" },
-  { id: 6,  name: "מיני טורטיה",            price: 195, qty_desc: "כ-40 יח'",     cat: "מגשי אירוח" },
-  { id: 7,  name: "בוריקיטס",               price: 180, qty_desc: "20 יח'",       cat: "מגשי אירוח" },
-  { id: 8,  name: "בוריקיטס סביח",          price: 180, qty_desc: "20 יח'",       cat: "מגשי אירוח" },
-  { id: 9,  name: "פריקסה",                 price: 195, qty_desc: "20 יח'",       cat: "מגשי אירוח" },
-  { id: 10, name: "מגש מיני קיש",           price: 195, qty_desc: "24 יח'",       cat: "מאפים חמים" },
-  { id: 11, name: "מגש פיצוניות",           price: 160, qty_desc: "24 יח'",       cat: "מאפים חמים" },
-  { id: 12, name: "פוקצ'ינות",              price: 160, qty_desc: "24 יח'",       cat: "מאפים חמים" },
-  { id: 13, name: "מיני לחם שום",           price: 120, qty_desc: "24 יח'",       cat: "מאפים חמים" },
-  { id: 14, name: "מגש מאפים טריים",        price: 100, qty_desc: "20 יח'",       cat: "מאפים חמים" },
-  { id: 15, name: "פסטה",                   price: 120, qty_desc: "כ-10 מנות",    cat: "מנות חמות" },
-  { id: 16, name: "מגש שקשוקה",             price: 180, qty_desc: "כ-8 מנות",     cat: "מנות חמות" },
-  { id: 17, name: "מגש מיני גחנון",         price: 180, qty_desc: "כ-8 מנות",     cat: "מנות חמות" },
-  { id: 18, name: "מגש מקושקשת",            price: 180, qty_desc: "כ-12 מנות",    cat: "מנות חמות" },
-  { id: 19, name: "פלטת גבינות קשות",       price: 380, qty_desc: "כ-18 מנות",    cat: "פלטות" },
-  { id: 20, name: "פלטת ירקות שוק",         price: 160, qty_desc: 'כ-2.5 ק"ג',   cat: "פלטות" },
-  { id: 21, name: "שיפודי מוצרלה",          price: 180, qty_desc: "24 יח'",       cat: "פלטות" },
-  { id: 22, name: "אנטיפסטי",               price: 195, qty_desc: 'כ-1.5 ק"ג',   cat: "פלטות" },
-  { id: 23, name: "סלטים טריים (קיסר)",     price: 120, qty_desc: "כ-12 מנות",    cat: "סלטים" },
-  { id: 24, name: "סלטים טריים",            price: 165, qty_desc: "כ-12 מנות",    cat: "סלטים" },
-  { id: 25, name: "פלטת פירות העונה",       price: 250, qty_desc: 'כ-2.4 ק"ג',   cat: "פירות וקינוחים" },
-  { id: 26, name: "מגש מתוקים",             price: 295, qty_desc: "50 יח'",       cat: "פירות וקינוחים" },
-  { id: 27, name: "מגש כדורי שוקולד",       price: 180, qty_desc: "35 יח'",       cat: "פירות וקינוחים" },
-  { id: 28, name: "מגש קוקיז חמאה",         price: 180, qty_desc: "35 יח'",       cat: "פירות וקינוחים" },
-  { id: 29, name: "מגש פחזניות",            price: 180, qty_desc: "24 יח'",       cat: "פירות וקינוחים" },
-  { id: 30, name: "מגש עוגות בחושות",       price: 170, qty_desc: "30 יח'",       cat: "פירות וקינוחים" },
+  { id: 1,  name: "מגש כריכוני ביס",      price: 180, qty_desc: "12 יח'",    cat: "מגשי אירוח" },
+  { id: 2,  name: "מיני פיתה סביח",        price: 180, qty_desc: "12 יח'",    cat: "מגשי אירוח" },
+  { id: 3,  name: "כריכוני קרואסון חמאה",  price: 140, qty_desc: "12 יח'",    cat: "מגשי אירוח" },
+  { id: 4,  name: "חצאי טורטיה (12)",      price: 105, qty_desc: "12 יח'",    cat: "מגשי אירוח" },
+  { id: 5,  name: "חצאי טורטיה (24)",      price: 195, qty_desc: "24 יח'",    cat: "מגשי אירוח" },
+  { id: 6,  name: "מיני טורטיה",           price: 195, qty_desc: "כ-40 יח'",  cat: "מגשי אירוח" },
+  { id: 7,  name: "בוריקיטס",              price: 180, qty_desc: "20 יח'",    cat: "מגשי אירוח" },
+  { id: 8,  name: "בוריקיטס סביח",         price: 180, qty_desc: "20 יח'",    cat: "מגשי אירוח" },
+  { id: 9,  name: "פריקסה",                price: 195, qty_desc: "20 יח'",    cat: "מגשי אירוח" },
+  { id: 10, name: "מגש מיני קיש",          price: 195, qty_desc: "24 יח'",    cat: "מאפים חמים" },
+  { id: 11, name: "מגש פיצוניות",          price: 160, qty_desc: "24 יח'",    cat: "מאפים חמים" },
+  { id: 12, name: "פוקצ'ינות",             price: 160, qty_desc: "24 יח'",    cat: "מאפים חמים" },
+  { id: 13, name: "מיני לחם שום",          price: 120, qty_desc: "24 יח'",    cat: "מאפים חמים" },
+  { id: 14, name: "מגש מאפים טריים",       price: 100, qty_desc: "20 יח'",    cat: "מאפים חמים" },
+  { id: 15, name: "פסטה",                  price: 120, qty_desc: "כ-10 מנות", cat: "מנות חמות" },
+  { id: 16, name: "מגש שקשוקה",            price: 180, qty_desc: "כ-8 מנות",  cat: "מנות חמות" },
+  { id: 17, name: "מגש מיני גחנון",        price: 180, qty_desc: "כ-8 מנות",  cat: "מנות חמות" },
+  { id: 18, name: "מגש מקושקשת",           price: 180, qty_desc: "כ-12 מנות", cat: "מנות חמות" },
+  { id: 19, name: "פלטת גבינות קשות",      price: 380, qty_desc: "כ-18 מנות", cat: "פלטות" },
+  { id: 20, name: "פלטת ירקות שוק",        price: 160, qty_desc: 'כ-2.5 ק"ג', cat: "פלטות" },
+  { id: 21, name: "שיפודי מוצרלה",         price: 180, qty_desc: "24 יח'",    cat: "פלטות" },
+  { id: 22, name: "אנטיפסטי",              price: 195, qty_desc: 'כ-1.5 ק"ג', cat: "פלטות" },
+  { id: 23, name: "סלטים טריים (קיסר)",    price: 120, qty_desc: "כ-12 מנות", cat: "סלטים" },
+  { id: 24, name: "סלטים טריים",           price: 165, qty_desc: "כ-12 מנות", cat: "סלטים" },
+  { id: 25, name: "פלטת פירות העונה",      price: 250, qty_desc: 'כ-2.4 ק"ג', cat: "פירות וקינוחים" },
+  { id: 26, name: "מגש מתוקים",            price: 295, qty_desc: "50 יח'",    cat: "פירות וקינוחים" },
+  { id: 27, name: "מגש כדורי שוקולד",      price: 180, qty_desc: "35 יח'",    cat: "פירות וקינוחים" },
+  { id: 28, name: "מגש קוקיז חמאה",        price: 180, qty_desc: "35 יח'",    cat: "פירות וקינוחים" },
+  { id: 29, name: "מגש פחזניות",           price: 180, qty_desc: "24 יח'",    cat: "פירות וקינוחים" },
+  { id: 30, name: "מגש עוגות בחושות",      price: 170, qty_desc: "30 יח'",    cat: "פירות וקינוחים" },
 ];
 
 const CATEGORIES = [...new Set(PRODUCTS.map(p => p.cat))];
 const fmt = n => "\u20AA" + n.toLocaleString("he-IL");
-
-const C = {
-  pri: "#0d3b6e", priL: "#1565c0", acc: "#1e88e5",
-  cream: "#f8f4e8", creamD: "#e8dfc0", creamB: "#b8a060",
-  txt: "#0d2b40", txtL: "#5a7fa0", green: "#25D366",
-  editorGreen: "#1a5c30", editorPurple: "#5a2d82",
-};
-
+const C = { pri: "#0d3b6e", priL: "#1565c0", acc: "#1e88e5", cream: "#f8f4e8", creamD: "#e8dfc0", creamB: "#b8a060", txt: "#0d2b40", txtL: "#5a7fa0", green: "#25D366", editorGreen: "#1a5c30", editorPurple: "#5a2d82" };
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycbyrMfxn0CiEa0U7IEfn12nxZMYmIIudBELP8Zbc2Gc0QkliVsELJV7iwMG7As5QKSRT/exec";
-
-// ─── COMPONENTS ───────────────────────────────────────────────────────────────
+window.__PRODUCTS = PRODUCTS;
 
 function Toast({ msg }) {
-  return html`<div style=${{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: C.pri, color: "#fff", padding: "12px 28px", borderRadius: 30, fontSize: 14, fontWeight: 600, zIndex: 999, boxShadow: "0 4px 20px rgba(0,0,0,0.2)" }}>${msg}</div>`;
+  return html`<div style=${{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", background:C.pri, color:"#fff", padding:"12px 28px", borderRadius:30, fontSize:14, fontWeight:600, zIndex:999, boxShadow:"0 4px 20px rgba(0,0,0,0.2)" }}>${msg}</div>`;
 }
-
 function GearButton({ onClick }) {
-  return html`
-    <button
-      onClick=${onClick}
-      title="ממשק עורך"
-      style=${{
-        position: "fixed", bottom: 20, left: 20,
-        width: 48, height: 48, borderRadius: "50%",
-        background: "rgba(255,255,255,0.92)",
-        border: "1px solid #ccc",
-        fontSize: 22, cursor: "pointer",
-        zIndex: 100, boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        WebkitAppearance: "none"
-      }}
-    >⚙️</button>
-  `;
+  return html`<button onClick=${onClick} title="ממשק עורך" style=${{ position:"fixed", bottom:20, left:20, width:48, height:48, borderRadius:"50%", background:"rgba(255,255,255,0.92)", border:"1px solid #ccc", fontSize:22, cursor:"pointer", zIndex:100, boxShadow:"0 2px 10px rgba(0,0,0,0.15)", display:"flex", alignItems:"center", justifyContent:"center", WebkitAppearance:"none" }}>⚙️</button>`;
 }
 
 function PinModal({ onClose, onSuccess }) {
-  const [pin, setPin] = useState("");
-  const [error, setError] = useState("");
-
-  const handleSubmit = () => {
-    if (pin === CONFIG.EDITOR_PIN) {
-      onSuccess();
-      onClose();
-    } else {
-      setError("PIN שגוי, נסה שוב");
-      setPin("");
-    }
+  const [pin, setPin] = useState(""), [error, setError] = useState("");
+  const submit = () => {
+    if (pin === CONFIG.EDITOR_PIN) { onSuccess(); onClose(); }
+    else { setError("PIN שגוי, נסה שוב"); setPin(""); }
   };
-
   return html`
     <div class="modal-overlay" onClick=${onClose}>
       <div class="modal-box" onClick=${e => e.stopPropagation()}>
-        <h3 style=${{ marginBottom: 16, color: C.pri, fontSize: 18 }}>🔒 כניסה לממשק עורך</h3>
-        <input
-          type="password"
-          placeholder="הכנס PIN"
-          value=${pin}
-          onInput=${e => { setPin(e.target.value); setError(""); }}
-          onKeyDown=${e => e.key === "Enter" && handleSubmit()}
-          style=${{ width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 18, textAlign: "center", marginBottom: 8, letterSpacing: 6 }}
-          autoFocus
-        />
-        ${error && html`<div style=${{ color: "#dc2626", fontSize: 13, marginBottom: 8, textAlign: "center" }}>${error}</div>`}
-        <div style=${{ display: "flex", gap: 10, marginTop: 8 }}>
-          <button onClick=${handleSubmit} style=${{ flex: 1, padding: "12px", borderRadius: 10, border: "none", background: C.pri, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>כניסה</button>
-          <button onClick=${onClose} style=${{ flex: 1, padding: "12px", borderRadius: 10, border: "1px solid " + C.creamB, background: "#fff", color: C.txt, fontSize: 15, cursor: "pointer" }}>ביטול</button>
+        <h3 style=${{ marginBottom:16, color:C.pri, fontSize:18 }}>🔒 כניסה לממשק עורך</h3>
+        <input type="password" placeholder="הכנס PIN" value=${pin} onInput=${e => { setPin(e.target.value); setError(""); }} onKeyDown=${e => e.key==="Enter" && submit()} style=${{ width:"100%", padding:"10px 14px", border:"1px solid "+C.creamB, borderRadius:10, fontSize:18, textAlign:"center", marginBottom:8, letterSpacing:6 }} autoFocus />
+        ${error && html`<div style=${{ color:"#dc2626", fontSize:13, marginBottom:8, textAlign:"center" }}>${error}</div>`}
+        <div style=${{ display:"flex", gap:10, marginTop:8 }}>
+          <button onClick=${submit} style=${{ flex:1, padding:"12px", borderRadius:10, border:"none", background:C.pri, color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer" }}>כניסה</button>
+          <button onClick=${onClose} style=${{ flex:1, padding:"12px", borderRadius:10, border:"1px solid "+C.creamB, background:"#fff", color:C.txt, fontSize:15, cursor:"pointer" }}>ביטול</button>
         </div>
       </div>
     </div>
@@ -268,102 +155,66 @@ function PinModal({ onClose, onSuccess }) {
 function ApprovalModal({ isEditorMode, discount, setDiscount, totalPrice, onConfirm, onClose }) {
   const [checked, setChecked] = useState(false);
   const finalPrice = totalPrice - (Number(discount) || 0);
-
+  const hasDiscount = isEditorMode && discount > 0;
   return html`
     <div class="modal-overlay" onClick=${onClose}>
       <div class="modal-box" onClick=${e => e.stopPropagation()}>
-        <h3 style=${{ marginBottom: 20, color: C.pri, fontSize: 18 }}>✅ אישור הצעת מחיר</h3>
-
+        <h3 style=${{ marginBottom:20, color:C.pri, fontSize:18 }}>✅ אישור הצעת מחיר</h3>
         ${isEditorMode && html`
-          <div style=${{ marginBottom: 16 }}>
-            <label style=${{ display: "block", fontSize: 13, color: C.txtL, marginBottom: 6 }}>הנחה (₪)</label>
-            <input
-              type="number"
-              min="0"
-              max=${totalPrice}
-              value=${discount}
-              onInput=${e => setDiscount(Math.max(0, Math.min(totalPrice, Number(e.target.value))))}
-              style=${{ width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "ltr", textAlign: "center" }}
-            />
+          <div style=${{ marginBottom:16 }}>
+            <label style=${{ display:"block", fontSize:13, color:C.txtL, marginBottom:6 }}>הנחה (₪)</label>
+            <input type="number" min="0" max=${totalPrice} value=${discount} onInput=${e => setDiscount(Math.max(0, Math.min(totalPrice, Number(e.target.value))))} style=${{ width:"100%", padding:"10px 14px", border:"1px solid "+C.creamB, borderRadius:10, fontSize:16, direction:"ltr", textAlign:"center" }} />
           </div>
         `}
-
-        <div style=${{ background: C.cream, borderRadius: 10, padding: "12px 16px", marginBottom: 16, fontSize: 15 }}>
-          <div style=${{ display: "flex", justifyContent: "space-between", marginBottom: isEditorMode && discount > 0 ? 6 : 0 }}>
-            <span>סה"כ לפני הנחה:</span>
-            <span style=${{ fontWeight: 700 }}>${fmt(totalPrice)}</span>
+        <div style=${{ background:C.cream, borderRadius:10, padding:"12px 16px", marginBottom:16, fontSize:15 }}>
+          <div style=${{ display:"flex", justifyContent:"space-between", marginBottom:hasDiscount ? 6 : 0 }}>
+            <span>סה"כ לפני הנחה:</span><span style=${{ fontWeight:700 }}>${fmt(totalPrice)}</span>
           </div>
-          ${isEditorMode && discount > 0 && html`
-            <div style=${{ display: "flex", justifyContent: "space-between", color: "#dc2626", marginBottom: 6 }}>
-              <span>הנחה:</span>
-              <span style=${{ fontWeight: 700 }}>-${fmt(Number(discount))}</span>
+          ${hasDiscount && html`
+            <div style=${{ display:"flex", justifyContent:"space-between", color:"#dc2626", marginBottom:6 }}>
+              <span>הנחה:</span><span style=${{ fontWeight:700 }}>-${fmt(Number(discount))}</span>
             </div>
           `}
-          <div style=${{ display: "flex", justifyContent: "space-between", borderTop: (isEditorMode && discount > 0) ? "1px solid " + C.creamD : "none", paddingTop: (isEditorMode && discount > 0) ? 8 : 0, fontWeight: 800, fontSize: 18, color: C.pri }}>
-            <span>סכום סופי לתשלום:</span>
-            <span>${fmt(finalPrice)}</span>
+          <div style=${{ display:"flex", justifyContent:"space-between", borderTop:hasDiscount ? "1px solid "+C.creamD : "none", paddingTop:hasDiscount ? 8 : 0, fontWeight:800, fontSize:18, color:C.pri }}>
+            <span>סכום סופי לתשלום:</span><span>${fmt(finalPrice)}</span>
           </div>
         </div>
-
-        <label style=${{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginBottom: 20, fontSize: 14, color: C.txt }}>
-          <input
-            type="checkbox"
-            checked=${checked}
-            onChange=${e => setChecked(e.target.checked)}
-            style=${{ width: 18, height: 18, marginTop: 1, cursor: "pointer", flexShrink: 0 }}
-          />
+        <label style=${{ display:"flex", alignItems:"flex-start", gap:10, cursor:"pointer", marginBottom:20, fontSize:14, color:C.txt }}>
+          <input type="checkbox" checked=${checked} onChange=${e => setChecked(e.target.checked)} style=${{ width:18, height:18, marginTop:1, cursor:"pointer", flexShrink:0 }} />
           <span>אני מאשר/ת את ההזמנה ואת הפרטים המפורטים לעיל</span>
         </label>
-
-        <div style=${{ display: "flex", gap: 10 }}>
-          <button
-            onClick=${() => checked && onConfirm(Number(discount) || 0)}
-            disabled=${!checked}
-            style=${{
-              flex: 1, padding: "13px", borderRadius: 10, border: "none",
-              background: checked ? C.editorGreen : "#ccc",
-              color: "#fff", fontSize: 15, fontWeight: 700,
-              cursor: checked ? "pointer" : "not-allowed"
-            }}
-          >📊 אישור ושליחה</button>
-          <button onClick=${onClose} style=${{ flex: 1, padding: "13px", borderRadius: 10, border: "1px solid " + C.creamB, background: "#fff", color: C.txt, fontSize: 15, cursor: "pointer" }}>ביטול</button>
+        <div style=${{ display:"flex", gap:10 }}>
+          <button onClick=${() => checked && onConfirm(Number(discount)||0)} disabled=${!checked} style=${{ flex:1, padding:"13px", borderRadius:10, border:"none", background:checked ? C.editorGreen : "#ccc", color:"#fff", fontSize:15, fontWeight:700, cursor:checked ? "pointer" : "not-allowed" }}>📊 אישור ושליחה</button>
+          <button onClick=${onClose} style=${{ flex:1, padding:"13px", borderRadius:10, border:"1px solid "+C.creamB, background:"#fff", color:C.txt, fontSize:15, cursor:"pointer" }}>ביטול</button>
         </div>
       </div>
     </div>
   `;
 }
 
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
-
-
 function normalizePhone(raw) {
   if (!raw) return null;
   var p = raw.replace(/[\s\-()]/g, "");
   if (p.startsWith("+")) p = p.substring(1);
   if (p.startsWith("0")) p = "972" + p.substring(1);
-  if (!/^\d{10,15}$/.test(p)) return null;
-  return p;
+  return /^\d{10,15}$/.test(p) ? p : null;
 }
 
 async function generatePdfAndShare(elementId, filename, phone, message) {
+  const waOpen = (msg) => phone && window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(msg || ""), "_blank");
   var el = document.getElementById(elementId);
-  if (!el || typeof html2pdf === "undefined") {
-    if (phone) window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(message || ""), "_blank");
-    return;
-  }
+  if (!el || typeof html2pdf === "undefined") { waOpen(message); return; }
+  var origStyle = el.style.cssText;
   try {
-    var origStyle = el.style.cssText;
-    el.style.maxHeight = "none";
-    el.style.overflow = "visible";
+    el.style.maxHeight = "none"; el.style.overflow = "visible";
     var blob = await html2pdf().set({
-      margin: [10, 6, 10, 6], filename: filename,
+      margin: [10, 6, 10, 6], filename,
       image: { type: "jpeg", quality: 0.95 },
       html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      pagebreak: { mode: ['css', 'legacy'] }
+      pagebreak: { mode: ["css", "legacy"] }
     }).from(el).outputPdf("blob");
     el.style.cssText = origStyle;
-
     var file = new File([blob], filename, { type: "application/pdf" });
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file], title: filename, text: message }); return; } catch(e) {}
@@ -372,22 +223,20 @@ async function generatePdfAndShare(elementId, filename, phone, message) {
     var a = document.createElement("a"); a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    if (phone) setTimeout(function() { window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(message + "\n\nהקובץ הורד למכשיר — צרף אותו כאן"), "_blank"); }, 800);
+    if (phone) setTimeout(() => waOpen(message + "\n\nהקובץ הורד למכשיר — צרף אותו כאן"), 800);
   } catch(e) {
     el.style.cssText = origStyle;
-    if (phone) window.open("https://wa.me/" + phone + "?text=" + encodeURIComponent(message || ""), "_blank");
+    waOpen(message);
   }
 }
 
 function App() {
-  const [client, setClient] = useState({ name: "", phone: "", date: "", event: "", guests: "", notes: "" });
+  const [client, setClient] = useState({ name:"", phone:"", date:"", event:"", guests:"", notes:"" });
   const [items, setItems] = useState([]);
   const [filterCat, setFilterCat] = useState("הכל");
   const [search, setSearch] = useState("");
   const [toast, setToast] = useState("");
   const [view, setView] = useState("build");
-
-  // editor state
   const [isEditorMode, setIsEditorMode] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
@@ -396,219 +245,127 @@ function App() {
   const [showSendModal, setShowSendModal] = useState(false);
   const [orderId, setOrderId] = useState("");
   const imageInputRef = useRef(null);
-
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
   const addItem = (p) => {
     const ex = items.find(i => i.id === p.id);
-    if (ex) setItems(items.map(i => i.id === p.id ? Object.assign({}, i, { qty: i.qty + 1 }) : i));
-    else setItems([...items, Object.assign({}, p, { qty: 1 })]);
+    setItems(ex ? items.map(i => i.id === p.id ? {...i, qty: i.qty+1} : i) : [...items, {...p, qty:1}]);
   };
-  const updateQty = (id, q) => q <= 0 ? setItems(items.filter(i => i.id !== id)) : setItems(items.map(i => i.id === id ? Object.assign({}, i, { qty: q }) : i));
+  const updateQty = (id, q) => q <= 0 ? setItems(items.filter(i => i.id !== id)) : setItems(items.map(i => i.id === id ? {...i, qty:q} : i));
   const removeItem = (id) => setItems(items.filter(i => i.id !== id));
 
   window.__addItemsFromChat = function(chatItems) {
     setItems(function(prev) {
       var merged = [...prev];
       chatItems.forEach(function(ci) {
-        var existing = merged.find(function(m) { return m.id === ci.id; });
-        if (existing) existing.qty += (ci.qty || 1);
-        else {
-          var prod = PRODUCTS.find(function(p) { return p.id === ci.id; });
-          if (prod) merged.push(Object.assign({}, prod, { qty: ci.qty || 1 }));
-        }
+        var ex = merged.find(m => m.id === ci.id);
+        if (ex) ex.qty += (ci.qty || 1);
+        else { var p = PRODUCTS.find(p => p.id === ci.id); if (p) merged.push({...p, qty: ci.qty||1}); }
       });
       return merged;
     });
   };
-
-  window.__removeItemsFromChat = function(itemIds) {
-    setItems(function(prev) {
-      return prev.filter(function(item) {
-        return itemIds.indexOf(item.id) === -1;
-      });
-    });
-  };
-
+  window.__removeItemsFromChat = function(ids) { setItems(prev => prev.filter(i => ids.indexOf(i.id) === -1)); };
   window.__setItemsFromChat = function(chatItems) {
-    var newItems = [];
-    chatItems.forEach(function(ci) {
-      var prod = PRODUCTS.find(function(p) { return p.id === ci.id; });
-      if (prod) newItems.push(Object.assign({}, prod, { qty: ci.qty || 1 }));
-    });
-    setItems(newItems);
+    setItems(chatItems.reduce((a, ci) => { var p = PRODUCTS.find(p => p.id === ci.id); if (p) a.push({...p, qty:ci.qty||1}); return a; }, []));
   };
-
   window.__fillClientFromChat = function(data) {
     setClient(function(prev) {
       var dateVal = data.date || prev.date;
       if (data.date && !/^\d{4}-\d{2}-\d{2}$/.test(data.date)) {
         var m = data.date.match(/(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})/);
-        if (m) {
-          var y = m[3].length === 2 ? '20' + m[3] : m[3];
-          dateVal = y + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
-        }
+        if (m) { var y = m[3].length===2 ? '20'+m[3] : m[3]; dateVal = y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'); }
       }
-      return Object.assign({}, prev, {
-        name: data.name || prev.name,
-        phone: data.phone || prev.phone,
-        date: dateVal,
-        event: data.eventType || prev.event,
-        guests: data.guests ? String(data.guests) : prev.guests,
-        notes: data.notes || prev.notes
-      });
+      return {...prev, name:data.name||prev.name, phone:data.phone||prev.phone, date:dateVal, event:data.eventType||prev.event, guests:data.guests ? String(data.guests) : prev.guests, notes:data.notes||prev.notes};
     });
   };
 
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);
   const filtered = PRODUCTS.filter(p => (filterCat === "הכל" || p.cat === filterCat) && (!search || p.name.includes(search)));
-
-  const fmtDate = (v) => { if (!v) return ""; const parts = v.split("-"); return parts[2] + "." + parts[1] + "." + parts[0]; };
+  const fmtDate = (v) => { if (!v) return ""; const [y,m,d] = v.split("-"); return d+"."+m+"."+y; };
   const wordCount = (s) => s.trim() ? s.trim().split(/\s+/).length : 0;
-
   const waText = () => {
-    let t = "🏪 *הזמנה — בית קפה מאפיית השומרון*\n━━━━━━━━━━━━━━━━━━\n";
+    const SEP = "━━━━━━━━━━━━━━━━━━\n";
+    let t = "🏪 *הזמנה — בית קפה מאפיית השומרון*\n" + SEP;
     if (client.name)   t += "👤 " + client.name + "\n";
     if (client.phone)  t += "📱 " + client.phone + "\n";
     if (client.date)   t += "📅 " + fmtDate(client.date) + "\n";
     if (client.event)  t += "🎉 " + client.event + "\n";
     if (client.guests) t += "👥 " + client.guests + " אורחים\n";
-    t += "━━━━━━━━━━━━━━━━━━\n\n";
+    t += SEP + "\n";
     items.forEach(i => { t += "• " + i.name + " (" + i.qty_desc + ") × " + i.qty + " — " + fmt(i.price * i.qty) + "\n"; });
-    t += "\n━━━━━━━━━━━━━━━━━━\n";
-    t += '*סה"כ כולל מע"מ: ' + fmt(total) + "*\n";
+    t += "\n" + SEP + '*סה"כ כולל מע"מ: ' + fmt(total) + "*\n";
     if (client.notes) t += "\n💬 " + client.notes;
     return t;
   };
-
-  const sendWA = (ph) => { window.open("https://wa.me/" + ph + "?text=" + encodeURIComponent(waText()), "_blank"); };
+  const sendWA = (ph) => window.open("https://wa.me/" + ph + "?text=" + encodeURIComponent(waText()), "_blank");
 
   const sendToSheets = async (discountAmt) => {
     try {
       showToast("שולח הזמנה לגיליון...");
-      const itemsText = items.filter(i => i.qty > 0).map(i => i.name + " x" + i.qty).join(", ");
       const disc = Number(discountAmt) || 0;
-      const currentOrderId = orderId || ("ORD-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4));
-      if (!orderId) setOrderId(currentOrderId);
-      const payload = {
+      const oid = orderId || ("ORD-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4));
+      if (!orderId) setOrderId(oid);
+      const res = await fetch(SHEETS_URL, { method: "POST", body: JSON.stringify({
         orderDate: client.date ? fmtDate(client.date) : new Date().toLocaleDateString("he-IL"),
-        customerName: client.name || "",
-        phone: client.phone || "",
-        event: client.event || "",
-        guests: client.guests || "",
-        items: itemsText,
-        totalPrice: total,
-        discount: disc,
-        finalPrice: total - disc,
-        notes: client.notes || "",
-        approvedAt: new Date().toISOString(),
-        editorMode: isEditorMode,
-        orderId: currentOrderId
-      };
-      const res = await fetch(SHEETS_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
+        customerName: client.name||"", phone: client.phone||"", event: client.event||"",
+        guests: client.guests||"", items: items.filter(i => i.qty>0).map(i => i.name+" x"+i.qty).join(", "),
+        totalPrice: total, discount: disc, finalPrice: total-disc,
+        notes: client.notes||"", approvedAt: new Date().toISOString(), editorMode: isEditorMode, orderId: oid
+      })});
       const data = await res.json();
-      if (data.status === "success") {
-        showToast("✓ ההזמנה נשמרה!");
-        setShowApprovalModal(false);
-        setShowSendModal(true);
-      } else {
-        showToast("שגיאה: " + (data.message || "נסה שוב"));
-      }
-    } catch (err) {
-      showToast("שגיאת רשת – לא נשמר");
-    }
+      if (data.status === "success") { showToast("✓ ההזמנה נשמרה!"); setShowApprovalModal(false); setShowSendModal(true); }
+      else showToast("שגיאה: " + (data.message || "נסה שוב"));
+    } catch { showToast("שגיאת רשת – לא נשמר"); }
   };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    if (file.size > 4 * 1024 * 1024) {
-      showToast("הקובץ גדול מדי (" + Math.round(file.size / 1024 / 1024) + "MB). מקסימום 4MB");
-      return;
-    }
-
+    if (file.size > 4*1024*1024) { showToast("הקובץ גדול מדי (" + Math.round(file.size/1024/1024) + "MB). מקסימום 4MB"); return; }
     const reader = new FileReader();
     reader.onload = async (ev) => {
-      const dataUrl = ev.target.result;
-      const base64 = dataUrl.split(",")[1];
       showToast("מחלץ הזמנה מהקובץ...");
       try {
-        const res = await fetch(SHEETS_URL, {
-          method: "POST",
-          body: JSON.stringify({ action: "extractOrder", base64, mimeType: file.type })
-        });
+        const res = await fetch(SHEETS_URL, { method: "POST", body: JSON.stringify({ action:"extractOrder", base64: ev.target.result.split(",")[1], mimeType: file.type }) });
         const data = await res.json();
-        if (data.status === "success" && data.order && data.order.items && data.order.items.length > 0) {
-          var newItems = [];
-          data.order.items.forEach(function(oi) {
-            var prod = PRODUCTS.find(function(p) { return p.id === oi.id; });
-            if (prod) newItems.push(Object.assign({}, prod, { qty: oi.qty || 1 }));
-          });
+        if (data.status === "success" && data.order?.items?.length > 0) {
+          const newItems = data.order.items.reduce((a, oi) => { const p = PRODUCTS.find(p => p.id===oi.id); if (p) a.push({...p, qty:oi.qty||1}); return a; }, []);
           if (newItems.length > 0) setItems(newItems);
-          var o = data.order;
-          setClient(Object.assign({}, client, {
-            name: o.customerName || client.name,
-            phone: o.phone || client.phone,
-            date: o.date || client.date,
-            event: o.event || client.event,
-            guests: o.guests || client.guests,
-            notes: o.notes || client.notes
-          }));
+          const o = data.order;
+          setClient(prev => ({...prev, name:o.customerName||prev.name, phone:o.phone||prev.phone, date:o.date||prev.date, event:o.event||prev.event, guests:o.guests||prev.guests, notes:o.notes||prev.notes}));
           showToast("זוהו " + newItems.length + " פריטים — בדוק ואשר");
-          if (isEditorMode && newItems.length > 0 && (o.customerName || client.name)) {
-            setTimeout(() => setView("preview"), 1200);
-          }
+          if (isEditorMode && newItems.length > 0 && (o.customerName || client.name)) setTimeout(() => setView("preview"), 1200);
         } else if (data.status === "no_key") {
           showToast("Gemini לא מוגדר ב-Apps Script");
         } else {
           var errMsg = "לא זוהו פריטים בקובץ";
-          if (data.debug && data.debug.error) {
-            errMsg += " (" + data.debug.error + ")";
-            console.error("Extraction debug:", data.debug);
-          }
+          if (data.debug?.error) { errMsg += " (" + data.debug.error + ")"; console.error("Extraction debug:", data.debug); }
           showToast(errMsg);
         }
-      } catch {
-        showToast("שגיאת רשת — לא ניתן לחלץ הזמנה");
-      }
+      } catch { showToast("שגיאת רשת — לא ניתן לחלץ הזמנה"); }
     };
     reader.readAsDataURL(file);
   };
 
-  const copyTxt = () => {
-    const txt = waText();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(txt).then(() => showToast("✓ הועתק!")).catch(() => fallbackCopy(txt));
-    } else {
-      fallbackCopy(txt);
-    }
-  };
   const fallbackCopy = (txt) => {
-    const ta = document.createElement("textarea");
-    ta.value = txt;
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
+    const ta = Object.assign(document.createElement("textarea"), { value:txt });
+    ta.style.cssText = "position:fixed;opacity:0";
+    document.body.appendChild(ta); ta.focus(); ta.select();
     try { document.execCommand("copy"); showToast("✓ הועתק!"); } catch { showToast("לא הצלחתי להעתיק"); }
     document.body.removeChild(ta);
+  };
+  const copyTxt = () => {
+    const txt = waText();
+    navigator.clipboard?.writeText(txt).then(() => showToast("✓ הועתק!")).catch(() => fallbackCopy(txt)) ?? fallbackCopy(txt);
   };
 
   const handleOrderAction = () => {
     if (!client.name) { showToast("נא למלא שם לקוח"); return; }
     if (!client.date) { showToast("נא למלא תאריך"); return; }
-    if (items.length === 0) { showToast("נא לבחור מוצרים"); return; }
-    if (CONFIG.CLIENT_SELF_APPROVE) {
-      setDiscount(0);
-      setShowApprovalModal(true);
-    } else {
-      setView("preview");
-    }
+    if (!items.length) { showToast("נא לבחור מוצרים"); return; }
+    if (CONFIG.CLIENT_SELF_APPROVE) { setDiscount(0); setShowApprovalModal(true); }
+    else setView("preview");
   };
 
   const iS = { width: "100%", padding: "10px 14px", border: "1px solid " + C.creamB, borderRadius: 10, fontSize: 16, direction: "rtl", boxSizing: "border-box", outline: "none", background: "#fff", fontFamily: "inherit", WebkitAppearance: "none" };
@@ -678,14 +435,16 @@ function App() {
       ${showSendModal && html`
         <div class="modal-overlay" onClick=${() => setShowSendModal(false)}>
           <div class="modal-box" onClick=${e => e.stopPropagation()}>
-            <h3 style=${{ marginBottom: 8, color: C.pri, fontSize: 18 }}>📤 שליחת הצעת מחיר</h3>
-            <p style=${{ marginBottom: 20, color: C.txtL, fontSize: 14 }}>ההזמנה נשמרה. לשלוח PDF בוואטסאפ?</p>
-            <div style=${{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <button onClick=${() => { setShowSendModal(false); var fn = "הצעה_" + (client.name||"לקוח").replace(/\s/g,"_") + ".pdf"; generatePdfAndShare("preview-card", fn, PHONES.uri, "הצעת מחיר — מאפיית השומרון\n" + (client.name||"") + "\nסהכ: " + fmt(total)); }} style=${{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: C.green, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>💬 שלח לאורי / בת חן</button>
-              ${client.phone && normalizePhone(client.phone) && html`
-                <button onClick=${() => { setShowSendModal(false); var fn = "הצעה_" + (client.name||"לקוח").replace(/\s/g,"_") + ".pdf"; generatePdfAndShare("preview-card", fn, normalizePhone(client.phone), "הצעת מחיר — מאפיית השומרון\nסהכ: " + fmt(total)); }} style=${{ width: "100%", padding: "14px", borderRadius: 12, border: "none", background: C.priL, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📱 שלח ללקוח (${client.phone})</button>
-              `}
-              <button onClick=${() => setShowSendModal(false)} style=${{ width: "100%", padding: "12px", borderRadius: 10, border: "1px solid " + C.creamB, background: "#fff", color: C.txt, fontSize: 14, cursor: "pointer", marginTop: 4 }}>סגור</button>
+            <h3 style=${{ marginBottom:8, color:C.pri, fontSize:18 }}>📤 שליחת הצעת מחיר</h3>
+            <p style=${{ marginBottom:20, color:C.txtL, fontSize:14 }}>ההזמנה נשמרה. לשלוח PDF בוואטסאפ?</p>
+            <div style=${{ display:"flex", flexDirection:"column", gap:10 }}>
+              ${[
+                {label:"💬 שלח לאורי / בת חן", bg:C.green, ph:PHONES.uri, msg:"הצעת מחיר — מאפיית השומרון\n"+(client.name||"")+"\nסהכ: "+fmt(total)},
+                ...(client.phone && normalizePhone(client.phone) ? [{label:"📱 שלח ללקוח ("+client.phone+")", bg:C.priL, ph:normalizePhone(client.phone), msg:"הצעת מחיר — מאפיית השומרון\nסהכ: "+fmt(total)}] : [])
+              ].map(btn => html`
+                <button key=${btn.ph} onClick=${() => { setShowSendModal(false); var fn="הצעה_"+(client.name||"לקוח").replace(/\s/g,"_")+".pdf"; generatePdfAndShare("preview-card",fn,btn.ph,btn.msg); }} style=${{ width:"100%", padding:"14px", borderRadius:12, border:"none", background:btn.bg, color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer" }}>${btn.label}</button>
+              `)}
+              <button onClick=${() => setShowSendModal(false)} style=${{ width:"100%", padding:"12px", borderRadius:10, border:"1px solid "+C.creamB, background:"#fff", color:C.txt, fontSize:14, cursor:"pointer", marginTop:4 }}>סגור</button>
             </div>
           </div>
         </div>
@@ -841,8 +600,6 @@ function App() {
 
 ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
 </script>
-
-<!-- ─── AI CHAT PANEL ─────────────────────────────────────────── -->
 <div id="ai-chat-panel">
   <div id="ai-chat-header">
     <div class="avatar">🥐</div>
@@ -876,58 +633,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(html`<${App}/>`);
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 (function() {
-  const PRODUCTS = [
-    { id: 1,  name: "מגש כריכוני ביס", price: 180, qty: 12, category: "מגשי אירוח", tags: ["כריכים","ביס","בוקר"] },
-    { id: 2,  name: "מיני פיתה סביח", price: 180, qty: 12, category: "מגשי אירוח", tags: ["פיתה","סביח","ירקות"] },
-    { id: 3,  name: "כריכוני קרואסון חמאה", price: 140, qty: 12, category: "מגשי אירוח", tags: ["קרואסון","חמאה","בוקר"] },
-    { id: 4,  name: "חצאי טורטיה (12)", price: 105, qty: 12, category: "מגשי אירוח", tags: ["טורטיה","קל"] },
-    { id: 5,  name: "חצאי טורטיה (24)", price: 195, qty: 24, category: "מגשי אירוח", tags: ["טורטיה","קל"] },
-    { id: 6,  name: "מיני טורטיה", price: 195, qty: 40, category: "מגשי אירוח", tags: ["טורטיה","ביס"] },
-    { id: 7,  name: "בוריקיטס", price: 180, qty: 20, category: "מגשי אירוח", tags: ["בוריקס","מלוח","בוקר"] },
-    { id: 8,  name: "בוריקיטס סביח", price: 180, qty: 20, category: "מגשי אירוח", tags: ["בוריקס","סביח"] },
-    { id: 9,  name: "פריקסה", price: 195, qty: 20, category: "מגשי אירוח", tags: ["פריקסה","תימני","חמים"] },
-    { id: 10, name: "מגש מיני קיש", price: 195, qty: 24, category: "מאפים חמים", tags: ["קיש","מלוח","חמים"] },
-    { id: 11, name: "מגש פיצוניות", price: 160, qty: 24, category: "מאפים חמים", tags: ["פיצה","ילדים","מלוח"] },
-    { id: 12, name: "פוקצ'ינות", price: 160, qty: 24, category: "מאפים חמים", tags: ["פוקצ'ה","לחם","איטלקי"] },
-    { id: 13, name: "מיני לחם שום", price: 120, qty: 24, category: "מאפים חמים", tags: ["שום","לחם","צמחוני"] },
-    { id: 14, name: "מגש מאפים טריים", price: 100, qty: 20, category: "מאפים חמים", tags: ["מאפים","טרי","בוקר"] },
-    { id: 15, name: "פסטה", price: 120, qty: 10, category: "מנות חמות", tags: ["פסטה","איטלקי","חמים"] },
-    { id: 16, name: "מגש שקשוקה", price: 180, qty: 8, category: "מנות חמות", tags: ["שקשוקה","ביצים","חורף"] },
-    { id: 17, name: "מגש מיני גחנון", price: 180, qty: 8, category: "מנות חמות", tags: ["גחנון","תימני","שבת","חורף"] },
-    { id: 18, name: "מגש מקושקשת", price: 180, qty: 12, category: "מנות חמות", tags: ["ביצים","בוקר"] },
-    { id: 19, name: "פלטת גבינות קשות", price: 380, qty: 18, category: "פלטות", tags: ["גבינה","מכובד","בריאות"] },
-    { id: 20, name: "פלטת ירקות שוק", price: 160, qty: 0, category: "פלטות", tags: ["ירקות","בריאות","טבעוני"] },
-    { id: 21, name: "שיפודי מוצרלה", price: 180, qty: 24, category: "פלטות", tags: ["גבינה","טעים"] },
-    { id: 22, name: "אנטיפסטי", price: 195, qty: 0, category: "פלטות", tags: ["ירקות","אפויים","איטלקי"] },
-    { id: 23, name: "סלטים טריים (קיסר)", price: 120, qty: 12, category: "סלטים", tags: ["סלט","קיסר","ירוק"] },
-    { id: 24, name: "סלטים טריים", price: 165, qty: 12, category: "סלטים", tags: ["סלט","טרי","בריאות"] },
-    { id: 25, name: "פלטת פירות העונה", price: 250, qty: 0, category: "פירות וקינוחים", tags: ["פירות","בריאות","קיץ","ילדים"] },
-    { id: 26, name: "מגש מתוקים", price: 295, qty: 50, category: "פירות וקינוחים", tags: ["מתוק","קינוח","ילדים"] },
-    { id: 27, name: "מגש כדורי שוקולד", price: 180, qty: 35, category: "פירות וקינוחים", tags: ["שוקולד","מתוק","ילדים"] },
-    { id: 28, name: "מגש קוקיז חמאה", price: 180, qty: 35, category: "פירות וקינוחים", tags: ["עוגיות","מתוק","קפה"] },
-    { id: 29, name: "מגש פחזניות", price: 180, qty: 24, category: "פירות וקינוחים", tags: ["פחזניות","קינוח","אלגנטי"] },
-    { id: 30, name: "מגש עוגות בחושות", price: 170, qty: 30, category: "פירות וקינוחים", tags: ["עוגה","מתוק","בית"] },
-  ];
+  const TAGS = {1:["כריכים","ביס","בוקר"],2:["פיתה","סביח","ירקות"],3:["קרואסון","חמאה","בוקר"],4:["טורטיה","קל"],5:["טורטיה","קל"],6:["טורטיה","ביס"],7:["בוריקס","מלוח","בוקר"],8:["בוריקס","סביח"],9:["פריקסה","תימני","חמים"],10:["קיש","מלוח","חמים"],11:["פיצה","ילדים","מלוח"],12:["פוקצ'ה","לחם","איטלקי"],13:["שום","לחם","צמחוני"],14:["מאפים","טרי","בוקר"],15:["פסטה","איטלקי","חמים"],16:["שקשוקה","ביצים","חורף"],17:["גחנון","תימני","שבת","חורף"],18:["ביצים","בוקר"],19:["גבינה","מכובד","בריאות"],20:["ירקות","בריאות","טבעוני"],21:["גבינה","טעים"],22:["ירקות","אפויים","איטלקי"],23:["סלט","קיסר","ירוק"],24:["סלט","טרי","בריאות"],25:["פירות","בריאות","קיץ","ילדים"],26:["מתוק","קינוח","ילדים"],27:["שוקולד","מתוק","ילדים"],28:["עוגיות","מתוק","קפה"],29:["פחזניות","קינוח","אלגנטי"],30:["עוגה","מתוק","בית"]};
+  const QTY = {1:12,2:12,3:12,4:12,5:24,6:40,7:20,8:20,9:20,10:24,11:24,12:24,13:24,14:20,15:10,16:8,17:8,18:12,19:18,20:0,21:24,22:0,23:12,24:12,25:0,26:50,27:35,28:35,29:24,30:30};
+  const PRODUCTS = (window.__PRODUCTS||[]).map(p => ({...p, qty: QTY[p.id]||0, category: p.cat, tags: TAGS[p.id]||[]}));
 
-  const RULES = [
-    "חורף (נובמבר-מרץ): המלץ על מנות חמות — שקשוקה, גחנון, מאפים חמים",
-    "קיץ (אפריל-אוקטובר): המלץ על פלטת פירות, מנות קרות, עוגיות",
-    "ילדים קטנים: פיצוניות, פירות, כדורי שוקולד, עוגיות",
-    "מבוגרים: פלטת גבינות, קיש, שקשוקה — מנות מכובדות",
-    "צעירים: מגש מאפים, כריכוני קרואסון, מתוקים",
-    "בריאות: פלטת פירות, פלטת גבינות, שקשוקה",
-    "לחשב 1 מנה לכל 2-3 אנשים למגשי ביס, 1 מנה לכל 4-5 אנשים למנות עיקריות",
-    "לאירוע מעל 50 איש: המלץ על מינימום 3 סוגים שונים",
-    "תמיד לציין: כשר מהדרין רבנות קרני שומרון",
-    "בסוף כל ייעוץ: להפנות לטופס ההזמנה ולהציע לעזור למלא",
-  ];
+  const RULES = ["חורף (נובמבר-מרץ): המלץ על מנות חמות — שקשוקה, גחנון, מאפים חמים","קיץ (אפריל-אוקטובר): המלץ על פלטת פירות, מנות קרות, עוגיות","ילדים קטנים: פיצוניות, פירות, כדורי שוקולד, עוגיות","מבוגרים: פלטת גבינות, קיש, שקשוקה — מנות מכובדות","צעירים: מגש מאפים, כריכוני קרואסון, מתוקים","בריאות: פלטת פירות, פלטת גבינות, שקשוקה","לחשב 1 מנה לכל 2-3 אנשים למגשי ביס, 1 מנה לכל 4-5 אנשים למנות עיקריות","לאירוע מעל 50 איש: המלץ על מינימום 3 סוגים שונים","תמיד לציין: כשר מהדרין רבנות קרני שומרון","בסוף כל ייעוץ: להפנות לטופס ההזמנה ולהציע לעזור למלא"];
 
-  var chatHistory = [];
-  var allowFill = false;
-  var isTyping = false;
-  var isCollapsed = false;
-  var pendingImage = null; // { base64, mimeType, name }
-
+  var chatHistory = [], allowFill = false, isTyping = false, isCollapsed = false, pendingImage = null;
   var panel = document.getElementById('ai-chat-panel');
   var msgsEl = document.getElementById('ai-chat-messages');
   var inputEl = document.getElementById('ai-chat-input');
@@ -944,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function() {
   fileInput.addEventListener('change', function() {
     var file = fileInput.files[0];
     if (!file) return;
-    if (file.size > 4 * 1024 * 1024) { addMsg('system', 'הקובץ גדול מדי (מקסימום 4MB)'); fileInput.value = ''; return; }
+    if (file.size > 4*1024*1024) { addMsg('system', 'הקובץ גדול מדי (מקסימום 4MB)'); fileInput.value = ''; return; }
     var reader = new FileReader();
     reader.onload = function(ev) {
       pendingImage = { base64: ev.target.result.split(',')[1], mimeType: file.type, name: file.name };
@@ -977,119 +689,53 @@ document.addEventListener('DOMContentLoaded', function() {
     msgsEl.appendChild(div);
     msgsEl.scrollTop = msgsEl.scrollHeight;
   }
-
   function showTyping() {
-    var div = document.createElement('div');
-    div.className = 'chat-msg bot';
-    div.id = 'typing-indicator';
-    div.innerHTML = '<span style="opacity:0.6">מקליד...</span>';
-    msgsEl.appendChild(div);
-    msgsEl.scrollTop = msgsEl.scrollHeight;
+    var div = Object.assign(document.createElement('div'), { className:'chat-msg bot', id:'typing-indicator', innerHTML:'<span style="opacity:0.6">מקליד...</span>' });
+    msgsEl.appendChild(div); msgsEl.scrollTop = msgsEl.scrollHeight;
   }
-
-  function removeTyping() {
-    var el = document.getElementById('typing-indicator');
-    if (el) el.remove();
-  }
+  function removeTyping() { var el = document.getElementById('typing-indicator'); if (el) el.remove(); }
 
   function buildSystemPrompt() {
-    var productList = PRODUCTS.map(function(p) {
-      return 'id:' + p.id + ' ' + p.name + ' (' + p.price + ' שח, ' + p.qty + ' יח)';
-    }).join(', ');
-    var rulesList = RULES.join('; ');
+    var productList = PRODUCTS.map(p => 'id:'+p.id+' '+p.name+' ('+p.price+' שח, '+p.qty+' יח)').join(', ');
     var fillNote = allowFill
-      ? 'יש לך הרשאה למלא את הטופס. '
-        + 'כשהלקוח מזכיר מוצרים או נותן פרטים, השב **רק** ב-JSON compact בשורה אחת (ללא טקסט לפני או אחרי, בלי markdown, בלי הסברים). פורמטים אפשריים: '
-        + 'הוספה: {"fill": {"name":"...", "phone":"...", "date":"YYYY-MM-DD", "guests":"...", "eventType":"...", "items": [{"id":<id>, "qty":<כמות>}]}} '
-        + 'הסרה: {"fill": {"removeItems": [<id1>, <id2>]}} '
-        + 'החלפת כל העגלה: {"fill": {"replaceItems": [{"id":<id>, "qty":<כמות>}]}} '
-        + 'חובה להשתמש ב-id הנכון מרשימת המוצרים. qty ברירת מחדל: 1. '
-        + 'שדות לקוח שלא ידועים — אל תכלול ב-JSON. '
-        + 'כשהלקוח אומר "תוריד/הסר/בלי X" — השתמש ב-removeItems. כשאומר "אני רוצה רק X" — השתמש ב-replaceItems.'
+      ? 'יש לך הרשאה למלא את הטופס. כשהלקוח מזכיר מוצרים או נותן פרטים, השב **רק** ב-JSON compact בשורה אחת (ללא טקסט לפני או אחרי, בלי markdown, בלי הסברים). פורמטים אפשריים: הוספה: {"fill": {"name":"...", "phone":"...", "date":"YYYY-MM-DD", "guests":"...", "eventType":"...", "items": [{"id":<id>, "qty":<כמות>}]}} הסרה: {"fill": {"removeItems": [<id1>, <id2>]}} החלפת כל העגלה: {"fill": {"replaceItems": [{"id":<id>, "qty":<כמות>}]}} חובה להשתמש ב-id הנכון מרשימת המוצרים. qty ברירת מחדל: 1. שדות לקוח שלא ידועים — אל תכלול ב-JSON. כשהלקוח אומר "תוריד/הסר/בלי X" — השתמש ב-removeItems. כשאומר "אני רוצה רק X" — השתמש ב-replaceItems.'
       : '';
-
-    return 'אתה יועץ מקצועי של מאפיית השומרון — מומחה לתכנון מגשי אירוח. '
-      + 'היה קצר וענייני. לשאלות פשוטות — משפט-שניים. להצעות מפורטות — מותר להאריך. '
-      + 'דבר רק בעברית. התייחס רק לנושאי האוכל והמאפייה. '
-      + 'כשרות: מהדרין רבנות קרני שומרון. '
-      + 'כשלקוח מתאר אירוע — תן הצעה קונקרטית עם שמות מוצרים, כמויות ומחיר כולל. '
-      + 'כשלקוח מבקש לשנות/להוריד/להוסיף מוצרים — בצע מיד. '
-      + fillNote + ' '
-      + 'מוצרים זמינים: ' + productList + '. '
-      + 'כללים: ' + rulesList;
+    return 'אתה יועץ מקצועי של מאפיית השומרון — מומחה לתכנון מגשי אירוח. היה קצר וענייני. לשאלות פשוטות — משפט-שניים. להצעות מפורטות — מותר להאריך. דבר רק בעברית. התייחס רק לנושאי האוכל והמאפייה. כשרות: מהדרין רבנות קרני שומרון. כשלקוח מתאר אירוע — תן הצעה קונקרטית עם שמות מוצרים, כמויות ומחיר כולל. כשלקוח מבקש לשנות/להוריד/להוסיף מוצרים — בצע מיד. '
+      + fillNote + ' מוצרים זמינים: ' + productList + '. כללים: ' + RULES.join('; ');
   }
 
   async function sendToAgent(userMsg, imageData) {
     try {
-      var payload = {
-        message: userMsg,
-        history: chatHistory.slice(-10),
-        systemPrompt: buildSystemPrompt()
-      };
-      if (imageData) {
-        payload.image = { base64: imageData.base64, mimeType: imageData.mimeType };
-      }
-      var res = await fetch('https://app-84204e35.base44.app/functions/bakeryChat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      
+      var payload = { message: userMsg, history: chatHistory.slice(-10), systemPrompt: buildSystemPrompt() };
+      if (imageData) payload.image = { base64: imageData.base64, mimeType: imageData.mimeType };
+      var res = await fetch('https://app-84204e35.base44.app/functions/bakeryChat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
       if (!res.ok) throw new Error('API error: ' + res.status);
       var data = await res.json();
       return data.response || 'מצטער, לא הצלחתי להתחבר. נסה שוב.';
-    } catch(e) {
-      console.warn('Chat API error, using local fallback:', e);
-      return localResponse(userMsg);
-    }
+    } catch(e) { console.warn('Chat API error, using local fallback:', e); return localResponse(userMsg); }
   }
 
   function localResponse(msg) {
-    var lm = msg.toLowerCase();
-    var month = new Date().getMonth() + 1;
-    var isWinter = month >= 11 || month <= 3;
-
-    if (lm.includes('שלום') || lm.includes('היי') || lm.includes('הי')) {
-      return 'שלום! כמה אנשים באירוע ומתי?';
-    }
-    if (lm.includes('כשר') || lm.includes('כשרות')) {
-      return 'כשרות מהדרין רבנות קרני שומרון ✅';
-    }
-    if (lm.includes('ילד') || lm.includes('ילדים')) {
-      return 'לילדים: פיצוניות 160₪, כדורי שוקולד 180₪, פירות 250₪, קוקיז 180₪. להוסיף לטופס?';
-    }
-    if (lm.includes('חורף') || lm.includes('קר') || (isWinter && (lm.includes('אירוע') || lm.includes('מה')))) {
-      return 'לחורף: שקשוקה 180₪, גחנון 180₪, קיש 195₪, מאפים 100₪. להוסיף?';
-    }
-    if (lm.includes('כמה') || lm.includes('כמות')) {
-      var guests = msg.match(/\d+/);
-      if (guests) {
-        var n = parseInt(guests[0]);
-        return 'ל-' + n + ' אנשים: כ-' + Math.ceil(n / 10) + ' מגשי ביס, ' + Math.ceil(n/15) + ' קינוחים, ' + Math.ceil(n/20) + ' פלטות. לפרט?';
-      }
-    }
-    if (lm.includes('מחיר') || lm.includes('עולה') || lm.includes('עלות')) {
-      return 'מגשים: 100-380₪. ביס 105-195₪, מאפים 100-195₪, חמים 120-180₪, קינוחים 170-295₪.';
-    }
-    if (lm.includes('בוקר') || lm.includes('ארוחת בוקר')) {
-      return 'לבוקר: כריכוני ביס 180₪, בוריקיטס 180₪, מקושקשת 180₪, ירקות 160₪. כמה אנשים?';
-    }
+    var lm = msg.toLowerCase(), m = new Date().getMonth()+1, isWinter = m>=11||m<=3;
+    var guests = msg.match(/\d+/);
+    var pairs = [
+      [() => lm.includes('שלום')||lm.includes('היי')||lm.includes('הי'), () => 'שלום! כמה אנשים באירוע ומתי?'],
+      [() => lm.includes('כשר'), () => 'כשרות מהדרין רבנות קרני שומרון ✅'],
+      [() => lm.includes('ילד'), () => 'לילדים: פיצוניות 160₪, כדורי שוקולד 180₪, פירות 250₪, קוקיז 180₪. להוסיף לטופס?'],
+      [() => lm.includes('חורף')||lm.includes('קר')||(isWinter&&(lm.includes('אירוע')||lm.includes('מה'))), () => 'לחורף: שקשוקה 180₪, גחנון 180₪, קיש 195₪, מאפים 100₪. להוסיף?'],
+      [() => (lm.includes('כמה')||lm.includes('כמות'))&&guests, () => { var n=parseInt(guests[0]); return 'ל-'+n+' אנשים: כ-'+Math.ceil(n/10)+' מגשי ביס, '+Math.ceil(n/15)+' קינוחים, '+Math.ceil(n/20)+' פלטות. לפרט?'; }],
+      [() => lm.includes('מחיר')||lm.includes('עולה')||lm.includes('עלות'), () => 'מגשים: 100-380₪. ביס 105-195₪, מאפים 100-195₪, חמים 120-180₪, קינוחים 170-295₪.'],
+      [() => lm.includes('בוקר'), () => 'לבוקר: כריכוני ביס 180₪, בוריקיטס 180₪, מקושקשת 180₪, ירקות 160₪. כמה אנשים?'],
+    ];
+    for (var i=0; i<pairs.length; i++) { if (pairs[i][0]()) return pairs[i][1](); }
     return 'ספר לי על האירוע — כמה אנשים, סוג ומתי?';
   }
 
   function fillForm(data) {
-    if (typeof window.__fillClientFromChat === 'function') {
-      window.__fillClientFromChat(data);
-    }
-    if (data.removeItems && data.removeItems.length > 0 && typeof window.__removeItemsFromChat === 'function') {
-      window.__removeItemsFromChat(data.removeItems);
-    }
-    if (data.replaceItems && data.replaceItems.length > 0 && typeof window.__setItemsFromChat === 'function') {
-      window.__setItemsFromChat(data.replaceItems);
-    }
-    if (data.items && data.items.length > 0 && typeof window.__addItemsFromChat === 'function') {
-      window.__addItemsFromChat(data.items);
-    }
+    window.__fillClientFromChat?.(data);
+    if (data.removeItems?.length) window.__removeItemsFromChat?.(data.removeItems);
+    else if (data.replaceItems?.length) window.__setItemsFromChat?.(data.replaceItems);
+    else if (data.items?.length) window.__addItemsFromChat?.(data.items);
   }
 
   function extractFillJson(text) {
@@ -1123,30 +769,26 @@ document.addEventListener('DOMContentLoaded', function() {
     inputEl.value = '';
     var img = pendingImage;
     if (img) { pendingImage = null; attachBar.style.display = 'none'; fileInput.value = ''; }
-
     var isPdf = img && img.mimeType === 'application/pdf';
-    var icon = img ? (isPdf ? '📄' : '📷') : '';
-    addMsg('user', img ? (icon + ' ' + (msg || (isPdf ? 'PDF' : 'תמונה'))) : msg);
-    var fallbackPrompt = isPdf ? 'קובץ PDF — חלץ הזמנה והחזר JSON עם fill' : 'תמונה — זהה מוצרים והחזר JSON עם fill';
-    chatHistory.push({ role: 'user', content: msg || fallbackPrompt });
+    addMsg('user', img ? ((isPdf?'📄':'📷') + ' ' + (msg || (isPdf?'PDF':'תמונה'))) : msg);
+    var prompt = msg || (isPdf ? 'קובץ PDF — חלץ הזמנה והחזר JSON עם fill' : 'תמונה — זהה מוצרים והחזר JSON עם fill');
+    chatHistory.push({ role:'user', content:prompt });
     isTyping = true; showTyping();
-
-    var response = await sendToAgent(msg || fallbackPrompt, img);
+    var response = await sendToAgent(prompt, img);
     removeTyping(); isTyping = false;
-    chatHistory.push({ role: 'assistant', content: response });
-
+    chatHistory.push({ role:'assistant', content:response });
     if (allowFill && response.includes('"fill"')) {
       var fd = extractFillJson(response);
       if (fd && fd.fill) {
         fillForm(fd.fill);
-        var n = (fd.fill.removeItems||[]).length || (fd.fill.replaceItems||[]).length || (fd.fill.items||[]).length;
-        var verb = (fd.fill.removeItems||[]).length ? 'הסרתי' : (fd.fill.replaceItems||[]).length ? 'עדכנתי' : (fd.fill.items||[]).length ? 'הוספתי' : '';
-        addMsg('bot', verb ? '✅ ' + verb + ' ' + n + ' מוצרים.' : '✅ מילאתי את הפרטים!');
+        var f = fd.fill;
+        var n = (f.removeItems||[]).length || (f.replaceItems||[]).length || (f.items||[]).length;
+        var verb = f.removeItems?.length ? 'הסרתי' : f.replaceItems?.length ? 'עדכנתי' : f.items?.length ? 'הוספתי' : '';
+        addMsg('bot', verb ? '✅ '+verb+' '+n+' מוצרים.' : '✅ מילאתי את הפרטים!');
         return;
       }
     }
-    var clean = stripJson(response);
-    addMsg('bot', clean || 'קיבלתי את הבקשה, אבל הייתה שגיאה בעיבוד. נסה שוב.');
+    addMsg('bot', stripJson(response) || 'קיבלתי את הבקשה, אבל הייתה שגיאה בעיבוד. נסה שוב.');
   }
 
   sendBtn.addEventListener('click', handleSend);
@@ -1158,20 +800,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 (function() {
-  var BG_IMAGES = [];
-  for (var i = 1; i <= 27; i++) BG_IMAGES.push('images/product' + i + '.jpeg');
+  var imgs = Array.from({length:27}, (_,i) => 'images/product'+(i+1)+'.jpeg');
   var bgEl = document.getElementById('bg-slideshow');
-  var idx = Math.floor(Math.random() * BG_IMAGES.length);
-
+  var idx = Math.floor(Math.random() * imgs.length);
   function showNext() {
-    bgEl.style.backgroundImage = 'url(' + BG_IMAGES[idx] + ')';
-    idx = (idx + 1) % BG_IMAGES.length;
-    var preload = new Image();
-    preload.src = BG_IMAGES[idx];
+    bgEl.style.backgroundImage = 'url('+imgs[idx]+')';
+    idx = (idx+1) % imgs.length;
+    new Image().src = imgs[idx];
   }
-
-  showNext();
-  setInterval(showNext, 8000);
+  showNext(); setInterval(showNext, 8000);
 })();
 </script>
 
