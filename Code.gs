@@ -85,6 +85,9 @@ function doPost(e) {
       sheet.appendRow(rowData);
     }
 
+    // עדכון גיליון סיכום
+    updateSummary(data.customerName, data.finalPrice || ((data.totalPrice || 0) - (data.discount || 0)), data.editorMode === true);
+
     return jsonResponse({ status: "success" });
 
   } catch (err) {
@@ -178,6 +181,37 @@ function callGeminiVision(base64Image, mimeType) {
 // ─── GET — בדיקת חיות ────────────────────────────────────────────────────────
 function doGet(e) {
   return jsonResponse({ status: "ok", message: "מאפיית השומרון — Apps Script פעיל" });
+}
+
+// ─── עדכון גיליון סיכום ──────────────────────────────────────────────────────
+function updateSummary(customerName, finalPrice, isEditorMode) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var summary = ss.getSheetByName("סיכום");
+  if (!summary) return;
+
+  // מחיקת עמודה שלישית אם קיימת (חד-פעמי)
+  if (summary.getLastColumn() >= 3) {
+    summary.deleteColumn(3);
+  }
+
+  // הוספת כותרות אם הגיליון ריק
+  if (summary.getLastRow() === 0) {
+    summary.appendRow(["שם לקוח", "סכום הזמנה"]);
+  }
+
+  // מצב עורך: חיפוש והחלפת שורה קיימת לפי שם לקוח
+  if (isEditorMode && customerName) {
+    var lastRow = summary.getLastRow();
+    for (var r = lastRow; r >= 2; r--) {
+      if (String(summary.getRange(r, 1).getValue()).trim() === String(customerName).trim()) {
+        summary.getRange(r, 2).setValue(finalPrice);
+        return;
+      }
+    }
+  }
+
+  // הזמנה חדשה או לא נמצאה שורה קיימת
+  summary.appendRow([customerName, finalPrice]);
 }
 
 // ─── עזר ─────────────────────────────────────────────────────────────────────
