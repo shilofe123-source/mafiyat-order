@@ -11,9 +11,183 @@
  *   I: הנחה  J: סכום סופי  K: הערות  L: אושר בתאריך
  */
 
-// ─── המפתח נשמר ב-Script Properties — לא חשוף בקוד המקור ─────────────────────
-// להגדרה: בעורך Apps Script → Project Settings → Script Properties → הוסף GEMINI_API_KEY
+// ─── מפתחות נשמרים ב-Script Properties — לא חשופים בקוד המקור ────────────────
+// להגדרה: בעורך Apps Script → Project Settings → Script Properties
+//   GEMINI_API_KEY, WHATSAPP_TOKEN, WHATSAPP_PHONE_ID
 const GEMINI_API_KEY = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
+const WA_TOKEN = PropertiesService.getScriptProperties().getProperty("WHATSAPP_TOKEN");
+const WA_PHONE_ID = PropertiesService.getScriptProperties().getProperty("WHATSAPP_PHONE_ID");
+const WA_API = "https://graph.facebook.com/v21.0/" + WA_PHONE_ID;
+
+// ─── WhatsApp: מספרי טלפון קבועים ─────────────────────────────────────────────
+const PHONES = { uri: "972524767233", batchen: "972542031448" };
+
+// ─── WhatsApp: רישום שגיאות לגיליון "errors" ──────────────────────────────────
+function logError(context, error) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("errors");
+    if (!sheet) {
+      sheet = ss.insertSheet("errors");
+      sheet.appendRow(["timestamp", "context", "error", "detail"]);
+    }
+    var detail = typeof error === "object" ? JSON.stringify(error).substring(0, 500) : String(error).substring(0, 500);
+    sheet.appendRow([new Date(), context, String(error).substring(0, 200), detail]);
+  } catch (e) {
+    Logger.log("logError failed: " + e.toString());
+  }
+}
+
+// ─── WhatsApp: העלאת מדיה (שלב 1) ────────────────────────────────────────────
+function uploadWhatsAppMedia(pdfBlob) {
+  var url = WA_API + "/media";
+  var boundary = "----FormBoundary" + Utilities.getUuid();
+  var payload = Utilities.newBlob("").getBytes();
+
+  var fileBytes = pdfBlob.getBytes();
+  var header = "--" + boundary + "\r\n"
+    + 'Content-Disposition: form-data; name="messaging_product"\r\n\r\nwhatsapp\r\n'
+    + "--" + boundary + "\r\n"
+    + 'Content-Disposition: form-data; name="type"\r\n\r\napplication/pdf\r\n'
+    + "--" + boundary + "\r\n"
+    + 'Content-Disposition: form-data; name="file"; filename="' + pdfBlob.getName() + '"\r\n'
+    + "Content-Type: application/pdf\r\n\r\n";
+  var footer = "\r\n--" + boundary + "--\r\n";
+
+  payload = [].concat(
+    Utilities.newBlob(header).getBytes(),
+    fileBytes,
+    Utilities.newBlob(footer).getBytes()
+  );
+
+  var response = UrlFetchApp.fetch(url, {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + WA_TOKEN },
+    contentType: "multipart/form-data; boundary=" + boundary,
+    payload: payload,
+    muteHttpExceptions: true
+  });
+
+  var code = response.getResponseCode();
+  var body = JSON.parse(response.getContentText());
+  if (code !== 200 || !body.id) {
+    logError("uploadWhatsAppMedia", { code: code, body: body });
+    return null;
+  }
+  return body.id;
+}
+
+// ─── WhatsApp: שליחת PDF (שלב 2) ─────────────────────────────────────────────
+function sendWhatsAppDocument(phone, mediaId, filename, caption) {
+  var url = WA_API + "/messages";
+  var payload = {
+    messaging_product: "whatsapp",
+    to: phone,
+    type: "document",
+    document: { id: mediaId, filename: filename, caption: caption }
+  };
+
+  var response = UrlFetchApp.fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + WA_TOKEN,
+      "Content-Type": "application/json"
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+
+  var code = response.getResponseCode();
+  if (code !== 200) {
+    var body = response.getContentText();
+    logError("sendWhatsAppDocument to " + phone, { code: code, body: body });
+    return false;
+  }
+  return true;
+}
+
+// ─── WhatsApp: שליחת הודעת טקסט ───────────────────────────────────────────────
+function sendWhatsAppText(phone, text) {
+  var url = WA_API + "/messages";
+  var payload = {
+    messaging_product: "whatsapp",
+    to: phone,
+    type: "text",
+    text: { body: text }
+  };
+
+  var response = UrlFetchApp.fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + WA_TOKEN,
+      "Content-Type": "application/json"
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+
+  var code = response.getResponseCode();
+  if (code !== 200) {
+    logError("sendWhatsAppText to " + phone, { code: code, body: response.getContentText() });
+    return false;
+  }
+  return true;
+}
+
+// ─── WhatsApp: שליחת הודעת template ───────────────────────────────────────────
+function sendWhatsAppTemplate(phone, templateName, params) {
+  var url = WA_API + "/messages";
+  var components = [];
+  if (params && params.length > 0) {
+    components.push({
+      type: "body",
+      parameters: params.map(function(p) { return { type: "text", text: p }; })
+    });
+  }
+  var payload = {
+    messaging_product: "whatsapp",
+    to: phone,
+    type: "template",
+    template: { name: templateName, language: { code: "he" }, components: components }
+  };
+
+  var response = UrlFetchApp.fetch(url, {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + WA_TOKEN,
+      "Content-Type": "application/json"
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  });
+
+  var code = response.getResponseCode();
+  if (code !== 200) {
+    logError("sendWhatsAppTemplate " + templateName + " to " + phone, { code: code, body: response.getContentText() });
+    return false;
+  }
+  return true;
+}
+
+// ─── WhatsApp: שליחת PDF להזמנה (upload + send לשני המספרים) ──────────────────
+function sendOrderPdfViaWhatsApp(pdfBase64, filename, caption) {
+  if (!WA_TOKEN || !WA_PHONE_ID) {
+    logError("sendOrderPdfViaWhatsApp", "Missing WHATSAPP_TOKEN or WHATSAPP_PHONE_ID in Script Properties");
+    return { success: false, error: "missing_config" };
+  }
+
+  var pdfBlob = Utilities.newBlob(Utilities.base64Decode(pdfBase64), "application/pdf", filename);
+  var mediaId = uploadWhatsAppMedia(pdfBlob);
+  if (!mediaId) {
+    return { success: false, error: "upload_failed" };
+  }
+
+  var results = {};
+  results.uri = sendWhatsAppDocument(PHONES.uri, mediaId, filename, caption);
+  results.batchen = sendWhatsAppDocument(PHONES.batchen, mediaId, filename, caption);
+
+  return { success: results.uri || results.batchen, results: results };
+}
 
 // ─── doPost ───────────────────────────────────────────────────────────────────
 function doPost(e) {
@@ -27,6 +201,27 @@ function doPost(e) {
       }
       const description = callGeminiVision(data.base64, data.mimeType);
       return jsonResponse({ status: "success", description });
+    }
+
+    // ── יצירת קוד תשלום ─────────────────────────────────────────────────────
+    if (data.action === "generatePaymentCode") {
+      var result = generatePaymentCode(data.orderId);
+      return jsonResponse(result);
+    }
+
+    // ── אימות קוד תשלום ─────────────────────────────────────────────────────
+    if (data.action === "validatePaymentCode") {
+      var result = validatePaymentCode(data.code);
+      if (!result.success && result.error === "invalid_code") {
+        recordFailedAttempt(data.code);
+      }
+      return jsonResponse(result);
+    }
+
+    // ── שמירת משוב ──────────────────────────────────────────────────────────
+    if (data.action === "saveFeedback") {
+      var result = saveFeedback(data);
+      return jsonResponse(result);
     }
 
     // ── חילוץ הזמנה מתמונה/PDF עם Gemini ───────────────────────────────────
@@ -90,31 +285,25 @@ function doPost(e) {
       sheet.appendRow(rowData);
     }
 
-    // -- [EMAIL] שליחת PDF למייל — ניתן להסרה בהמשך (למעבר לוואטסאפ) --
-    if (data.pdfBase64 && data.emailTo) {
+    // ── שליחת PDF בוואטסאפ לאורי ובת חן ──────────────────────────────────────
+    if (data.pdfBase64 && data.action !== "extractOrder") {
       try {
-        var pdfBlob = Utilities.newBlob(
-          Utilities.base64Decode(data.pdfBase64),
-          "application/pdf",
-          data.pdfFilename || "הזמנה.pdf"
+        var waCaption = "הזמנה חדשה — " + (data.customerName || "לקוח")
+          + "\nתאריך: " + (data.orderDate || "")
+          + "\nשעת איסוף: " + (data.pickupTime || "")
+          + "\nסכום: " + (data.finalPrice || 0) + ' ש"ח';
+        var waResult = sendOrderPdfViaWhatsApp(
+          data.pdfBase64,
+          data.pdfFilename || "הזמנה.pdf",
+          waCaption
         );
-        MailApp.sendEmail({
-          to: data.emailTo,
-          subject: "הזמנה חדשה — " + (data.customerName || "לקוח") + " — מאפיית השומרון",
-          body: "שלום בת חן,\n\nהתקבלה הזמנה חדשה:\n"
-            + "לקוח: " + (data.customerName || "") + "\n"
-            + "טלפון: " + (data.phone || "") + "\n"
-            + "תאריך: " + (data.orderDate || "") + "\n"
-            + "שעת איסוף: " + (data.pickupTime || "") + "\n"
-            + "סכום: " + (data.finalPrice || 0) + " ש\"ח\n\n"
-            + "PDF מצורף.\n\n— מערכת הזמנות מאפיית השומרון",
-          attachments: [pdfBlob]
-        });
-      } catch (emailErr) {
-        Logger.log("Email send error: " + emailErr.toString());
+        if (!waResult.success) {
+          logError("doPost WhatsApp send", waResult);
+        }
+      } catch (waErr) {
+        logError("doPost WhatsApp exception", waErr.toString());
       }
     }
-    // -- [/EMAIL] --
 
     // עדכון גיליון סיכום
     updateSummary(data.customerName, data.finalPrice || ((data.totalPrice || 0) - (data.discount || 0)), data.editorMode === true);
@@ -277,6 +466,206 @@ function updateSummary(customerName, finalPrice, isEditorMode) {
 
   // הזמנה חדשה או לא נמצאה שורה קיימת
   summary.appendRow([customerName, finalPrice]);
+}
+
+// ─── תזכורות יומיות + משוב (טריגר יומי בשעה 12:00) ──────────────────────────
+// הרצה חד-פעמית: setupDailyTrigger()
+function setupDailyTrigger() {
+  // מחיקת טריגרים קיימים
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === "sendDailyAutomations") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("sendDailyAutomations")
+    .timeBased()
+    .atHour(12)
+    .everyDays(1)
+    .inTimezone("Asia/Jerusalem")
+    .create();
+}
+
+function sendDailyAutomations() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("הזמנות");
+  if (!sheet || sheet.getLastRow() < 2) return;
+
+  var today = new Date();
+  var tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+  var yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+
+  var fmtD = function(d) { return Utilities.formatDate(d, "Asia/Jerusalem", "dd/MM/yyyy"); };
+  var tomorrowStr = fmtD(tomorrow);
+  var yesterdayStr = fmtD(yesterday);
+
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+
+  for (var r = 1; r < data.length; r++) {
+    var row = data[r];
+    var orderDate = String(row[1]).trim();   // B: תאריך הזמנה
+    var customerName = String(row[2]).trim(); // C: שם לקוח
+    var phone = String(row[3]).trim();        // D: טלפון
+    var items = String(row[6]).trim();        // G: פריטים
+    var pickupTime = String(row[13]).trim();  // N: שעת איסוף
+
+    // ── תזכורת לבת חן — יום לפני ההזמנה ──
+    if (orderDate === tomorrowStr) {
+      // נסה template קודם, אם לא מאושר — שלח טקסט רגיל
+      var reminderOk = sendWhatsAppTemplate(PHONES.batchen, "order_reminder", [customerName, items.substring(0, 100), pickupTime || "לא צוין"]);
+      if (!reminderOk) {
+        sendWhatsAppText(PHONES.batchen,
+          "תזכורת הזמנה למחר:\n"
+          + "לקוח: " + customerName + "\n"
+          + "פריטים: " + items.substring(0, 200) + "\n"
+          + "שעת איסוף: " + (pickupTime || "לא צוין")
+        );
+      }
+    }
+
+    // ── משוב ללקוח — יום אחרי ההזמנה ──
+    if (orderDate === yesterdayStr && phone) {
+      var surveyUrl = "https://shilofe123-source.github.io/mafiyat-order/survey.html?order=" + encodeURIComponent(String(row[12]).trim());
+      var feedbackOk = sendWhatsAppTemplate(phone, "feedback_survey", [customerName, surveyUrl]);
+      if (!feedbackOk) {
+        sendWhatsAppText(phone,
+          "שלום " + customerName + ",\n"
+          + "תודה שהזמנתם ממאפיית השומרון!\n"
+          + "נשמח לשמוע את דעתכם:\n" + surveyUrl
+        );
+      }
+    }
+  }
+}
+
+// ─── Payment: יצירת קוד חד-פעמי ──────────────────────────────────────────────
+function generatePaymentCode(orderId) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("הזמנות");
+  if (!sheet) return { success: false, error: "no_sheet" };
+
+  // חיפוש ההזמנה לפי orderId (עמודה M = 13)
+  var data = sheet.getDataRange().getValues();
+  for (var r = data.length - 1; r >= 1; r--) {
+    if (String(data[r][12]).trim() === String(orderId).trim()) {
+      var code = String(Math.floor(100000 + Math.random() * 900000));
+      var now = new Date();
+
+      // עמודה O (15) = payment code, P (16) = code timestamp, Q (17) = payment status, R (18) = attempts
+      var rowNum = r + 1;
+      // הרחב כותרות אם צריך
+      if (sheet.getLastColumn() < 18) {
+        var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+        var needed = ["קוד תשלום", "זמן יצירת קוד", "סטטוס תשלום", "ניסיונות כושלים"];
+        for (var c = headers.length; c < 18; c++) {
+          sheet.getRange(1, c + 1).setValue(needed[c - 14] || "");
+        }
+      }
+
+      sheet.getRange(rowNum, 15).setValue(code);
+      sheet.getRange(rowNum, 16).setValue(now.toISOString());
+      sheet.getRange(rowNum, 17).setValue("pending");
+      sheet.getRange(rowNum, 18).setValue(0);
+
+      // שליחת קוד ללקוח בוואטסאפ
+      var customerPhone = String(data[r][3]).trim();
+      var customerName = String(data[r][2]).trim();
+      var paymentUrl = "https://shilofe123-source.github.io/mafiyat-order/payment.html?code=" + code;
+      if (customerPhone) {
+        sendWhatsAppText(customerPhone,
+          "שלום " + customerName + ",\n"
+          + "הזמנתך אושרה! הקוד שלך לתשלום: " + code + "\n"
+          + "לתשלום: " + paymentUrl
+        );
+      }
+
+      return { success: true, code: code, phone: customerPhone };
+    }
+  }
+  return { success: false, error: "order_not_found" };
+}
+
+// ─── Payment: אימות קוד ──────────────────────────────────────────────────────
+function validatePaymentCode(code) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("הזמנות");
+  if (!sheet) return { success: false, error: "no_sheet" };
+
+  var data = sheet.getDataRange().getValues();
+  for (var r = data.length - 1; r >= 1; r--) {
+    if (String(data[r][14]).trim() === String(code).trim()) {
+      var rowNum = r + 1;
+
+      // בדיקת brute-force: 5 ניסיונות מקסימום
+      var attempts = Number(data[r][17]) || 0;
+      if (attempts >= 5) {
+        return { success: false, error: "locked" };
+      }
+
+      // בדיקת תוקף: 2 שעות
+      var codeTime = new Date(data[r][15]);
+      var now = new Date();
+      if (now.getTime() - codeTime.getTime() > 2 * 60 * 60 * 1000) {
+        return { success: false, error: "expired" };
+      }
+
+      // בדיקה אם כבר שולם
+      if (String(data[r][16]).trim() === "paid") {
+        return { success: false, error: "already_paid" };
+      }
+
+      return {
+        success: true,
+        order: {
+          orderId: String(data[r][12]),
+          customerName: String(data[r][2]),
+          items: String(data[r][6]),
+          totalPrice: data[r][7],
+          discount: data[r][8],
+          finalPrice: data[r][9],
+          date: String(data[r][1]),
+          pickupTime: String(data[r][13])
+        }
+      };
+    }
+  }
+
+  // קוד לא נמצא — נרשום ניסיון כושל (אם יש orderId תואם בפרמטר)
+  return { success: false, error: "invalid_code" };
+}
+
+// ─── Payment: רישום ניסיון כושל ───────────────────────────────────────────────
+function recordFailedAttempt(code) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("הזמנות");
+  if (!sheet) return;
+
+  var data = sheet.getDataRange().getValues();
+  for (var r = data.length - 1; r >= 1; r--) {
+    if (String(data[r][14]).trim() === String(code).trim()) {
+      var attempts = (Number(data[r][17]) || 0) + 1;
+      sheet.getRange(r + 1, 18).setValue(attempts);
+      return;
+    }
+  }
+}
+
+// ─── Survey: שמירת משוב ──────────────────────────────────────────────────────
+function saveFeedback(feedbackData) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("feedback");
+  if (!sheet) {
+    sheet = ss.insertSheet("feedback");
+    sheet.appendRow(["timestamp", "orderId", "customerName", "overall", "food", "service", "comment"]);
+  }
+  sheet.appendRow([
+    new Date(),
+    feedbackData.orderId || "",
+    feedbackData.customerName || "",
+    feedbackData.overall || 0,
+    feedbackData.food || 0,
+    feedbackData.service || 0,
+    feedbackData.comment || ""
+  ]);
+  return { success: true };
 }
 
 // ─── עזר ─────────────────────────────────────────────────────────────────────

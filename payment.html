@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>תשלום — מאפיית השומרון</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥐</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Heebo', sans-serif; direction: rtl; background: #FFF8F0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .card { background: #fff; border-radius: 20px; padding: 32px 24px; width: 100%; max-width: 420px; box-shadow: 0 4px 30px rgba(92,61,46,0.1); text-align: center; }
+  .logo { width: 72px; height: 72px; border-radius: 50%; border: 3px solid #F0E0CC; object-fit: cover; margin-bottom: 12px; }
+  h1 { color: #5C3D2E; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: #8D6E63; font-size: 14px; margin-bottom: 24px; }
+  .code-input { display: flex; gap: 8px; justify-content: center; direction: ltr; margin-bottom: 20px; }
+  .code-input input { width: 44px; height: 52px; text-align: center; font-size: 22px; font-weight: 700; border: 2px solid #F0E0CC; border-radius: 12px; outline: none; font-family: 'Heebo', sans-serif; color: #5C3D2E; background: #FFF8F0; transition: border-color 0.2s; }
+  .code-input input:focus { border-color: #C8956C; }
+  .btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: #5C3D2E; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Heebo', sans-serif; transition: background 0.2s; }
+  .btn:hover { background: #7B5B4C; }
+  .btn:disabled { background: #ccc; cursor: not-allowed; }
+  .error { color: #c62828; font-size: 13px; margin-top: 12px; min-height: 20px; }
+  .success-view { display: none; }
+  .success-view h2 { color: #5C3D2E; font-size: 20px; margin: 16px 0 8px; }
+  .success-view .order-details { background: #FFF8F0; border-radius: 12px; padding: 16px; margin: 16px 0; text-align: right; }
+  .success-view .order-details p { color: #3E2723; font-size: 14px; margin-bottom: 6px; }
+  .success-view .order-details strong { color: #5C3D2E; }
+  .coming-soon { background: linear-gradient(135deg, #F0E0CC, #FFF8F0); border-radius: 12px; padding: 20px; margin-top: 16px; }
+  .coming-soon p { color: #8D6E63; font-size: 15px; font-weight: 700; }
+  .locked { color: #c62828; font-size: 15px; font-weight: 700; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <!-- Code Entry View -->
+  <div id="code-view">
+    <img class="logo" src="images/product1.jpeg" alt="logo" onerror="this.style.display='none'">
+    <h1>מאפיית השומרון</h1>
+    <p class="subtitle">הזינו את קוד התשלום שקיבלתם</p>
+    <div class="code-input" id="code-fields">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+      <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+    </div>
+    <button class="btn" id="verify-btn" disabled onclick="verifyCode()">אימות קוד</button>
+    <p class="error" id="error-msg"></p>
+  </div>
+
+  <!-- Success View -->
+  <div id="success-view" class="success-view">
+    <h2>הזמנתך אושרה!</h2>
+    <div class="order-details" id="order-details"></div>
+    <div class="coming-soon">
+      <p>אפשרויות תשלום יהיו זמינות בקרוב</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbyrMfxn0CiEa0U7IEfn12nxZMYmIIudBELP8Zbc2Gc0QkliVsELJV7iwMG7As5QKSRT/exec";
+const inputs = document.querySelectorAll("#code-fields input");
+const verifyBtn = document.getElementById("verify-btn");
+const errorMsg = document.getElementById("error-msg");
+let attempts = 0;
+
+// Auto-focus and auto-advance
+inputs.forEach((inp, i) => {
+  inp.addEventListener("input", () => {
+    inp.value = inp.value.replace(/[^0-9]/g, "");
+    if (inp.value && i < inputs.length - 1) inputs[i + 1].focus();
+    checkComplete();
+  });
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Backspace" && !inp.value && i > 0) { inputs[i - 1].focus(); }
+  });
+  inp.addEventListener("paste", (e) => {
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData("text").replace(/\D/g, "").slice(0, 6);
+    for (var j = 0; j < text.length && j < inputs.length; j++) { inputs[j].value = text[j]; }
+    if (text.length > 0) inputs[Math.min(text.length, inputs.length) - 1].focus();
+    checkComplete();
+  });
+});
+
+// Pre-fill from URL param
+var urlCode = new URLSearchParams(window.location.search).get("code");
+if (urlCode && /^\d{6}$/.test(urlCode)) {
+  for (var i = 0; i < 6; i++) inputs[i].value = urlCode[i];
+  checkComplete();
+}
+
+function checkComplete() {
+  var code = Array.from(inputs).map(i => i.value).join("");
+  verifyBtn.disabled = code.length !== 6;
+}
+
+function getCode() { return Array.from(inputs).map(i => i.value).join(""); }
+
+async function verifyCode() {
+  var code = getCode();
+  if (code.length !== 6) return;
+
+  verifyBtn.disabled = true;
+  verifyBtn.textContent = "מאמת...";
+  errorMsg.textContent = "";
+
+  try {
+    var res = await fetch(SHEETS_URL, {
+      method: "POST",
+      body: JSON.stringify({ action: "validatePaymentCode", code: code })
+    });
+    var data = await res.json();
+
+    if (data.success) {
+      document.getElementById("code-view").style.display = "none";
+      var sv = document.getElementById("success-view");
+      sv.style.display = "block";
+      var o = data.order;
+      document.getElementById("order-details").innerHTML =
+        "<p><strong>שם:</strong> " + (o.customerName || "") + "</p>" +
+        "<p><strong>תאריך:</strong> " + (o.date || "") + "</p>" +
+        "<p><strong>שעת איסוף:</strong> " + (o.pickupTime || "") + "</p>" +
+        "<p><strong>פריטים:</strong> " + (o.items || "") + "</p>" +
+        '<p><strong>סכום לתשלום:</strong> <span style="font-size:18px;color:#5C3D2E">' + (o.finalPrice || 0) + ' ש"ח</span></p>';
+    } else {
+      attempts++;
+      if (data.error === "locked") {
+        errorMsg.innerHTML = '<span class="locked">הקוד ננעל — פנו לבת חן</span>';
+        verifyBtn.style.display = "none";
+      } else if (data.error === "expired") {
+        errorMsg.textContent = "הקוד פג תוקף — בקשו קוד חדש";
+      } else if (data.error === "already_paid") {
+        errorMsg.textContent = "ההזמנה כבר שולמה";
+      } else {
+        errorMsg.textContent = "קוד שגוי (" + attempts + "/5)";
+        if (attempts >= 5) {
+          errorMsg.innerHTML = '<span class="locked">נחסמת — פנו לבת חן</span>';
+          verifyBtn.style.display = "none";
+        }
+      }
+    }
+  } catch {
+    errorMsg.textContent = "שגיאת רשת — נסו שוב";
+  }
+
+  verifyBtn.disabled = false;
+  verifyBtn.textContent = "אימות קוד";
+}
+
+inputs[0].focus();
+</script>
+</body>
+</html>

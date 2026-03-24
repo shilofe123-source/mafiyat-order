@@ -14,9 +14,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; direction: rtl; background-color: #eaf4fb; min-height: 100vh; }
+  body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; direction: rtl; background-color: #FFF8F0; min-height: 100vh; }
   #bg-slideshow { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; background-repeat: no-repeat; transition: background-image 1.5s ease-in-out; }
-  #bg-slideshow::after { content: ''; position: absolute; inset: 0; background: rgba(234,244,251,0.82); }
+  #bg-slideshow::after { content: ''; position: absolute; inset: 0; background: rgba(255,248,240,0.85); }
   input, textarea, button, select { font-family: inherit; font-size: 16px; }
   input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
   input[type="number"] { -moz-appearance: textfield; }
@@ -24,10 +24,10 @@
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
   .modal-box { background: #fff; border-radius: 18px; padding: 28px 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 40px rgba(0,0,0,0.18); direction: rtl; }
   .editor-bar { background: linear-gradient(90deg,#1a5c30,#5a2d82); color: #fff; border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  #ai-chat-panel { position: fixed; top: 0; right: 0; width: 340px; height: 100vh; background: linear-gradient(180deg,#0d3b6e 0%,#1565c0 100%); display: flex; flex-direction: column; z-index: 100; box-shadow: -4px 0 24px rgba(13,59,110,0.18); font-family: 'Heebo',sans-serif; direction: rtl; transition: transform 0.3s ease; }
+  #ai-chat-panel { position: fixed; top: 0; right: 0; width: 340px; height: 100vh; background: linear-gradient(180deg,#5C3D2E 0%,#7B5B4C 100%); display: flex; flex-direction: column; z-index: 100; box-shadow: -4px 0 24px rgba(92,61,46,0.25); font-family: 'Heebo',sans-serif; direction: rtl; transition: transform 0.3s ease; }
   #ai-chat-panel.collapsed { transform: translateX(300px); }
   #ai-chat-header { padding: 16px 18px 12px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.15); }
-  #ai-chat-header .avatar { width: 38px; height: 38px; background: linear-gradient(135deg,#f8f4e8,#e8dfc0); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  #ai-chat-header .avatar { width: 38px; height: 38px; background: linear-gradient(135deg,#FFF8F0,#F0E0CC); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
   #ai-chat-header .title { color: #fff; font-weight: 700; font-size: 15px; flex: 1; }
   #ai-chat-header .subtitle { color: rgba(255,255,255,0.65); font-size: 11px; }
   #ai-chat-toggle { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 20px; padding: 4px; transition: color 0.2s; }
@@ -35,7 +35,7 @@
   #ai-chat-messages { flex: 1; overflow-y: auto; padding: 14px 14px 8px; display: flex; flex-direction: column; gap: 10px; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent; }
   .chat-msg { max-width: 88%; padding: 10px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; word-break: break-word; }
   .chat-msg.bot { background: rgba(255,255,255,0.12); color: #fff; align-self: flex-start; border-bottom-right-radius: 4px; }
-  .chat-msg.user { background: #f8f4e8; color: #0d2b40; align-self: flex-end; border-bottom-left-radius: 4px; }
+  .chat-msg.user { background: #FFF8F0; color: #3E2723; align-self: flex-end; border-bottom-left-radius: 4px; }
   .chat-msg.system { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); font-size: 11px; align-self: center; text-align: center; border-radius: 8px; padding: 5px 10px; }
   #ai-chat-permission { padding: 10px 14px; background: rgba(255,255,255,0.07); border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px; }
   #ai-chat-permission label { color: rgba(255,255,255,0.75); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
@@ -43,12 +43,12 @@
   #ai-chat-input { flex: 1; padding: 10px 13px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); color: #fff; font-size: 13px; font-family: 'Heebo',sans-serif; outline: none; direction: rtl; }
   #ai-chat-input::placeholder { color: rgba(255,255,255,0.4); }
   #ai-chat-input:focus { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.15); }
-  #ai-chat-send { width: 40px; height: 40px; border-radius: 50%; border: none; background: #f8f4e8; color: #0d3b6e; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  #ai-chat-send { width: 40px; height: 40px; border-radius: 50%; border: none; background: #FFF8F0; color: #5C3D2E; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   #ai-chat-send:hover { background: #fff; }
   #root { margin-right: 340px; flex: 1; min-height: 100vh; transition: margin-right 0.3s ease; }
   #root.chat-collapsed { margin-right: 40px; }
   @media (max-width: 900px) {
-    #ai-chat-panel { width: 100%; height: 40vh; top: auto; bottom: 0; right: 0; transform: translateY(0); box-shadow: 0 -4px 24px rgba(13,59,110,0.2); }
+    #ai-chat-panel { width: 100%; height: 40vh; top: auto; bottom: 0; right: 0; transform: translateY(0); box-shadow: 0 -4px 24px rgba(92,61,46,0.2); }
     #ai-chat-panel.collapsed { transform: translateY(calc(100% - 48px)); }
     #root { margin-right: 0; margin-bottom: 40vh; }
     #root.chat-collapsed { margin-right: 0; margin-bottom: 48px; }
@@ -118,7 +118,7 @@ const PRODUCTS = [
 
 const CATEGORIES = [...new Set(PRODUCTS.map(p => p.cat))];
 const fmt = n => "\u20AA" + n.toLocaleString("he-IL");
-const C = { pri: "#0d3b6e", priL: "#1565c0", acc: "#1e88e5", cream: "#f8f4e8", creamD: "#e8dfc0", creamB: "#b8a060", txt: "#0d2b40", txtL: "#5a7fa0", green: "#25D366", editorGreen: "#1a5c30", editorPurple: "#5a2d82" };
+const C = { pri: "#5C3D2E", priL: "#7B5B4C", acc: "#C8956C", cream: "#FFF8F0", creamD: "#F0E0CC", creamB: "#B8956A", txt: "#3E2723", txtL: "#8D6E63", green: "#25D366", editorGreen: "#1a5c30", editorPurple: "#5a2d82" };
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycbyrMfxn0CiEa0U7IEfn12nxZMYmIIudBELP8Zbc2Gc0QkliVsELJV7iwMG7As5QKSRT/exec";
 window.__PRODUCTS = PRODUCTS;
 
@@ -339,10 +339,9 @@ function App() {
       const disc = Number(discountAmt) || 0;
       const oid = orderId || ("ORD-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4));
       if (!orderId) setOrderId(oid);
-      // -- [EMAIL] Generate PDF for email --
+      // יצירת PDF base64 לשליחה בוואטסאפ דרך Apps Script
       var pdfBase64 = null;
       try { pdfBase64 = await generatePdfBase64("preview-card"); } catch(e) {}
-      // -- [/EMAIL] --
       const res = await fetch(SHEETS_URL, { method: "POST", body: JSON.stringify({
         orderDate: client.date ? fmtDate(client.date) : new Date().toLocaleDateString("he-IL"),
         customerName: client.name||"", phone: client.phone||"", event: client.event||"",
@@ -350,11 +349,8 @@ function App() {
         totalPrice: total, discount: disc, finalPrice: total-disc,
         notes: client.notes||"", approvedAt: new Date().toISOString(), editorMode: isEditorMode, orderId: oid,
         pickupTime: client.pickupTime||"",
-        // -- [EMAIL] PDF for email — remove this block when switching to WhatsApp --
         pdfBase64: pdfBase64,
-        emailTo: "12bathen@gmail.com",
         pdfFilename: "הצעה_"+(client.name||"לקוח").replace(/\s/g,"_")+".pdf"
-        // -- [/EMAIL] --
       })});
       const data = await res.json();
       if (data.status === "success") { showToast("✓ ההזמנה נשמרה!"); setShowApprovalModal(false); setShowSendModal(true); }
@@ -481,14 +477,22 @@ function App() {
       ${showSendModal && html`
         <div class="modal-overlay" onClick=${() => setShowSendModal(false)}>
           <div class="modal-box" onClick=${e => e.stopPropagation()}>
-            <h3 style=${{ marginBottom:8, color:C.pri, fontSize:18 }}>📤 שליחת הצעת מחיר</h3>
-            <p style=${{ marginBottom:20, color:C.txtL, fontSize:14 }}>ההזמנה נשמרה. לשלוח PDF בוואטסאפ?</p>
+            <h3 style=${{ marginBottom:8, color:C.pri, fontSize:18 }}>✅ ההזמנה נשלחה</h3>
+            <p style=${{ marginBottom:20, color:C.txtL, fontSize:14 }}>ההזמנה נשמרה וה-PDF נשלח לאורי ובת חן בוואטסאפ.</p>
             <div style=${{ display:"flex", flexDirection:"column", gap:10 }}>
-              ${[
-                {label:"💬 שלח לאורי / בת חן", bg:C.green, ph:PHONES.uri, msg:"הצעת מחיר — מאפיית השומרון\n"+(client.name||"")+"\nסהכ: "+fmt(total)}
-              ].map(btn => html`
-                <button key=${btn.ph} onClick=${() => { setShowSendModal(false); var d=(client.date||new Date().toISOString().slice(0,10)).replace(/-/g,""); var fn="Mafiyat-Order_"+d+"_"+(orderId||Date.now())+".pdf"; generatePdfAndShare("preview-card",fn,btn.ph,btn.msg); }} style=${{ width:"100%", padding:"14px", borderRadius:12, border:"none", background:btn.bg, color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer" }}>${btn.label}</button>
-              `)}
+              ${isEditorMode && html`
+                <button onClick=${async () => {
+                  showToast("יוצר קוד תשלום...");
+                  try {
+                    const oid = orderId || ("ORD-" + Date.now());
+                    const r = await fetch(SHEETS_URL, { method:"POST", body: JSON.stringify({ action:"generatePaymentCode", orderId: oid }) });
+                    const d = await r.json();
+                    if (d.success) showToast("קוד תשלום " + d.code + " נשלח ללקוח");
+                    else showToast("שגיאה: " + (d.error || "נסה שוב"));
+                  } catch { showToast("שגיאת רשת"); }
+                }} style=${{ width:"100%", padding:"14px", borderRadius:12, border:"none", background:C.editorPurple, color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer" }}>💳 צור קוד תשלום ושלח ללקוח</button>
+              `}
+              <button onClick=${() => { setShowSendModal(false); var d=(client.date||new Date().toISOString().slice(0,10)).replace(/-/g,""); var fn="Mafiyat-Order_"+d+"_"+(orderId||Date.now())+".pdf"; generatePdfAndShare("preview-card",fn,null,null); }} style=${{ width:"100%", padding:"14px", borderRadius:12, border:"none", background:C.acc, color:"#fff", fontSize:15, fontWeight:700, cursor:"pointer" }}>📥 הורד PDF למכשיר</button>
               <button onClick=${() => setShowSendModal(false)} style=${{ width:"100%", padding:"12px", borderRadius:10, border:"1px solid "+C.creamB, background:"#fff", color:C.txt, fontSize:14, cursor:"pointer", marginTop:4 }}>סגור</button>
             </div>
           </div>
