@@ -512,6 +512,22 @@ function App() {
     </div>
   `;
 
+  // ── Shabbat banner logic ──
+  var shabbatBanner = null;
+  var _now = new Date(), _day = _now.getDay(), _hour = _now.getHours();
+  if ((_day === 4 && _hour >= 18) || (_day === 5 && _hour < 14)) {
+    var _cutoff = new Date(_now); _cutoff.setDate(_cutoff.getDate() + (_day === 4 ? 1 : 0)); _cutoff.setHours(14,0,0,0);
+    var _diff = Math.max(0, _cutoff - _now), _h = Math.floor(_diff/3600000), _m = Math.floor((_diff%3600000)/60000);
+    shabbatBanner = html`<div class="shabbat-timer">${"⏳ הזמנות לשבת נסגרות בעוד " + String(_h).padStart(2,"0") + ":" + String(_m).padStart(2,"0") + " שעות"}</div>`;
+  } else if ((_day === 5 && _hour >= 14) || _day === 6) {
+    shabbatBanner = html`<div class="shabbat-timer">שבת שלום! ניתן לצפות בתפריט — הזמנות ייפתחו במוצ״ש</div>`;
+  }
+
+  // ── Event chips ──
+  var eventChips = [{e:"שבת",icon:"🕯️"},{e:"ברית/בריתה",icon:"👶"},{e:"יום הולדת",icon:"🎂"},{e:"אירוח ביתי",icon:"🏠"}].map(function(ev) {
+    return html`<button class="event-chip" onClick=${() => setClient(prev => ({...prev, event: ev.e}))}>${ev.icon + " " + ev.e}</button>`;
+  });
+
   // ── BUILD VIEW ──
   return html`
     <div style=${{ maxWidth: 880, margin: "0 auto", padding: "16px 16px 80px" }}>
@@ -522,29 +538,10 @@ function App() {
         <div style=${{ fontSize:12, color:C.txtL, marginTop:4 }}>כשר למהדרין — רבנות קרני שומרון</div>
       </div>
 
-      ${(() => {
-        var now = new Date();
-        var day = now.getDay();
-        var hour = now.getHours();
-        if ((day === 4 && hour >= 18) || (day === 5 && hour < 14)) {
-          var cutoff = new Date(now);
-          cutoff.setDate(cutoff.getDate() + (day === 4 ? 1 : 0));
-          cutoff.setHours(14, 0, 0, 0);
-          var diff = Math.max(0, cutoff - now);
-          var hrs = Math.floor(diff / 3600000);
-          var mins = Math.floor((diff % 3600000) / 60000);
-          return html`<div class="shabbat-timer">⏳ הזמנות לשבת נסגרות בעוד ${String(hrs).padStart(2,"0")}:${String(mins).padStart(2,"0")} שעות</div>`;
-        }
-        if (day === 5 && hour >= 14 || day === 6) {
-          return html`<div class="shabbat-timer">שבת שלום! ✨ ניתן לצפות בתפריט — הזמנות ייפתחו במוצ״ש</div>`;
-        }
-        return null;
-      })()}
+      ${shabbatBanner}
 
       <div class="event-chips">
-        ${[{e:"שבת",icon:"🕯️"},{e:"ברית/בריתה",icon:"👶"},{e:"יום הולדת",icon:"🎂"},{e:"אירוח ביתי",icon:"🏠"}].map(ev => html`
-          <button class="event-chip" key=${ev.e} onClick=${() => setClient(prev => ({...prev, event: ev.e}))}>${ev.icon} ${ev.e}</button>
-        `)}
+        ${eventChips}
       </div>
 
       <div style=${{ textAlign:"center", padding:"8px 16px", background:C.cream, borderRadius:10, fontSize:13, color:C.txtL, marginBottom:12 }}>
