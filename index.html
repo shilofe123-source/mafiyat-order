@@ -531,20 +531,20 @@ function App() {
           cutoff.setDate(cutoff.getDate() + (day === 4 ? 1 : 0));
           cutoff.setHours(14, 0, 0, 0);
           var diff = Math.max(0, cutoff - now);
-          var h = Math.floor(diff / 3600000);
-          var m = Math.floor((diff % 3600000) / 60000);
-          return html\`<div class="shabbat-timer">⏳ הזמנות לשבת נסגרות בעוד $\{String(h).padStart(2,"0")}:$\{String(m).padStart(2,"0")} שעות</div>\`;
+          var hrs = Math.floor(diff / 3600000);
+          var mins = Math.floor((diff % 3600000) / 60000);
+          return html`<div class="shabbat-timer">⏳ הזמנות לשבת נסגרות בעוד ${String(hrs).padStart(2,"0")}:${String(mins).padStart(2,"0")} שעות</div>`;
         }
         if (day === 5 && hour >= 14 || day === 6) {
-          return html\`<div class="shabbat-timer">שבת שלום! ✨ ניתן לצפות בתפריט — הזמנות ייפתחו במוצ״ש</div>\`;
+          return html`<div class="shabbat-timer">שבת שלום! ✨ ניתן לצפות בתפריט — הזמנות ייפתחו במוצ״ש</div>`;
         }
         return null;
       })()}
 
       <div class="event-chips">
-        ${[{e:"שבת",icon:"🕯️"},{e:"ברית/בריתה",icon:"👶"},{e:"יום הולדת",icon:"🎂"},{e:"אירוח ביתי",icon:"🏠"}].map(ev => html\`
-          <button class="event-chip" key=$\{ev.e} onClick=$\{() => setClient(prev => ({...prev, event: ev.e}))}>${ev.icon} $\{ev.e}</button>
-        \`)}
+        ${[{e:"שבת",icon:"🕯️"},{e:"ברית/בריתה",icon:"👶"},{e:"יום הולדת",icon:"🎂"},{e:"אירוח ביתי",icon:"🏠"}].map(ev => html`
+          <button class="event-chip" key=${ev.e} onClick=${() => setClient(prev => ({...prev, event: ev.e}))}>${ev.icon} ${ev.e}</button>
+        `)}
       </div>
 
       <div style=${{ textAlign:"center", padding:"8px 16px", background:C.cream, borderRadius:10, fontSize:13, color:C.txtL, marginBottom:12 }}>
