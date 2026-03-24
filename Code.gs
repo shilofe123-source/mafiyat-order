@@ -170,7 +170,7 @@ function sendWhatsAppTemplate(phone, templateName, params) {
 }
 
 // ─── WhatsApp: שליחת PDF להזמנה (upload + send לשני המספרים) ──────────────────
-function sendOrderPdfViaWhatsApp(pdfBase64, filename, caption) {
+function sendOrderPdfViaWhatsApp(pdfBase64, filename, caption, customerPhone) {
   if (!WA_TOKEN || !WA_PHONE_ID) {
     logError("sendOrderPdfViaWhatsApp", "Missing WHATSAPP_TOKEN or WHATSAPP_PHONE_ID in Script Properties");
     return { success: false, error: "missing_config" };
@@ -185,6 +185,9 @@ function sendOrderPdfViaWhatsApp(pdfBase64, filename, caption) {
   var results = {};
   results.uri = sendWhatsAppDocument(PHONES.uri, mediaId, filename, caption);
   results.batchen = sendWhatsAppDocument(PHONES.batchen, mediaId, filename, caption);
+  if (customerPhone) {
+    results.customer = sendWhatsAppDocument(customerPhone, mediaId, filename, caption);
+  }
 
   return { success: results.uri || results.batchen, results: results };
 }
@@ -292,10 +295,12 @@ function doPost(e) {
           + "\nתאריך: " + (data.orderDate || "")
           + "\nשעת איסוף: " + (data.pickupTime || "")
           + "\nסכום: " + (data.finalPrice || 0) + ' ש"ח';
+        var customerPhone = data.phone ? data.phone.replace(/[\s\-()]/g, "").replace(/^0/, "972") : null;
         var waResult = sendOrderPdfViaWhatsApp(
           data.pdfBase64,
           data.pdfFilename || "הזמנה.pdf",
-          waCaption
+          waCaption,
+          customerPhone
         );
         if (!waResult.success) {
           logError("doPost WhatsApp send", waResult);
