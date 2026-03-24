@@ -17,8 +17,8 @@
   .rating-group { margin-bottom: 20px; text-align: right; }
   .rating-group label { display: block; color: #5C3D2E; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
   .stars { display: flex; gap: 6px; direction: ltr; }
-  .stars button { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #F0E0CC; background: #FFF8F0; font-size: 20px; cursor: pointer; transition: all 0.2s; line-height: 1; }
-  .stars button.active { background: #C8956C; border-color: #C8956C; color: #fff; }
+  .stars button { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #F0E0CC; background: #FFF8F0; font-size: 22px; cursor: pointer; transition: all 0.2s; line-height: 1; opacity: 0.35; }
+  .stars button.active { background: #FFF3E0; border-color: #C8956C; opacity: 1; }
   .stars button:hover { border-color: #C8956C; }
   .comment-field { width: 100%; padding: 12px 14px; border: 2px solid #F0E0CC; border-radius: 12px; font-size: 14px; font-family: 'Heebo', sans-serif; min-height: 80px; resize: vertical; outline: none; direction: rtl; color: #3E2723; background: #FFF8F0; margin-bottom: 20px; }
   .comment-field:focus { border-color: #C8956C; }
@@ -41,6 +41,7 @@
     <img class="logo" src="images/product1.jpeg" alt="logo" onerror="this.style.display='none'">
     <h1>מאפיית השומרון</h1>
     <p class="subtitle">נשמח לשמוע את דעתכם</p>
+    <div style="font-size:12px; color:#8D6E63; margin-top:4px; font-style:italic;">נבדק ואושר ע״י צוות מאפיית השומרון 👨‍🍳</div>
 
     <div class="rating-group">
       <label>חוויה כללית</label>
@@ -77,9 +78,10 @@ var orderId = new URLSearchParams(window.location.search).get("order") || "";
 // Build star buttons
 document.querySelectorAll(".stars").forEach(function(container) {
   var field = container.dataset.field;
+  var icons = ["🥐","🥐","🥐","🥐","🥐"];
   for (var i = 1; i <= 5; i++) {
     var btn = document.createElement("button");
-    btn.textContent = i;
+    btn.textContent = icons[i-1];
     btn.dataset.value = i;
     btn.addEventListener("click", function() {
       var val = parseInt(this.dataset.value);
