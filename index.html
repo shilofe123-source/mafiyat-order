@@ -363,7 +363,16 @@ function App() {
         pdfFilename: "הצעה_"+(client.name||"לקוח").replace(/\s/g,"_")+".pdf"
       })});
       const data = await res.json();
-      if (data.status === "success") { showToast("✓ ההזמנה נשמרה!"); setShowApprovalModal(false); setShowSendModal(true); }
+      if (data.status === "success") {
+        var msg = "✓ ההזמנה נשמרה!";
+        if (data.notifications) {
+          if (data.notifications.whatsapp) msg += " | וואצאפ ✓";
+          else msg += " | וואצאפ ✗";
+          if (data.notifications.email) msg += " | דוא\"ל ✓";
+          else msg += " | דוא\"ל ✗";
+        }
+        showToast(msg); setShowApprovalModal(false); setShowSendModal(true);
+      }
       else showToast("שגיאה: " + (data.message || "נסה שוב"));
     } catch { showToast("שגיאת רשת – לא נשמר"); }
   };
