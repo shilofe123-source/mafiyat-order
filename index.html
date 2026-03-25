@@ -101,12 +101,12 @@
 <div class="trust-bar">כשר למהדרין ✓ &nbsp;|&nbsp; איסוף בקרני שומרון &nbsp;|&nbsp; <a href="tel:0542031448" style="color:#C8956C;text-decoration:none;font-weight:600;">054-2031448</a></div>
 <div id="bg-slideshow">
   <div class="hero-content">
-    <div class="hero-badge">מאפייה כשרה מהדרין — קרני שומרון</div>
+    <div class="hero-badge">שבת · ברית · בר מצווה · אירוח</div>
     <h1>מאפיית השומרון</h1>
-    <p>אומנות של לחם ומאפה לכל אירוע</p>
+    <p>מגשי אירוח כשרים מהדרין — מוכנים להזמנה תוך דקות</p>
     <div class="hero-buttons">
-      <button class="btn-primary" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">הזמינו עכשיו →</button>
-      <button class="btn-secondary" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">צפייה בתפריט המגשים</button>
+      <button class="btn-primary" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">הזמן מגש לשבת הקרובה →</button>
+      <button class="btn-secondary" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">צפה במגשי האירוח</button>
     </div>
   </div>
 </div>
@@ -980,9 +980,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 (function() {
-  /* Hero: תמונת רקע אחת חזקה — product1.jpeg (לחם) */
+  /* Hero slideshow — מגשי אירוח עשירים */
+  var heroImgs = ['images/product2.jpeg','images/product7.jpeg','images/product9.jpeg'];
   var bgEl = document.getElementById('bg-slideshow');
-  if(bgEl) bgEl.style.backgroundImage = 'url(images/product1.jpeg)';
+  if(!bgEl) return;
+  var idx = 0;
+  bgEl.style.backgroundImage = 'url(' + heroImgs[0] + ')';
+  setInterval(function() {
+    idx = (idx + 1) % heroImgs.length;
+    bgEl.style.transition = 'background-image 0.8s ease';
+    bgEl.style.backgroundImage = 'url(' + heroImgs[idx] + ')';
+  }, 7000);
 })();
 </script>
 
