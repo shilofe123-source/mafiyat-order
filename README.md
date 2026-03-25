@@ -18,33 +18,19 @@
 | קובץ / תיקייה | תיאור |
 |---|---|
 | `index.html` | האפליקציה המלאה — React + HTM, אפס תלויות שרת |
-| `Code.gs` | Google Apps Script — שמירת הזמנות, WhatsApp API, תזכורות, תשלום, משוב |
+| `Code.gs` | Google Apps Script — שמירת הזמנות בגיליון + חילוץ הזמנות מתמונות/PDF עם Gemini |
 | `payment.html` | דף תשלום — הזנת קוד 6 ספרות, הצגת פרטי הזמנה |
 | `survey.html` | דף משוב — דירוג כוכבים (חוויה/אוכל/שירות) + הערה חופשית |
-| `functions/bakeryChat.ts` | Deno endpoint לצ'אט AI (Claude API via Base44) |
-| `images/` | 27 תמונות מוצרים דחוסות (800px, ~60-115KB) |
+| `workers/mafiyat-chat.js` | Cloudflare Worker לצ'אט AI (Claude Sonnet 4.6), תומך בתמונות ו-PDF |
+| `workers/mafiyat-webhook.js` | Cloudflare Worker לוואטסאפ Webhook — מקבל הודעות ומעביר ל-mafiyat-chat |
+| `images/` | 27 תמונות מוצרים דחוסות (800px, ~60-115KB) לרקע המשתנה |
 
 ## אינטגרציות
 
 - **Google Sheets** — שמירת הזמנות אוטומטית + גיליון "סיכום" + גיליון "feedback" + גיליון "errors"
 - **WhatsApp Business API** — שליחת PDF הזמנה אוטומטית, תזכורות יומיות, סקר משוב. שליחה דרך Meta Cloud API (upload media + send document)
 - **Gemini 2.5 Flash** — חילוץ הזמנות מתמונות ו-PDF (דרך Apps Script)
-- **Base44 AI** — צ'אט ייעוץ חכם (`bakeryChat` endpoint עם Claude Sonnet 4.6)
-
-## הגדרות נדרשות ב-Apps Script
-
-Script Properties (Project Settings > Script Properties):
-- `GEMINI_API_KEY` — מפתח Gemini API
-- `WHATSAPP_TOKEN` — Meta WhatsApp Business API token
-- `WHATSAPP_PHONE_ID` — Phone Number ID של WhatsApp Business
-
-## WhatsApp Templates (Meta Business Manager)
-
-צריך ליצור ולקבל אישור ל-2 templates:
-1. **order_reminder** — תזכורת לבת חן (parameters: שם לקוח, פריטים, שעת איסוף)
-2. **feedback_survey** — סקר ללקוח (parameters: שם לקוח, קישור לסקר)
-
-> אישור templates לוקח 24-72 שעות. עד לאישור, המערכת שולחת הודעות טקסט רגילות כ-fallback.
+- **Cloudflare Workers** — צ'אט ייעוץ חכם (Claude Sonnet 4.6) + Webhook לוואטסאפ, עם fallback מקומי אם ה-API לא זמין
 
 ## עדכון מוצרים ומחירים
 
@@ -88,5 +74,28 @@ Script Properties (Project Settings > Script Properties):
 ## הפעלה
 
 1. העלה את הקבצים ל-GitHub
-2. הפעל GitHub Pages (Settings > Pages > main branch)
-3. האתר זמין ב: `https://YOUR-USERNAME.github.io/mafiyat-order/`
+2. Cloudflare Pages מפרסם אוטומטית מה-branch `main`
+
+## הגדרת Cloudflare Workers
+
+### Worker 1: mafiyat-chat
+1. Cloudflare Dashboard → Workers & Pages → Create Worker
+2. שם: `mafiyat-chat`
+3. העתק את `workers/mafiyat-chat.js`
+4. Settings → Variables → Add secret: `ANTHROPIC_API_KEY`
+5. שמור את ה-URL (`https://mafiyat-chat.SUBDOMAIN.workers.dev`)
+
+### Worker 2: mafiyat-webhook
+1. צור Worker נוסף בשם `mafiyat-webhook`
+2. העתק את `workers/mafiyat-webhook.js`
+3. Settings → Variables → Add secrets:
+   - `WHATSAPP_ACCESS_TOKEN`
+   - `WHATSAPP_PHONE_NUMBER_ID` (ערך: `964695536736534`)
+   - `BAKERY_CHAT_URL` (ה-URL של Worker 1)
+
+### עדכון index.html
+בשורה ~799 — החלף `mafiyat-chat.SUBDOMAIN.workers.dev` ב-URL האמיתי של Worker 1.
+
+### עדכון Meta Developers
+Meta Developers → WhatsApp → Webhooks → ערוך URL → הכנס כתובת Worker 2.
+Verify Token: `mafiyat_hashomron_2026`
