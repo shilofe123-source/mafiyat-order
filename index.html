@@ -854,7 +854,8 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
       var payload = { message: userMsg, history: chatHistory.slice(-10), systemPrompt: buildSystemPrompt() };
       if (imageData) payload.image = { base64: imageData.base64, mimeType: imageData.mimeType };
-      var res = await fetch('https://app-84204e35.base44.app/functions/bakeryChat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      var CHAT_API_URL = 'https://mafiyat-chat.fistook16.workers.dev';
+      var res = await fetch(CHAT_API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
       if (!res.ok) throw new Error('API error: ' + res.status);
       var data = await res.json();
       return data.response || 'מצטער, לא הצלחתי להתחבר. נסה שוב.';
