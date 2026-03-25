@@ -11,7 +11,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥐</text></svg>">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥐</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Frank+Ruhl+Libre:wght@700;900&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; direction: rtl; background-color: #FFF8F0; min-height: 100vh; font-size: 16px; line-height: 1.6; color: #3E2723; }
@@ -119,11 +119,14 @@
   #bg-slideshow::after { background: linear-gradient(180deg, rgba(62,39,35,0.65) 0%, rgba(62,39,35,0.35) 30%, rgba(62,39,35,0.75) 100%) !important; }
   .hero-content { max-width: 700px; margin: 0 auto; padding-top: 48px; }
   .hero-tag { display: inline-block; background: rgba(200,149,108,0.2); border: 1px solid rgba(200,149,108,0.35); color: var(--acc-light); padding: 6px 24px; border-radius: 999px; font-size: 12px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 24px; animation: fadeInDown 0.8s ease both; }
-  .hero-content h1 { font-size: 68px !important; font-weight: 900 !important; letter-spacing: -0.03em; line-height: 1.05 !important; margin-bottom: 16px !important; text-shadow: 0 4px 40px rgba(0,0,0,0.25) !important; animation: fadeInUp 0.8s ease 0.15s both; }
+  .hero-content h1 { font-family: 'Frank Ruhl Libre', 'Heebo', serif; font-size: 68px !important; font-weight: 900 !important; letter-spacing: -0.02em; line-height: 1.05 !important; margin-bottom: 16px !important; text-shadow: 0 4px 40px rgba(0,0,0,0.25) !important; animation: fadeInUp 0.8s ease 0.15s both; }
   .hero-content > p { font-size: 22px !important; font-weight: 300 !important; max-width: 520px; margin: 0 auto 36px !important; line-height: 1.65 !important; opacity: 0.92 !important; animation: fadeInUp 0.8s ease 0.3s both; }
   .hero-buttons { gap: 16px !important; animation: fadeInUp 0.8s ease 0.45s both; }
-  .btn-hero-primary { background: var(--green); color: #fff; border: none; padding: 17px 42px; border-radius: 999px; font-weight: 700; font-size: 17px; cursor: pointer; font-family: 'Heebo',sans-serif; transition: all 0.3s; box-shadow: 0 4px 28px rgba(58,125,68,0.45); }
-  .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(58,125,68,0.55); }
+  /* Slow zoom on hero background */
+  #bg-slideshow { animation: heroZoom 20s ease-in-out infinite alternate; }
+  @keyframes heroZoom { 0% { background-size: 100%; } 100% { background-size: 115%; } }
+  .btn-hero-primary { background: #2D6A3A; color: #fff; border: none; padding: 17px 42px; border-radius: 999px; font-weight: 700; font-size: 17px; cursor: pointer; font-family: 'Heebo',sans-serif; transition: all 0.3s; box-shadow: 0 4px 28px rgba(45,106,58,0.45); }
+  .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(45,106,58,0.55); }
   .btn-hero-secondary { display: inline-block; background: rgba(255,255,255,0.08); color: #fff; border: 2px solid rgba(255,255,255,0.35); padding: 15px 38px; border-radius: 999px; font-weight: 600; font-size: 17px; cursor: pointer; font-family: 'Heebo',sans-serif; text-decoration: none; transition: all 0.3s; }
   .btn-hero-secondary:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.6); }
   .hero-trust { margin-top: 52px; display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; animation: fadeInUp 0.8s ease 0.6s both; }
@@ -192,7 +195,7 @@
   <div class="hero-content">
     <div class="hero-tag">since 2001</div>
     <h1>מאפיית השומרון</h1>
-    <p>מגשי אירוח כשרים למהדרין — טעם של בית, רמה של שף</p>
+    <p>אפייה כשרה בעבודת יד, כל בוקר מחדש</p>
     <div class="hero-buttons">
       <button class="btn-hero-primary" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">הזמינו עכשיו</button>
       <a href="menu.html" class="btn-hero-secondary">צפו בתפריט</a>
@@ -209,25 +212,47 @@
 <div class="features-strip">
   <div class="feature">
     <div class="feature-icon">&#x1F468;&#x200D;&#x1F373;</div>
-    <div class="feature-title">הכנה טרייה</div>
-    <div class="feature-desc">כל מגש מוכן ביום ההזמנה</div>
+    <div class="feature-title">נאפה כל בוקר</div>
+    <div class="feature-desc">כל מגש מוכן טרי ביום ההזמנה</div>
   </div>
   <div class="feature">
     <div class="feature-icon">&#x2721;</div>
     <div class="feature-title">כשר מהדרין</div>
-    <div class="feature-desc">רבנות קרני שומרון</div>
+    <div class="feature-desc">בהשגחת רבנות קרני שומרון</div>
   </div>
   <div class="feature">
-    <div class="feature-icon">&#x1F4AC;</div>
-    <div class="feature-title">ייעוץ אישי</div>
-    <div class="feature-desc">צ'אט AI עם האופה</div>
+    <div class="feature-icon">&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F467;&#x200D;&#x1F466;</div>
+    <div class="feature-title">מתכונים משפחתיים</div>
+    <div class="feature-desc">מסורת אפייה מאז 2001</div>
   </div>
   <div class="feature">
-    <div class="feature-icon">&#x26A1;</div>
-    <div class="feature-title">הזמנה מהירה</div>
-    <div class="feature-desc">תוך דקות ספורות</div>
+    <div class="feature-icon">&#x23F0;</div>
+    <div class="feature-title">מוכן תוך שעות</div>
+    <div class="feature-desc">הזמינו היום, אספו מחר</div>
   </div>
 </div>
+
+<section class="bestsellers" style="max-width:960px;margin:24px auto 8px;padding:0 24px;">
+  <h2 style="text-align:center;font-family:'Frank Ruhl Libre','Heebo',serif;font-size:32px;font-weight:900;color:#3E2723;margin-bottom:20px;">המומלצים שלנו</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;">
+    <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(92,61,46,0.08);transition:all 0.3s;cursor:pointer;" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">
+      <img src="images/product2.jpeg" alt="פלטת גבינות" style="width:100%;height:180px;object-fit:cover;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+      <div style="padding:14px 16px;"><div style="font-size:16px;font-weight:700;color:#3E2723;">פלטת גבינות קשות</div><div style="font-size:13px;color:#7A6A5C;margin:4px 0;">מבחר גבינות משובחות</div><div style="font-size:18px;font-weight:800;color:#C8956C;">&#8362;380</div></div>
+    </div>
+    <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(92,61,46,0.08);transition:all 0.3s;cursor:pointer;" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">
+      <img src="images/product7.jpeg" alt="פלטת פירות" style="width:100%;height:180px;object-fit:cover;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+      <div style="padding:14px 16px;"><div style="font-size:16px;font-weight:700;color:#3E2723;">פלטת פירות העונה</div><div style="font-size:13px;color:#7A6A5C;margin:4px 0;">פירות טריים חתוכים ומסודרים</div><div style="font-size:18px;font-weight:800;color:#C8956C;">&#8362;250</div></div>
+    </div>
+    <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(92,61,46,0.08);transition:all 0.3s;cursor:pointer;" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">
+      <img src="images/product13.jpeg" alt="קרואסון חמאה" style="width:100%;height:180px;object-fit:cover;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+      <div style="padding:14px 16px;"><div style="font-size:16px;font-weight:700;color:#3E2723;">כריכוני קרואסון חמאה</div><div style="font-size:13px;color:#7A6A5C;margin:4px 0;">קרואסון חמאה טרי עם מילויים</div><div style="font-size:18px;font-weight:800;color:#C8956C;">&#8362;140</div></div>
+    </div>
+    <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(92,61,46,0.08);transition:all 0.3s;cursor:pointer;" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">
+      <img src="images/product9.jpeg" alt="מגש מתוקים" style="width:100%;height:180px;object-fit:cover;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+      <div style="padding:14px 16px;"><div style="font-size:16px;font-weight:700;color:#3E2723;">מגש מתוקים</div><div style="font-size:13px;color:#7A6A5C;margin:4px 0;">מגוון קינוחים אישיים מפנקים</div><div style="font-size:18px;font-weight:800;color:#C8956C;">&#8362;295</div></div>
+    </div>
+  </div>
+</section>
 
 <div id="root"></div>
 
