@@ -95,21 +95,140 @@
     .btn-row { flex-direction: column !important; }
     .sticky-cart { display: flex !important; }
   }
+
+  /* ========== PREMIUM REDESIGN 2026 ========== */
+  :root { --pri:#5C3D2E; --pri-light:#7B5B4C; --pri-dark:#3E2723; --acc:#C8956C; --acc-light:#D4A97C; --cream:#FFF8F0; --cream-dark:#EADFD6; --green:#3A7D44; --txt:#3E2723; --txt-light:#7A6A5C; }
+  html { scroll-behavior: smooth; }
+
+  /* --- PREMIUM NAV --- */
+  .main-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(62,39,35,0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(200,149,108,0.1); transition: all 0.4s ease; }
+  .main-nav.scrolled { background: rgba(62,39,35,0.97); box-shadow: 0 2px 24px rgba(0,0,0,0.18); border-bottom-color: transparent; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 64px; }
+  .nav-logo { font-size: 20px; font-weight: 900; color: #fff; text-decoration: none; letter-spacing: -0.02em; transition: opacity 0.2s; }
+  .nav-logo:hover { opacity: 0.85; }
+  .nav-logo span { color: var(--acc); }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 8px; transition: all 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,0.12); }
+  .nav-cta { background: var(--acc) !important; color: #fff !important; font-weight: 700 !important; padding: 8px 20px !important; border-radius: 999px !important; direction: ltr !important; }
+  .nav-cta:hover { opacity: 0.88; }
+  .nav-toggle { display: none; background: none; border: none; color: #fff; font-size: 26px; cursor: pointer; padding: 8px; line-height: 1; }
+
+  /* --- HERO OVERRIDE --- */
+  #bg-slideshow { min-height: 100vh; overflow: hidden; }
+  #bg-slideshow::after { background: linear-gradient(180deg, rgba(62,39,35,0.65) 0%, rgba(62,39,35,0.35) 30%, rgba(62,39,35,0.75) 100%) !important; }
+  .hero-content { max-width: 700px; margin: 0 auto; padding-top: 48px; }
+  .hero-tag { display: inline-block; background: rgba(200,149,108,0.2); border: 1px solid rgba(200,149,108,0.35); color: var(--acc-light); padding: 6px 24px; border-radius: 999px; font-size: 12px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 24px; animation: fadeInDown 0.8s ease both; }
+  .hero-content h1 { font-size: 68px !important; font-weight: 900 !important; letter-spacing: -0.03em; line-height: 1.05 !important; margin-bottom: 16px !important; text-shadow: 0 4px 40px rgba(0,0,0,0.25) !important; animation: fadeInUp 0.8s ease 0.15s both; }
+  .hero-content > p { font-size: 22px !important; font-weight: 300 !important; max-width: 520px; margin: 0 auto 36px !important; line-height: 1.65 !important; opacity: 0.92 !important; animation: fadeInUp 0.8s ease 0.3s both; }
+  .hero-buttons { gap: 16px !important; animation: fadeInUp 0.8s ease 0.45s both; }
+  .btn-hero-primary { background: var(--green); color: #fff; border: none; padding: 17px 42px; border-radius: 999px; font-weight: 700; font-size: 17px; cursor: pointer; font-family: 'Heebo',sans-serif; transition: all 0.3s; box-shadow: 0 4px 28px rgba(58,125,68,0.45); }
+  .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(58,125,68,0.55); }
+  .btn-hero-secondary { display: inline-block; background: rgba(255,255,255,0.08); color: #fff; border: 2px solid rgba(255,255,255,0.35); padding: 15px 38px; border-radius: 999px; font-weight: 600; font-size: 17px; cursor: pointer; font-family: 'Heebo',sans-serif; text-decoration: none; transition: all 0.3s; }
+  .btn-hero-secondary:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.6); }
+  .hero-trust { margin-top: 52px; display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; animation: fadeInUp 0.8s ease 0.6s both; }
+  .hero-trust span { font-size: 13px; color: rgba(255,255,255,0.6); font-weight: 400; letter-spacing: 0.02em; }
+  .hero-scroll-hint { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); z-index: 2; animation: heroFloat 2.5s ease-in-out infinite; color: rgba(255,255,255,0.35); font-size: 36px; cursor: pointer; border: none; background: none; }
+
+  /* --- FEATURES STRIP --- */
+  .features-strip { display: grid; grid-template-columns: repeat(4,1fr); max-width: 900px; margin: -36px auto 20px; position: relative; z-index: 10; background: #fff; border-radius: 20px; box-shadow: 0 8px 48px rgba(92,61,46,0.1); padding: 28px 16px; }
+  .feature { text-align: center; padding: 12px 8px; border-left: 1px solid rgba(234,223,214,0.6); }
+  .feature:last-child { border-left: none; }
+  .feature-icon { font-size: 28px; margin-bottom: 6px; }
+  .feature-title { font-size: 14px; font-weight: 700; color: var(--pri); margin-bottom: 2px; }
+  .feature-desc { font-size: 11px; color: var(--txt-light); line-height: 1.5; }
+
+  /* --- FOOTER --- */
+  .site-footer { background: var(--pri-dark); color: rgba(255,255,255,0.65); padding: 48px 24px 24px; text-align: center; font-size: 14px; line-height: 1.7; }
+  .footer-inner { max-width: 800px; margin: 0 auto; }
+  .footer-brand { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 4px; }
+  .footer-links { display: flex; justify-content: center; gap: 20px; margin: 16px 0; flex-wrap: wrap; }
+  .footer-links a { color: var(--acc); text-decoration: none; font-weight: 500; transition: opacity 0.2s; }
+  .footer-links a:hover { opacity: 0.7; }
+  .footer-copy { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: rgba(255,255,255,0.3); }
+
+  /* --- ANIMATIONS --- */
+  @keyframes heroFloat { 0%,100% { transform: translateX(-50%) translateY(0); opacity: 0.35; } 50% { transform: translateX(-50%) translateY(-10px); opacity: 0.6; } }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeInDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* --- MOBILE PREMIUM --- */
+  @media (max-width: 768px) {
+    .nav-toggle { display: block; }
+    .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; background: rgba(62,39,35,0.98); flex-direction: column; padding: 16px; gap: 4px; border-radius: 0 0 16px 16px; box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+    .nav-inner.open .nav-links { display: flex; }
+    .nav-links a { padding: 14px 16px; width: 100%; text-align: center; border-radius: 10px; }
+    .hero-content h1 { font-size: 44px !important; }
+    .hero-content > p { font-size: 18px !important; }
+    .features-strip { grid-template-columns: repeat(2,1fr); margin: -24px 16px 16px; padding: 20px 12px; }
+    .feature { border-left: none; }
+    .feature:nth-child(1), .feature:nth-child(2) { border-bottom: 1px solid rgba(234,223,214,0.6); padding-bottom: 16px; }
+    .feature:nth-child(3), .feature:nth-child(4) { padding-top: 16px; }
+    .hero-trust { gap: 16px; }
+  }
+  @media (max-width: 480px) {
+    .hero-content h1 { font-size: 36px !important; }
+    .hero-trust { flex-direction: column; gap: 8px; }
+    .features-strip { margin: -20px 12px 12px; }
+  }
 </style>
 </head>
 <body>
-<div class="trust-bar">כשר למהדרין ✓ &nbsp;|&nbsp; איסוף בקרני שומרון &nbsp;|&nbsp; <a href="tel:0542031448" style="color:#C8956C;text-decoration:none;font-weight:600;">054-2031448</a></div>
+<nav class="main-nav">
+  <div class="nav-inner" id="main-nav-inner">
+    <a href="index.html" class="nav-logo">מאפיית <span>השומרון</span></a>
+    <div class="nav-links">
+      <a href="index.html" class="active">ראשי</a>
+      <a href="menu.html">תפריט</a>
+      <a href="gallery.html">גלריה</a>
+      <a href="about.html">אודות</a>
+      <a href="tel:0542031448" class="nav-cta">054-2031448</a>
+    </div>
+    <button class="nav-toggle" onclick="document.getElementById('main-nav-inner').classList.toggle('open')">☰</button>
+  </div>
+</nav>
+
 <div id="bg-slideshow">
   <div class="hero-content">
-    <div class="hero-badge">שבת · ברית · בר מצווה · אירוח</div>
+    <div class="hero-tag">since 2001</div>
     <h1>מאפיית השומרון</h1>
-    <p>מגשי אירוח כשרים מהדרין — מוכנים להזמנה תוך דקות</p>
+    <p>מגשי אירוח כשרים למהדרין — טעם של בית, רמה של שף</p>
     <div class="hero-buttons">
-      <button class="btn-primary" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">הזמן מגש לשבת הקרובה →</button>
-      <button class="btn-secondary" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">צפה במגשי האירוח</button>
+      <button class="btn-hero-primary" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">הזמינו עכשיו</button>
+      <a href="menu.html" class="btn-hero-secondary">צפו בתפריט</a>
+    </div>
+    <div class="hero-trust">
+      <span>&#10003; כשר מהדרין</span>
+      <span>&#10003; הכנה טרייה ביום ההזמנה</span>
+      <span>&#10003; מאז 2001</span>
     </div>
   </div>
+  <button class="hero-scroll-hint" onclick="document.getElementById('root').scrollIntoView({behavior:'smooth'})">&#8964;</button>
 </div>
+
+<div class="features-strip">
+  <div class="feature">
+    <div class="feature-icon">&#x1F468;&#x200D;&#x1F373;</div>
+    <div class="feature-title">הכנה טרייה</div>
+    <div class="feature-desc">כל מגש מוכן ביום ההזמנה</div>
+  </div>
+  <div class="feature">
+    <div class="feature-icon">&#x2721;</div>
+    <div class="feature-title">כשר מהדרין</div>
+    <div class="feature-desc">רבנות קרני שומרון</div>
+  </div>
+  <div class="feature">
+    <div class="feature-icon">&#x1F4AC;</div>
+    <div class="feature-title">ייעוץ אישי</div>
+    <div class="feature-desc">צ'אט AI עם האופה</div>
+  </div>
+  <div class="feature">
+    <div class="feature-icon">&#x26A1;</div>
+    <div class="feature-title">הזמנה מהירה</div>
+    <div class="feature-desc">תוך דקות ספורות</div>
+  </div>
+</div>
+
 <div id="root"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
@@ -980,19 +1099,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 (function() {
-  /* Hero slideshow — מגשי אירוח עשירים */
-  var heroImgs = ['images/product2.jpeg','images/product7.jpeg','images/product9.jpeg'];
+  /* Hero slideshow — premium crossfade */
+  var heroImgs = ['images/product2.jpeg','images/product7.jpeg','images/product9.jpeg','images/product1.jpeg','images/product13.jpeg','images/product6.jpeg'];
   var bgEl = document.getElementById('bg-slideshow');
   if(!bgEl) return;
   var idx = 0;
+  heroImgs.forEach(function(src) { var img = new Image(); img.src = src; });
   bgEl.style.backgroundImage = 'url(' + heroImgs[0] + ')';
+  bgEl.style.transition = 'background-image 1.5s ease-in-out';
   setInterval(function() {
     idx = (idx + 1) % heroImgs.length;
-    bgEl.style.transition = 'background-image 0.8s ease';
     bgEl.style.backgroundImage = 'url(' + heroImgs[idx] + ')';
-  }, 7000);
+  }, 5000);
+
+  /* Nav scroll effect */
+  var nav = document.querySelector('.main-nav');
+  if (nav) {
+    var onScroll = function() { nav.classList.toggle('scrolled', window.scrollY > 80); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
 })();
 </script>
+
+<footer class="site-footer no-print">
+  <div class="footer-inner">
+    <div class="footer-brand">מאפיית השומרון</div>
+    <p>מגשי אירוח כשרים למהדרין מאז 2001</p>
+    <div class="footer-links">
+      <a href="index.html">ראשי</a>
+      <a href="menu.html">תפריט</a>
+      <a href="gallery.html">גלריה</a>
+      <a href="about.html">אודות</a>
+      <a href="tel:0542031448">054-2031448</a>
+    </div>
+    <div class="footer-copy">&copy; 2001&ndash;2026 מאפיית השומרון, קרני שומרון. כל הזכויות שמורות.</div>
+  </div>
+</footer>
 
 </body>
 </html>

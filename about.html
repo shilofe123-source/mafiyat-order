@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אודות — מאפיית השומרון</title>
+<meta name="description" content="הסיפור של מאפיית השומרון — מגשי אירוח כשרים מהדרין מאז 2001">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥐</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --pri:#5C3D2E; --pri-light:#7B5B4C; --pri-dark:#3E2723; --acc:#C8956C; --acc-light:#D4A97C; --cream:#FFF8F0; --cream-dark:#EADFD6; --green:#3A7D44; --txt:#3E2723; --txt-light:#7A6A5C; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Heebo', sans-serif; direction: rtl; background: var(--cream); color: var(--txt); line-height: 1.7; }
+
+  /* NAV */
+  .main-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(62,39,35,0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 2px 24px rgba(0,0,0,0.18); }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 64px; }
+  .nav-logo { font-size: 20px; font-weight: 900; color: #fff; text-decoration: none; }
+  .nav-logo span { color: var(--acc); }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 8px; transition: all 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,0.12); }
+  .nav-cta { background: var(--acc) !important; color: #fff !important; font-weight: 700 !important; padding: 8px 20px !important; border-radius: 999px !important; direction: ltr !important; }
+  .nav-toggle { display: none; background: none; border: none; color: #fff; font-size: 26px; cursor: pointer; padding: 8px; line-height: 1; }
+
+  /* PAGE HERO */
+  .page-hero { padding: 120px 24px 60px; text-align: center; background: linear-gradient(135deg, var(--pri-dark) 0%, var(--pri) 50%, var(--pri-light) 100%); color: #fff; }
+  .page-hero h1 { font-size: 48px; font-weight: 900; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .page-hero p { font-size: 18px; font-weight: 300; opacity: 0.8; max-width: 500px; margin: 0 auto; }
+
+  /* CONTENT SECTIONS */
+  .about-section { max-width: 800px; margin: 0 auto; padding: 48px 24px; }
+  .about-section + .about-section { padding-top: 0; }
+
+  .story-card { background: #fff; border-radius: 20px; padding: 40px 36px; box-shadow: 0 4px 24px rgba(92,61,46,0.08); margin-bottom: 32px; position: relative; overflow: hidden; }
+  .story-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--pri), var(--acc), var(--pri)); }
+  .story-card h2 { font-size: 26px; font-weight: 800; color: var(--pri); margin-bottom: 16px; }
+  .story-card p { font-size: 16px; color: var(--txt); margin-bottom: 12px; }
+  .story-card p:last-child { margin-bottom: 0; }
+
+  /* VALUES GRID */
+  .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 32px; }
+  .value-card { background: #fff; border-radius: 16px; padding: 28px 20px; text-align: center; box-shadow: 0 2px 16px rgba(92,61,46,0.06); transition: transform 0.3s; }
+  .value-card:hover { transform: translateY(-4px); }
+  .value-icon { font-size: 36px; margin-bottom: 12px; }
+  .value-card h3 { font-size: 17px; font-weight: 700; color: var(--pri); margin-bottom: 6px; }
+  .value-card p { font-size: 13px; color: var(--txt-light); }
+
+  /* KASHRUT BADGE */
+  .kashrut-section { background: #fff; border-radius: 20px; padding: 36px; box-shadow: 0 4px 24px rgba(92,61,46,0.08); text-align: center; margin-bottom: 32px; }
+  .kashrut-badge { display: inline-flex; align-items: center; gap: 16px; background: linear-gradient(135deg, var(--cream) 0%, #fff 100%); border: 2px solid var(--acc); border-radius: 16px; padding: 20px 32px; margin-bottom: 16px; }
+  .kashrut-badge-icon { font-size: 40px; }
+  .kashrut-badge-text h3 { font-size: 20px; font-weight: 800; color: var(--pri); margin-bottom: 2px; }
+  .kashrut-badge-text p { font-size: 14px; color: var(--txt-light); margin: 0; }
+  .kashrut-section > p { font-size: 15px; color: var(--txt-light); max-width: 500px; margin: 0 auto; }
+
+  /* CONTACT STRIP */
+  .contact-strip { background: linear-gradient(135deg, var(--pri) 0%, var(--pri-light) 100%); border-radius: 20px; padding: 36px; color: #fff; text-align: center; margin-bottom: 32px; }
+  .contact-strip h2 { font-size: 24px; font-weight: 800; margin-bottom: 12px; }
+  .contact-strip p { font-size: 15px; opacity: 0.85; margin-bottom: 20px; }
+  .contact-buttons { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .contact-btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 999px; font-weight: 700; font-size: 15px; text-decoration: none; transition: all 0.3s; font-family: 'Heebo', sans-serif; border: none; cursor: pointer; }
+  .contact-btn-green { background: var(--green); color: #fff; box-shadow: 0 4px 16px rgba(58,125,68,0.35); }
+  .contact-btn-green:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(58,125,68,0.5); }
+  .contact-btn-white { background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.4); }
+  .contact-btn-white:hover { background: rgba(255,255,255,0.25); }
+
+  /* PHOTO STRIP */
+  .photo-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px; }
+  .photo-strip img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 14px; }
+
+  /* FOOTER */
+  .site-footer { background: var(--pri-dark); color: rgba(255,255,255,0.65); padding: 48px 24px 24px; text-align: center; font-size: 14px; }
+  .footer-inner { max-width: 800px; margin: 0 auto; }
+  .footer-brand { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 4px; }
+  .footer-links { display: flex; justify-content: center; gap: 20px; margin: 16px 0; flex-wrap: wrap; }
+  .footer-links a { color: var(--acc); text-decoration: none; font-weight: 500; }
+  .footer-links a:hover { opacity: 0.7; }
+  .footer-copy { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: rgba(255,255,255,0.3); }
+
+  @media (max-width: 768px) {
+    .nav-toggle { display: block; }
+    .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; background: rgba(62,39,35,0.98); flex-direction: column; padding: 16px; gap: 4px; border-radius: 0 0 16px 16px; }
+    .nav-inner.open .nav-links { display: flex; }
+    .nav-links a { padding: 14px 16px; width: 100%; text-align: center; }
+    .page-hero h1 { font-size: 36px; }
+    .story-card { padding: 28px 24px; }
+    .values-grid { grid-template-columns: 1fr; gap: 12px; }
+    .photo-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<nav class="main-nav">
+  <div class="nav-inner" id="main-nav-inner">
+    <a href="index.html" class="nav-logo">מאפיית <span>השומרון</span></a>
+    <div class="nav-links">
+      <a href="index.html">ראשי</a>
+      <a href="menu.html">תפריט</a>
+      <a href="gallery.html">גלריה</a>
+      <a href="about.html" class="active">אודות</a>
+      <a href="tel:0542031448" class="nav-cta">054-2031448</a>
+    </div>
+    <button class="nav-toggle" onclick="document.getElementById('main-nav-inner').classList.toggle('open')">&#9776;</button>
+  </div>
+</nav>
+
+<section class="page-hero">
+  <h1>הסיפור שלנו</h1>
+  <p>מאפייה משפחתית עם אהבה לאוכל טוב מאז 2001</p>
+</section>
+
+<div class="about-section">
+
+  <div class="story-card">
+    <h2>מאפיית השומרון</h2>
+    <p>כבר למעלה מ-25 שנה, מאפיית השומרון עומדת בלב קרני שומרון ומציעה מגשי אירוח שהם הרבה יותר ממאכל — הם חוויה. כל מגש מוכן ביום ההזמנה עצמו, מחומרי גלם טריים ואיכותיים, בידיים מנוסות ובאהבה שמרגישים בכל ביס.</p>
+    <p>המאפייה הוקמה מתוך תשוקה אמיתית לאפייה איכותית ולשירות אישי. מהשבתות הראשונות ועד לאירועים הגדולים — הלקוחות שלנו הם משפחה, ואנחנו גאים לפנק כל אחד מהם.</p>
+  </div>
+
+  <div class="photo-strip">
+    <img src="images/product2.jpeg" alt="פלטת גבינות" loading="lazy">
+    <img src="images/product7.jpeg" alt="פלטת פירות" loading="lazy">
+    <img src="images/product13.jpeg" alt="קרואסון" loading="lazy">
+    <img src="images/product9.jpeg" alt="מתוקים" loading="lazy">
+  </div>
+
+  <div class="values-grid">
+    <div class="value-card">
+      <div class="value-icon">&#x1F468;&#x200D;&#x1F373;</div>
+      <h3>טריות מוחלטת</h3>
+      <p>כל מגש מוכן ביום ההזמנה עצמו. אנחנו לא מכינים מראש — כי טעם טרי זה הכל.</p>
+    </div>
+    <div class="value-card">
+      <div class="value-icon">&#x2764;</div>
+      <h3>אהבה בכל ביס</h3>
+      <p>מאחורי כל מגש עומד צוות מסור שאוהב מה שהוא עושה. זה מורגש בטעם.</p>
+    </div>
+    <div class="value-card">
+      <div class="value-icon">&#x1F91D;</div>
+      <h3>שירות אישי</h3>
+      <p>לכל לקוח יש צרכים ייחודיים. אנחנו מתאימים כל הזמנה בדיוק לאירוע שלכם.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="about-section">
+  <div class="kashrut-section">
+    <div class="kashrut-badge">
+      <div class="kashrut-badge-icon">&#x2721;</div>
+      <div class="kashrut-badge-text">
+        <h3>כשר למהדרין</h3>
+        <p>בהשגחת רבנות קרני שומרון</p>
+      </div>
+    </div>
+    <p>כל המוצרים שלנו מוכנים תחת השגחה קפדנית של רבנות קרני שומרון. כשרות מהדרין ללא פשרות — כי גם באירוח לא מתפשרים.</p>
+  </div>
+</div>
+
+<div class="about-section">
+  <div class="contact-strip">
+    <h2>רוצים לשמוע עוד? דברו איתנו</h2>
+    <p>בת חן תשמח לייעץ ולעזור בהרכבת הזמנה מושלמת לאירוע שלכם</p>
+    <div class="contact-buttons">
+      <a href="tel:0542031448" class="contact-btn contact-btn-green">&#x1F4DE; 054-2031448</a>
+      <a href="index.html" class="contact-btn contact-btn-white">&#x1F6D2; להזמנה אונליין</a>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">מאפיית השומרון</div>
+    <p>מגשי אירוח כשרים למהדרין מאז 2001</p>
+    <div class="footer-links">
+      <a href="index.html">ראשי</a>
+      <a href="menu.html">תפריט</a>
+      <a href="gallery.html">גלריה</a>
+      <a href="about.html">אודות</a>
+      <a href="tel:0542031448">054-2031448</a>
+    </div>
+    <div class="footer-copy">&copy; 2001&ndash;2026 מאפיית השומרון, קרני שומרון. כל הזכויות שמורות.</div>
+  </div>
+</footer>
+
+</body>
+</html>

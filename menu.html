@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>תפריט — מאפיית השומרון</title>
+<meta name="description" content="תפריט מגשי אירוח כשרים מהדרין — מאפיית השומרון, קרני שומרון">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥐</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --pri:#5C3D2E; --pri-light:#7B5B4C; --pri-dark:#3E2723; --acc:#C8956C; --acc-light:#D4A97C; --cream:#FFF8F0; --cream-dark:#EADFD6; --green:#3A7D44; --txt:#3E2723; --txt-light:#7A6A5C; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Heebo', sans-serif; direction: rtl; background: var(--cream); color: var(--txt); line-height: 1.6; }
+
+  /* NAV */
+  .main-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(62,39,35,0.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 2px 24px rgba(0,0,0,0.18); }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 64px; }
+  .nav-logo { font-size: 20px; font-weight: 900; color: #fff; text-decoration: none; }
+  .nav-logo span { color: var(--acc); }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-links a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 8px; transition: all 0.2s; }
+  .nav-links a:hover, .nav-links a.active { color: #fff; background: rgba(255,255,255,0.12); }
+  .nav-cta { background: var(--acc) !important; color: #fff !important; font-weight: 700 !important; padding: 8px 20px !important; border-radius: 999px !important; direction: ltr !important; }
+  .nav-toggle { display: none; background: none; border: none; color: #fff; font-size: 26px; cursor: pointer; padding: 8px; line-height: 1; }
+
+  /* PAGE HERO */
+  .page-hero { padding: 120px 24px 60px; text-align: center; background: linear-gradient(135deg, var(--pri-dark) 0%, var(--pri) 50%, var(--pri-light) 100%); color: #fff; }
+  .page-hero h1 { font-size: 48px; font-weight: 900; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .page-hero p { font-size: 18px; font-weight: 300; opacity: 0.8; max-width: 500px; margin: 0 auto; }
+
+  /* CATEGORY FILTER */
+  .cat-filter { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; padding: 24px 16px; max-width: 900px; margin: 0 auto; }
+  .cat-btn { padding: 10px 24px; border-radius: 999px; border: 2px solid var(--cream-dark); background: #fff; color: var(--pri); font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Heebo', sans-serif; transition: all 0.25s; }
+  .cat-btn:hover { border-color: var(--acc); color: var(--acc); }
+  .cat-btn.active { background: var(--pri); color: #fff; border-color: var(--pri); }
+
+  /* PRODUCT GRID */
+  .menu-grid { max-width: 1100px; margin: 0 auto; padding: 16px 24px 60px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+  .menu-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 16px rgba(92,61,46,0.08); transition: all 0.3s; cursor: default; }
+  .menu-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(92,61,46,0.14); }
+  .menu-card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+  .menu-card-body { padding: 16px 20px 20px; }
+  .menu-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .menu-card h3 { font-size: 18px; font-weight: 700; color: var(--pri); margin: 0; }
+  .menu-card-price { font-size: 20px; font-weight: 800; color: var(--acc); white-space: nowrap; }
+  .menu-card-desc { font-size: 13px; color: var(--txt-light); margin-bottom: 8px; line-height: 1.5; }
+  .menu-card-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--txt-light); }
+  .menu-card-tag { background: var(--cream); padding: 3px 10px; border-radius: 999px; font-weight: 500; font-size: 11px; color: var(--pri-light); }
+  .menu-card-options { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .menu-card-opt { background: rgba(200,149,108,0.12); color: var(--pri); padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 500; }
+
+  /* CTA BANNER */
+  .cta-banner { background: linear-gradient(135deg, var(--pri) 0%, var(--pri-light) 100%); color: #fff; text-align: center; padding: 48px 24px; }
+  .cta-banner h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  .cta-banner p { font-size: 16px; opacity: 0.85; margin-bottom: 24px; }
+  .cta-banner a { display: inline-block; background: var(--green); color: #fff; padding: 14px 36px; border-radius: 999px; font-weight: 700; font-size: 16px; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 20px rgba(58,125,68,0.35); }
+  .cta-banner a:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(58,125,68,0.5); }
+
+  /* FOOTER */
+  .site-footer { background: var(--pri-dark); color: rgba(255,255,255,0.65); padding: 48px 24px 24px; text-align: center; font-size: 14px; }
+  .footer-inner { max-width: 800px; margin: 0 auto; }
+  .footer-brand { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 4px; }
+  .footer-links { display: flex; justify-content: center; gap: 20px; margin: 16px 0; flex-wrap: wrap; }
+  .footer-links a { color: var(--acc); text-decoration: none; font-weight: 500; }
+  .footer-links a:hover { opacity: 0.7; }
+  .footer-copy { margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: rgba(255,255,255,0.3); }
+
+  @media (max-width: 768px) {
+    .nav-toggle { display: block; }
+    .nav-links { display: none; position: absolute; top: 64px; left: 0; right: 0; background: rgba(62,39,35,0.98); flex-direction: column; padding: 16px; gap: 4px; border-radius: 0 0 16px 16px; }
+    .nav-inner.open .nav-links { display: flex; }
+    .nav-links a { padding: 14px 16px; width: 100%; text-align: center; }
+    .page-hero h1 { font-size: 36px; }
+    .menu-grid { grid-template-columns: 1fr; padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="main-nav">
+  <div class="nav-inner" id="main-nav-inner">
+    <a href="index.html" class="nav-logo">מאפיית <span>השומרון</span></a>
+    <div class="nav-links">
+      <a href="index.html">ראשי</a>
+      <a href="menu.html" class="active">תפריט</a>
+      <a href="gallery.html">גלריה</a>
+      <a href="about.html">אודות</a>
+      <a href="tel:0542031448" class="nav-cta">054-2031448</a>
+    </div>
+    <button class="nav-toggle" onclick="document.getElementById('main-nav-inner').classList.toggle('open')">&#9776;</button>
+  </div>
+</nav>
+
+<section class="page-hero">
+  <h1>התפריט שלנו</h1>
+  <p>27 מגשי אירוח כשרים למהדרין — מוכנים להזמנה</p>
+</section>
+
+<div class="cat-filter" id="cat-filter"></div>
+<div class="menu-grid" id="menu-grid"></div>
+
+<section class="cta-banner">
+  <h2>מוכנים להזמין?</h2>
+  <p>בנו את ההזמנה שלכם בקלות עם המערכת האוטומטית</p>
+  <a href="index.html">להזמנה &larr;</a>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">מאפיית השומרון</div>
+    <p>מגשי אירוח כשרים למהדרין מאז 2001</p>
+    <div class="footer-links">
+      <a href="index.html">ראשי</a>
+      <a href="menu.html">תפריט</a>
+      <a href="gallery.html">גלריה</a>
+      <a href="about.html">אודות</a>
+      <a href="tel:0542031448">054-2031448</a>
+    </div>
+    <div class="footer-copy">&copy; 2001&ndash;2026 מאפיית השומרון, קרני שומרון. כל הזכויות שמורות.</div>
+  </div>
+</footer>
+
+<script>
+const PRODUCTS = [
+  { id: 1,  name: "שיפודי מוצרלה",         price: 180, qty_desc: "כ-24 שיפודים",  cat: "מגשי אירוח", img: "images/product1.jpeg",  desc: "עגבניות שרי, מיני מוצרלה, בזיליקום ובלסמי", opts: [] },
+  { id: 2,  name: "פלטת גבינות קשות",      price: 380, qty_desc: "כ-18 מנות",     cat: "פלטות",       img: "images/product2.jpeg",  desc: "מבחר של גבינות משובחות", opts: [] },
+  { id: 3,  name: "מגש מאפים טריים",        price: 100, qty_desc: "20 יח'",         cat: "מגשי אירוח", img: "images/product3.jpeg",  desc: "מגוון מאפים טריים מתוקים/מלוחים", opts: ["בורקס גבינה","רול גבינה","מאפה תרד"] },
+  { id: 4,  name: "פוקצ'ינות",              price: 140, qty_desc: "כ-18 יח'",       cat: "מגשי אירוח", img: "images/product4.jpeg",  desc: "פוקאצ'ות אישיות במגוון טעמים", opts: ["זיתים","עגבניות שרי","רוזמרין"] },
+  { id: 5,  name: "כריכוני ביס",            price: 180, qty_desc: "12 יח' במגש",    cat: "מגשי אירוח", img: "images/product5.jpeg",  desc: "ניתן לבחור 3 סוגים למגש", opts: ["טונה","ביצה","חומוס","ירקות"] },
+  { id: 6,  name: "מגש פחזניות",            price: 180, qty_desc: "24 יח'",         cat: "מתוקים",     img: "images/product6.jpeg",  desc: "פחזניות טריות מלאות בקרם וניל", opts: [] },
+  { id: 7,  name: "פלטת פירות העונה",       price: 250, qty_desc: "כ-2.4 ק\"ג",    cat: "פלטות",       img: "images/product7.jpeg",  desc: "שפע של פירות העונה חתוכים ומסודרים במגש", opts: [] },
+  { id: 8,  name: "רול טורטיה",             price: 180, qty_desc: "16 יח' במגש",    cat: "מגשי אירוח", img: "images/product8.jpeg",  desc: "ניתן לבחור 3 סוגים למגש", opts: ["טונה","ביצה","חומוס","ירקות"] },
+  { id: 9,  name: "מגש מתוקים",             price: 295, qty_desc: "כ-50 יח'",       cat: "מתוקים",     img: "images/product9.jpeg",  desc: "מגוון קינוחים אישיים", opts: [] },
+  { id: 10, name: "מיני פיצה מרגריטה",      price: 140, qty_desc: "18 יח' במגש",    cat: "מגשי אירוח", img: "images/product10.jpeg", desc: "פיצות אישיות שילדים (ולא רק) אוהבים", opts: ["מרגריטה","זיתים","תירס"] },
+  { id: 11, name: "בוריקיטס",               price: 180, qty_desc: "20 יח' במגש",    cat: "מגשי אירוח", img: "images/product11.jpeg", desc: "בורקס מיני במילוי עשיר", opts: ["גבינה","תפוח אדמה","פטריות","תרד"] },
+  { id: 12, name: "מיני קיש",               price: 195, qty_desc: "24 יח' במגש",    cat: "מגשי אירוח", img: "images/product12.jpeg", desc: "קישונים אישיים עשירים", opts: ["גבינה ובצל","תרד","ירקות","פטריות"] },
+  { id: 13, name: "כריכוני קרואסון חמאה",   price: 140, qty_desc: "12 יח' במגש",    cat: "מגשי אירוח", img: "images/product13.jpeg", desc: "קרואסון חמאה טרי עם מילויים", opts: ["גבינה","טונה","ירקות"] },
+  { id: 14, name: "סושי טורטיה",            price: 195, qty_desc: "כ-35 יח'",       cat: "מגשי אירוח", img: "images/product14.jpeg", desc: "ניתן לבחור 3 סוגים למגש", opts: ["טונה","ירקות","חומוס"] },
+  { id: 15, name: "אנטיפסטי",               price: 195, qty_desc: "כ-12 מנות",      cat: "מגשי אירוח", img: "images/product15.jpeg", desc: "ירקות שוק אפויים — חציל, בטטה, בצל סגול, פלפל, שרי ופטריות", opts: [] },
+  { id: 16, name: "מגש מיני ג'חנון",        price: 180, qty_desc: "כ-30 יח'",       cat: "מנות חמות",  img: "images/product16.jpeg", desc: "מיני ג'חנון, רסק עגבניות, סחוג, זיתים וביצים קשות", opts: [] },
+  { id: 17, name: "בוריקיטס סביח",          price: 180, qty_desc: "20 יח' במגש",    cat: "מגשי אירוח", img: "images/product17.jpeg", desc: "חציל, מלפפון חמוץ, ביצה, פטרוזיליה", opts: [] },
+  { id: 18, name: "פריקסה",                  price: 195, qty_desc: "כ-20 מנות",      cat: "מנות חמות",  img: "images/product18.jpeg", desc: "סלט טונה, ביצים קשות, זיתים ולימון כבוש", opts: [] },
+  { id: 19, name: "שקשוקה",                  price: 180, qty_desc: "כ-8 מנות",       cat: "מנות חמות",  img: "images/product19.jpeg", desc: "שקשוקה ים תיכונית טרייה", opts: ["קלאסית","בטטה","פטריות"] },
+  { id: 20, name: "פסטה",                    price: 120, qty_desc: "כ-8 מנות",       cat: "מנות חמות",  img: "images/product20.jpeg", desc: "פסטה טרייה במגוון רטבים", opts: ["שמנת פטריות","נפוליטנה","אלפרדו"] },
+  { id: 21, name: "סלטים טריים",             price: 165, qty_desc: "כ-12 מנות",      cat: "סלטים",      img: "images/product21.jpeg", desc: "סלט קינואה ועדשים, בטטה, שרי, מלפפון, פטריות וחמוציות", opts: ["סלט הבית","סלט פסטה","סביח"] },
+  { id: 22, name: "מגש כדורי שוקולד",       price: 180, qty_desc: "35 יח'",         cat: "מתוקים",     img: "images/product22.jpeg", desc: "כדורי שוקולד מושחתים", opts: ["סוכריות","קוקוס"] },
+  { id: 23, name: "פלטת ירקות טריים",       price: 160, qty_desc: "כ-2.2 ק\"ג",    cat: "פלטות",       img: "images/product23.jpeg", desc: "מלפפון, שרי, גזר, פטריות, גמבה, זיתים ומטבל", opts: [] },
+  { id: 24, name: "מיני לחם שום",            price: 120, qty_desc: "24 יח' במגש",    cat: "מגשי אירוח", img: "images/product24.jpeg", desc: "לחם שום רכים וטריים", opts: [] },
+  { id: 25, name: "עוגות בחושות",            price: 170, qty_desc: "30 יח'",         cat: "מתוקים",     img: "images/product25.jpeg", desc: "עוגות בחושות ב-3 טעמים", opts: [] },
+  { id: 26, name: "מגש קוקיז חמאה",         price: 180, qty_desc: "35 יח'",         cat: "מתוקים",     img: "images/product26.jpeg", desc: "קוקיז חמאה טרי ב-3 טעמים", opts: ["שוקו שוקולד","וניל שוקולד","וניל שוקולד לבן"] },
+  { id: 27, name: "ביצים מקושקשות",          price: 180, qty_desc: "כ-12 מנות",      cat: "מנות חמות",  img: "images/product27.jpeg", desc: "חביתה מקושקשת עשירה", opts: ["בולגרית","בצל","זעתר","עשבי תיבול","פטריות"] }
+];
+
+var CATS = ["הכל", ...new Set(PRODUCTS.map(function(p) { return p.cat; }))];
+var activeCat = "הכל";
+
+function render() {
+  // Filters
+  var filterEl = document.getElementById("cat-filter");
+  filterEl.innerHTML = CATS.map(function(c) {
+    return '<button class="cat-btn' + (activeCat === c ? ' active' : '') + '" onclick="setCategory(\'' + c + '\')">' + c + '</button>';
+  }).join("");
+
+  // Cards
+  var gridEl = document.getElementById("menu-grid");
+  var filtered = activeCat === "הכל" ? PRODUCTS : PRODUCTS.filter(function(p) { return p.cat === activeCat; });
+  gridEl.innerHTML = filtered.map(function(p) {
+    var optsHtml = p.opts.length ? '<div class="menu-card-options">' + p.opts.map(function(o) { return '<span class="menu-card-opt">' + o + '</span>'; }).join("") + '</div>' : '';
+    return '<div class="menu-card">' +
+      '<img src="' + p.img + '" alt="' + p.name + '" loading="lazy">' +
+      '<div class="menu-card-body">' +
+        '<div class="menu-card-top"><h3>' + p.name + '</h3><span class="menu-card-price">\u20AA' + p.price + '</span></div>' +
+        '<div class="menu-card-desc">' + p.desc + '</div>' +
+        '<div class="menu-card-meta"><span class="menu-card-tag">' + p.cat + '</span><span>' + p.qty_desc + '</span></div>' +
+        optsHtml +
+      '</div></div>';
+  }).join("");
+}
+
+function setCategory(c) { activeCat = c; render(); }
+render();
+</script>
+
+</body>
+</html>
