@@ -212,8 +212,8 @@
 <div class="features-strip">
   <div class="feature">
     <div class="feature-icon">&#x1F468;&#x200D;&#x1F373;</div>
-    <div class="feature-title">נאפה כל בוקר</div>
-    <div class="feature-desc">כל מגש מוכן טרי ביום ההזמנה</div>
+    <div class="feature-title">אפייה טרייה</div>
+    <div class="feature-desc">כל מגש נאפה במיוחד עבורכם</div>
   </div>
   <div class="feature">
     <div class="feature-icon">&#x2721;</div>
@@ -222,12 +222,12 @@
   </div>
   <div class="feature">
     <div class="feature-icon">&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F467;&#x200D;&#x1F466;</div>
-    <div class="feature-title">מתכונים משפחתיים</div>
-    <div class="feature-desc">מסורת אפייה מאז 2001</div>
+    <div class="feature-title">ניסיון מוכח</div>
+    <div class="feature-desc">אופים באהבה מאז 2001</div>
   </div>
   <div class="feature">
     <div class="feature-icon">&#x23F0;</div>
-    <div class="feature-title">מוכן תוך שעות</div>
+    <div class="feature-title">מוכן בזריזות</div>
     <div class="feature-desc">הזמינו היום, אספו מחר</div>
   </div>
 </div>
@@ -630,7 +630,8 @@ function App() {
         <table style=${{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
           <thead>
             <tr style=${{ background: C.pri, color: "#fff" }}>
-              <th style=${{ padding: "10px 12px", textAlign: "right", borderRadius: "10px 0 0 0" }}>מוצר</th>
+              <th style=${{ padding: "10px 8px", textAlign: "center", borderRadius: "10px 0 0 0", width: 56 }}>תמונה</th>
+              <th style=${{ padding: "10px 12px", textAlign: "right" }}>מוצר</th>
               <th style=${{ padding: "10px 8px", textAlign: "center" }}>כמות</th>
               <th style=${{ padding: "10px 8px", textAlign: "center" }}>מחיר</th>
               <th style=${{ padding: "10px 12px", textAlign: "center", borderRadius: "0 10px 0 0" }}>סה"כ</th>
@@ -639,6 +640,7 @@ function App() {
           <tbody>
             ${items.map((it, idx) => html`
               <tr key=${it.id} style=${{ background: idx % 2 ? C.cream : "#fff" }}>
+                <td style=${{ padding: "6px 4px", textAlign: "center" }}><img src=${it.img} alt=${it.name} style=${{ width: 48, height: 48, borderRadius: 8, objectFit: "cover" }} crossorigin="anonymous" /></td>
                 <td style=${{ padding: "10px 12px", direction: "rtl", unicodeBidi: "embed" }}>${it.name}<br/><span style=${{ fontSize: 11, color: C.txtL }}>${it.qty_desc}</span>${it.options && it.options.length > 0 ? html`<br/><span style=${{ fontSize: 10, color: C.acc }}>${it.options.join(", ")}</span>` : ""}</td>
                 <td style=${{ padding: "10px 8px", textAlign: "center", direction: "rtl", unicodeBidi: "embed" }}>${it.qty}</td>
                 <td style=${{ padding: "10px 8px", textAlign: "center", direction: "rtl", unicodeBidi: "embed" }}>${fmt(it.price)}</td>

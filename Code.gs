@@ -310,6 +310,15 @@ function doPost(e) {
       }
     }
 
+    // שמירת PDF בתיקיית החודש בדרייב
+    if (data.pdfBase64) {
+      try {
+        savePdfToDrive(data.pdfBase64, data.pdfFilename || "הזמנה.pdf", data.orderDate);
+      } catch (driveErr) {
+        logError("doPost Drive save", driveErr.toString());
+      }
+    }
+
     // עדכון גיליון סיכום
     updateSummary(data.customerName, data.finalPrice || ((data.totalPrice || 0) - (data.discount || 0)), data.editorMode === true);
 
@@ -671,6 +680,86 @@ function saveFeedback(feedbackData) {
     feedbackData.comment || ""
   ]);
   return { success: true };
+}
+
+// ─── Google Drive: תיקיות חודשיות ושמירת PDF ─────────────────────────────────
+
+/**
+ * מחפשת או יוצרת את תיקיית האב "מאפית השומרון" בדרייב.
+ * שומרת את ה-ID ב-Script Properties למציאה מהירה.
+ */
+function getOrCreateRootFolder() {
+  var props = PropertiesService.getScriptProperties();
+  var folderId = props.getProperty("DRIVE_ROOT_FOLDER_ID");
+  if (folderId) {
+    try { return DriveApp.getFolderById(folderId); } catch (e) { /* folder deleted, recreate */ }
+  }
+  var folders = DriveApp.getFoldersByName("מאפית השומרון");
+  if (folders.hasNext()) {
+    var folder = folders.next();
+    props.setProperty("DRIVE_ROOT_FOLDER_ID", folder.getId());
+    return folder;
+  }
+  var folder = DriveApp.createFolder("מאפית השומרון");
+  props.setProperty("DRIVE_ROOT_FOLDER_ID", folder.getId());
+  return folder;
+}
+
+/**
+ * מחפשת או יוצרת תיקיית חודש (לדוגמה "4.26") בתוך תיקיית האב.
+ */
+function getOrCreateMonthFolder(parentFolder, monthYear) {
+  var subs = parentFolder.getFoldersByName(monthYear);
+  if (subs.hasNext()) return subs.next();
+  return parentFolder.createFolder(monthYear);
+}
+
+/**
+ * הרצה חד-פעמית מהעורך — יוצרת 12 תיקיות חודשיות (4.26 עד 3.27).
+ */
+function setupMonthlyFolders() {
+  var root = getOrCreateRootFolder();
+  var months = [
+    "4.26", "5.26", "6.26", "7.26", "8.26", "9.26",
+    "10.26", "11.26", "12.26", "1.27", "2.27", "3.27"
+  ];
+  for (var i = 0; i < months.length; i++) {
+    getOrCreateMonthFolder(root, months[i]);
+  }
+  Logger.log("נוצרו 12 תיקיות חודשיות בהצלחה");
+}
+
+/**
+ * שומרת PDF בתיקיית החודש המתאימה בדרייב.
+ * @param {string} pdfBase64 - קובץ PDF מקודד ב-base64
+ * @param {string} filename - שם הקובץ
+ * @param {string} orderDate - תאריך ההזמנה בפורמט dd.mm.yyyy או yyyy-mm-dd
+ */
+function savePdfToDrive(pdfBase64, filename, orderDate) {
+  var month, year;
+  if (orderDate && orderDate.includes(".")) {
+    // פורמט dd.mm.yyyy
+    var parts = orderDate.split(".");
+    month = parseInt(parts[1], 10);
+    year = parseInt(parts[2], 10) % 100; // 2026 → 26
+  } else if (orderDate && orderDate.includes("-")) {
+    // פורמט yyyy-mm-dd
+    var parts = orderDate.split("-");
+    month = parseInt(parts[1], 10);
+    year = parseInt(parts[0], 10) % 100;
+  } else {
+    // ברירת מחדל — החודש הנוכחי
+    var now = new Date();
+    month = now.getMonth() + 1;
+    year = now.getFullYear() % 100;
+  }
+  var monthYear = month + "." + year;
+
+  var root = getOrCreateRootFolder();
+  var monthFolder = getOrCreateMonthFolder(root, monthYear);
+
+  var pdfBlob = Utilities.newBlob(Utilities.base64Decode(pdfBase64), "application/pdf", filename);
+  monthFolder.createFile(pdfBlob);
 }
 
 // ─── עזר ─────────────────────────────────────────────────────────────────────
