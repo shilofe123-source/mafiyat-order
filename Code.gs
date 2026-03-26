@@ -342,10 +342,10 @@ function doPost(e) {
       }
     }
 
-    // שמירת PDF בתיקיית החודש בדרייב
+    // שמירת PDF בתיקיית החודש בדרייב (במצב עורך — מחליף PDF ישן)
     if (data.pdfBase64) {
       try {
-        savePdfToDrive(data.pdfBase64, data.pdfFilename || "הזמנה.pdf", data.orderDate);
+        savePdfToDrive(data.pdfBase64, data.pdfFilename || "הזמנה.pdf", data.orderDate, data.editorMode === true);
       } catch (driveErr) {
         logError("doPost Drive save", driveErr.toString());
       }
@@ -792,7 +792,7 @@ function setupMonthlyFolders() {
  * @param {string} filename - שם הקובץ
  * @param {string} orderDate - תאריך ההזמנה בפורמט dd.mm.yyyy או yyyy-mm-dd
  */
-function savePdfToDrive(pdfBase64, filename, orderDate) {
+function savePdfToDrive(pdfBase64, filename, orderDate, replaceExisting) {
   var month, year;
   if (orderDate && orderDate.includes(".")) {
     // פורמט dd.mm.yyyy
@@ -814,6 +814,14 @@ function savePdfToDrive(pdfBase64, filename, orderDate) {
 
   var root = getOrCreateRootFolder();
   var monthFolder = getOrCreateMonthFolder(root, monthYear);
+
+  // מצב עורך — מחיקת PDF ישן עם אותו שם קובץ לפני שמירת החדש
+  if (replaceExisting && filename) {
+    var files = monthFolder.getFilesByName(filename);
+    while (files.hasNext()) {
+      files.next().setTrashed(true);
+    }
+  }
 
   var pdfBlob = Utilities.newBlob(Utilities.base64Decode(pdfBase64), "application/pdf", filename);
   monthFolder.createFile(pdfBlob);
