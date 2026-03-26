@@ -192,6 +192,34 @@ function sendOrderPdfViaWhatsApp(pdfBase64, filename, caption, customerPhone) {
   return { success: results.uri || results.batchen, results: results };
 }
 
+// ─── Email: שליחת מייל לבת חן ────────────────────────────────────────────────
+function sendOrderEmail(data, pdfBase64, filename) {
+  try {
+    var subject = "הזמנה חדשה — " + (data.customerName || "לקוח") + " — " + (data.orderDate || "");
+    var body = "הזמנה חדשה התקבלה במערכת\n\n"
+      + "שם לקוח: " + (data.customerName || "") + "\n"
+      + "טלפון: " + (data.phone || "") + "\n"
+      + "תאריך הזמנה: " + (data.orderDate || "") + "\n"
+      + "שעת איסוף: " + (data.pickupTime || "") + "\n"
+      + "סוג אירוע: " + (data.event || "") + "\n"
+      + "מספר אורחים: " + (data.guests || "") + "\n"
+      + "פריטים: " + (data.items || "") + "\n"
+      + "סכום סופי: " + (data.finalPrice || 0) + ' ש"ח\n'
+      + "הערות: " + (data.notes || "") + "\n";
+
+    var options = { to: "12bathen@gmail.com", subject: subject, body: body };
+    if (pdfBase64) {
+      var pdfBlob = Utilities.newBlob(Utilities.base64Decode(pdfBase64), "application/pdf", filename || "הזמנה.pdf");
+      options.attachments = [pdfBlob];
+    }
+    MailApp.sendEmail(options);
+    return true;
+  } catch (e) {
+    logError("sendOrderEmail", e.toString());
+    return false;
+  }
+}
+
 // ─── doPost ───────────────────────────────────────────────────────────────────
 function doPost(e) {
   try {
@@ -288,7 +316,11 @@ function doPost(e) {
       sheet.appendRow(rowData);
     }
 
+    // ── העתקה לגליון הזמנות מעודכן ─────────────────────────────────────────
+    try { copyToRollingOrders(rowData); } catch(copyErr) { logError("doPost copyToRolling", copyErr.toString()); }
+
     // ── שליחת PDF בוואטסאפ לאורי ובת חן ──────────────────────────────────────
+    var waResult;
     if (data.pdfBase64 && data.action !== "extractOrder") {
       try {
         var waCaption = "הזמנה חדשה — " + (data.customerName || "לקוח")
@@ -296,7 +328,7 @@ function doPost(e) {
           + "\nשעת איסוף: " + (data.pickupTime || "")
           + "\nסכום: " + (data.finalPrice || 0) + ' ש"ח';
         var customerPhone = data.phone ? data.phone.replace(/[\s\-()]/g, "").replace(/^0/, "972") : null;
-        var waResult = sendOrderPdfViaWhatsApp(
+        waResult = sendOrderPdfViaWhatsApp(
           data.pdfBase64,
           data.pdfFilename || "הזמנה.pdf",
           waCaption,
@@ -319,10 +351,29 @@ function doPost(e) {
       }
     }
 
+    // ── שליחת מייל לבת חן ──────────────────────────────────────────────────
+    var emailResult = false;
+    if (data.pdfBase64) {
+      try {
+        emailResult = sendOrderEmail(data, data.pdfBase64, data.pdfFilename || "הזמנה.pdf");
+      } catch (emailErr) {
+        logError("doPost email", emailErr.toString());
+      }
+    }
+
     // עדכון גיליון סיכום
     updateSummary(data.customerName, data.finalPrice || ((data.totalPrice || 0) - (data.discount || 0)), data.editorMode === true);
 
-    return jsonResponse({ status: "success" });
+    // ── עדכון גליון כמויות ──────────────────────────────────────────────────
+    try { updateQuantitiesSheet(data); } catch(qtyErr) { logError("doPost quantities", qtyErr.toString()); }
+
+    return jsonResponse({
+      status: "success",
+      notifications: {
+        whatsapp: !!(typeof waResult !== 'undefined' && waResult && waResult.success),
+        email: emailResult
+      }
+    });
 
   } catch (err) {
     return jsonResponse({ status: "error", message: err.toString() });
@@ -347,7 +398,10 @@ function extractOrderFromImage(base64Image, mimeType) {
     "id:21 סלטים טריים 165₪", "id:22 מגש כדורי שוקולד 180₪",
     "id:23 פלטת ירקות טריים 160₪", "id:24 מיני לחם שום 120₪",
     "id:25 עוגות בחושות 170₪", "id:26 מגש קוקיז חמאה 180₪",
-    "id:27 ביצים מקושקשות 180₪"
+    "id:27 ביצים מקושקשות 180₪",
+    "id:28 סלט שוק 120₪", "id:29 סלט קיסר 120₪",
+    "id:30 סלט קינואה 165₪", "id:31 סלט הבית 165₪",
+    "id:32 סלט פסטה 165₪", "id:33 סלט סביח 165₪"
   ].join(", ");
 
   const prompt = 'בתמונה הזו יש הזמנה (צילום מסך וואטסאפ, רשימה כתובה ביד, PDF, או כל פורמט אחר). '
@@ -498,6 +552,9 @@ function setupDailyTrigger() {
 }
 
 function sendDailyAutomations() {
+  // ניקוי כמויות שפג תוקפן
+  try { cleanExpiredQuantities(); } catch(cleanErr) { logError("dailyAutomations cleanQuantities", cleanErr.toString()); }
+
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("הזמנות");
   if (!sheet || sheet.getLastRow() < 2) return;
@@ -760,6 +817,455 @@ function savePdfToDrive(pdfBase64, filename, orderDate) {
 
   var pdfBlob = Utilities.newBlob(Utilities.base64Decode(pdfBase64), "application/pdf", filename);
   monthFolder.createFile(pdfBlob);
+}
+
+// ─── העתקה לגליון הזמנות מעודכן ──────────────────────────────────────────────
+function copyToRollingOrders(rowData) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("הזמנות מעודכן");
+    if (!sheet) {
+      sheet = ss.insertSheet("הזמנות מעודכן");
+      sheet.appendRow([
+        "חותמת זמן קבלה", "תאריך הזמנה", "שם לקוח", "טלפון",
+        "סוג אירוע", "מספר אורחים", "פריטים", 'סה"כ לפני הנחה',
+        "הנחה", "סכום סופי", "הערות", "אושר בתאריך", "מזהה הזמנה", "שעת איסוף"
+      ]);
+    }
+    sheet.appendRow(rowData);
+  } catch (e) {
+    logError("copyToRollingOrders", e.toString());
+  }
+}
+
+// ─── ניקוי הזמנות ישנות מגליון מעודכן ────────────────────────────────────────
+function cleanOldOrders() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("הזמנות מעודכן");
+    if (!sheet || sheet.getLastRow() < 2) return;
+
+    var now = new Date();
+    var currentMonth = now.getMonth();
+    var currentYear = now.getFullYear();
+
+    var data = sheet.getDataRange().getValues();
+    var rowsToDelete = [];
+
+    for (var r = data.length - 1; r >= 1; r--) {
+      var dateStr = String(data[r][1]).trim();
+      if (!dateStr) continue;
+
+      var orderDate;
+      if (dateStr.includes(".")) {
+        var parts = dateStr.split(".");
+        orderDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      } else if (dateStr.includes("/")) {
+        var parts = dateStr.split("/");
+        orderDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      } else if (dateStr.includes("-")) {
+        orderDate = new Date(dateStr);
+      } else {
+        continue;
+      }
+
+      if (orderDate.getMonth() !== currentMonth || orderDate.getFullYear() !== currentYear) {
+        rowsToDelete.push(r + 1);
+      }
+    }
+
+    // Delete from bottom to top to preserve row indices
+    for (var i = 0; i < rowsToDelete.length; i++) {
+      sheet.deleteRow(rowsToDelete[i]);
+    }
+
+    Logger.log("cleanOldOrders: deleted " + rowsToDelete.length + " rows");
+  } catch (e) {
+    logError("cleanOldOrders", e.toString());
+  }
+}
+
+// ─── מפת מצרכים למוצרים ──────────────────────────────────────────────────────
+
+var INGREDIENT_MAP = {
+  "פלטת ירקות טריים": {
+    "מלפפון": { qty: 5, unit: "יח'" },
+    "גזר": { qty: 5, unit: "יח'" },
+    "פלפל אדום": { qty: 4, unit: "יח'" },
+    "פלפל צהוב": { qty: 4, unit: "יח'" },
+    "פטריות": { qty: 5, unit: "מנות" },
+    "שרי": { qty: 1, unit: "קופסא" },
+    "זיתים": { qty: 1, unit: "קופסא" },
+    "מטבל": { qty: 1, unit: "קופסא" }
+  },
+  "סלט קינואה": {
+    "קינואה": { qty: 0.5, unit: "קופסא" },
+    "עדשים": { qty: 0.5, unit: "קופסא" },
+    "בטטה": { qty: 4, unit: "יח'" },
+    "שרי": { qty: 0.4, unit: "קופסא" },
+    "מלפפון": { qty: 6, unit: "יח'" },
+    "פטריות": { qty: 8, unit: "יח'" },
+    "חמוציות": { qty: 1, unit: "מנה" }
+  },
+  "סלט שוק": {
+    "חסה": { qty: 2, unit: "יח'" },
+    "שרי": { qty: 0.5, unit: "קופסא" },
+    "מלפפון": { qty: 4, unit: "יח'" },
+    "פלפלים": { qty: 3, unit: "יח'" },
+    "בצל סגול": { qty: 2, unit: "יח'" },
+    "בולגרית": { qty: 1, unit: "מנה" },
+    "קלמטה": { qty: 0.5, unit: "קופסא" }
+  },
+  "סלט קיסר": {
+    "חסה": { qty: 3, unit: "יח'" },
+    "בצל סגול": { qty: 2, unit: "יח'" },
+    "קרוטונים": { qty: 1, unit: "מנה" },
+    "פרמזן": { qty: 1, unit: "מנה" },
+    "ביצה קשה": { qty: 6, unit: "יח'" },
+    "רוטב קיסר": { qty: 1, unit: "מנה" }
+  },
+  "סלט הבית": {
+    "כרוב": { qty: 1, unit: "יח'" },
+    "שרי": { qty: 0.5, unit: "קופסא" },
+    "מלפפון": { qty: 4, unit: "יח'" },
+    "גזר": { qty: 3, unit: "יח'" },
+    "פלפלים": { qty: 3, unit: "יח'" },
+    "גרעיני גלעג": { qty: 1, unit: "מנה" }
+  },
+  "סלט פסטה": {
+    "פסטה": { qty: 0.5, unit: "ק\"ג" },
+    "שרי": { qty: 0.5, unit: "קופסא" },
+    "פלפלים": { qty: 3, unit: "יח'" },
+    "בצל סגול": { qty: 2, unit: "יח'" },
+    "פטריות": { qty: 6, unit: "יח'" },
+    "קלמטה": { qty: 0.5, unit: "קופסא" },
+    "עגבניות מיובשות": { qty: 1, unit: "מנה" }
+  },
+  "סלט סביח": {
+    "מלפפון": { qty: 4, unit: "יח'" },
+    "שרי": { qty: 0.5, unit: "קופסא" },
+    "גמבה צהובה": { qty: 3, unit: "יח'" },
+    "חצילים": { qty: 4, unit: "יח'" },
+    "חומוס": { qty: 1, unit: "קופסא" },
+    "ביצה קשה": { qty: 6, unit: "יח'" },
+    "פטרוזיליה": { qty: 1, unit: "צרור" },
+    "טחינה": { qty: 1, unit: "מנה" }
+  },
+  "כריכוני ביס": {
+    "לחם": { qty: 12, unit: "יח'" },
+    "ביצים": { qty: 8, unit: "יח'" },
+    "חסה": { qty: 1, unit: "יח'" },
+    "מלפפון": { qty: 3, unit: "יח'" }
+  },
+  "כריכוני קרואסון חמאה": {
+    "קרואסון": { qty: 12, unit: "יח'" },
+    "גבינה צהובה": { qty: 6, unit: "פרוסות" },
+    "מלפפון": { qty: 3, unit: "יח'" },
+    "חסה": { qty: 1, unit: "יח'" }
+  },
+  "רול טורטיה": {
+    "טורטיה": { qty: 16, unit: "יח'" },
+    "חסה": { qty: 2, unit: "יח'" },
+    "מלפפון": { qty: 4, unit: "יח'" }
+  },
+  "סושי טורטיה": {
+    "טורטיה": { qty: 10, unit: "יח'" },
+    "חסה": { qty: 2, unit: "יח'" },
+    "מלפפון": { qty: 4, unit: "יח'" }
+  },
+  "בוריקיטס": {
+    "בצק": { qty: 20, unit: "יח'" },
+    "חסה": { qty: 1, unit: "יח'" },
+    "גבינה צהובה": { qty: 10, unit: "פרוסות" },
+    "מלפפון": { qty: 3, unit: "יח'" }
+  },
+  "בוריקיטס סביח": {
+    "בצק": { qty: 20, unit: "יח'" },
+    "חציל": { qty: 4, unit: "יח'" },
+    "מלפפון חמוץ": { qty: 4, unit: "יח'" },
+    "ביצה": { qty: 6, unit: "יח'" },
+    "פטרוזיליה": { qty: 1, unit: "צרור" }
+  },
+  "מיני קיש": {
+    "בצק": { qty: 24, unit: "יח'" },
+    "ביצים": { qty: 8, unit: "יח'" },
+    "שמנת": { qty: 1, unit: "מנה" },
+    "פטריות": { qty: 6, unit: "יח'" },
+    "בצל": { qty: 3, unit: "יח'" }
+  },
+  "פוקצ'ינות": {
+    "בצק פוקצ'ה": { qty: 18, unit: "יח'" },
+    "שמן זית": { qty: 1, unit: "מנה" },
+    "פסטו": { qty: 1, unit: "מנה" }
+  },
+  "מיני פיצה מרגריטה": {
+    "בצק פיצה": { qty: 18, unit: "יח'" },
+    "רוטב עגבניות": { qty: 1, unit: "מנה" },
+    "מוצרלה": { qty: 0.5, unit: "ק\"ג" }
+  },
+  "שקשוקה": {
+    "ביצים": { qty: 8, unit: "יח'" },
+    "עגבניות": { qty: 6, unit: "יח'" },
+    "פלפל": { qty: 3, unit: "יח'" },
+    "בצל": { qty: 2, unit: "יח'" }
+  },
+  "ביצים מקושקשות": {
+    "ביצים": { qty: 12, unit: "יח'" },
+    "חמאה": { qty: 1, unit: "מנה" },
+    "בצל": { qty: 2, unit: "יח'" }
+  },
+  "פסטה": {
+    "פסטה": { qty: 1, unit: "ק\"ג" },
+    "שמנת": { qty: 1, unit: "מנה" },
+    "פטריות": { qty: 6, unit: "יח'" }
+  },
+  "פריקסה": {
+    "סולת": { qty: 1, unit: "ק\"ג" },
+    "טונה": { qty: 2, unit: "קופסא" },
+    "ביצים קשות": { qty: 6, unit: "יח'" },
+    "זיתים": { qty: 1, unit: "קופסא" },
+    "לימון כבוש": { qty: 2, unit: "יח'" }
+  },
+  "שיפודי מוצרלה": {
+    "שרי": { qty: 1.5, unit: "קופסא" },
+    "מוצרלה מיני": { qty: 24, unit: "יח'" },
+    "בזיליקום": { qty: 1, unit: "צרור" }
+  },
+  "פלטת גבינות קשות": {
+    "גבינות קשות": { qty: 1, unit: "מגש" }
+  },
+  "מגש מאפים טריים": {
+    "מאפים מגוונים": { qty: 20, unit: "יח'" }
+  },
+  "פלטת פירות העונה": {
+    "פירות עונה": { qty: 2.4, unit: "ק\"ג" }
+  },
+  "אנטיפסטי": {
+    "חציל": { qty: 4, unit: "יח'" },
+    "בטטה": { qty: 3, unit: "יח'" },
+    "בצל סגול": { qty: 3, unit: "יח'" },
+    "פלפל": { qty: 4, unit: "יח'" },
+    "שרי": { qty: 1, unit: "קופסא" },
+    "פטריות": { qty: 8, unit: "יח'" }
+  },
+  "מיני לחם שום": {
+    "לחם": { qty: 24, unit: "יח'" },
+    "שום": { qty: 6, unit: "שיני" },
+    "חמאה": { qty: 1, unit: "מנה" }
+  },
+  "מגש פחזניות": {
+    "בצק פחזניות": { qty: 24, unit: "יח'" },
+    "קרם וניל": { qty: 1, unit: "מנה" }
+  },
+  "מגש מתוקים": {
+    "קינוחים מגוונים": { qty: 50, unit: "יח'" }
+  },
+  "מגש כדורי שוקולד": {
+    "שוקולד": { qty: 0.5, unit: "ק\"ג" },
+    "ציפוי": { qty: 1, unit: "מנה" }
+  },
+  "עוגות בחושות": {
+    "קמח": { qty: 0.5, unit: "ק\"ג" },
+    "ביצים": { qty: 6, unit: "יח'" },
+    "סוכר": { qty: 1, unit: "מנה" }
+  },
+  "מגש קוקיז חמאה": {
+    "חמאה": { qty: 0.5, unit: "ק\"ג" },
+    "קמח": { qty: 0.5, unit: "ק\"ג" },
+    "שוקולד צ'יפס": { qty: 1, unit: "מנה" }
+  },
+  "מגש מיני ג'חנון": {
+    "בצק ג'חנון": { qty: 30, unit: "יח'" },
+    "רסק עגבניות": { qty: 1, unit: "קופסא" },
+    "ביצים קשות": { qty: 6, unit: "יח'" }
+  }
+};
+
+// Product name to INGREDIENT_MAP key mapping
+var PRODUCT_NAMES = {
+  1: "שיפודי מוצרלה", 2: "פלטת גבינות קשות", 3: "מגש מאפים טריים",
+  4: "פוקצ'ינות", 5: "כריכוני ביס", 6: "מגש פחזניות",
+  7: "פלטת פירות העונה", 8: "רול טורטיה", 9: "מגש מתוקים",
+  10: "מיני פיצה מרגריטה", 11: "בוריקיטס", 12: "מיני קיש",
+  13: "כריכוני קרואסון חמאה", 14: "סושי טורטיה", 15: "אנטיפסטי",
+  16: "מגש מיני ג'חנון", 17: "בוריקיטס סביח", 18: "פריקסה",
+  19: "שקשוקה", 20: "פסטה", 21: "סלטים טריים",
+  22: "מגש כדורי שוקולד", 23: "פלטת ירקות טריים", 24: "מיני לחם שום",
+  25: "עוגות בחושות", 26: "מגש קוקיז חמאה", 27: "ביצים מקושקשות",
+  28: "סלט שוק", 29: "סלט קיסר", 30: "סלט קינואה",
+  31: "סלט הבית", 32: "סלט פסטה", 33: "סלט סביח"
+};
+
+// ─── עדכון גליון כמויות ──────────────────────────────────────────────────────
+function updateQuantitiesSheet(orderData) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("כמויות");
+    if (!sheet) {
+      sheet = ss.insertSheet("כמויות");
+      sheet.appendRow(["מצרך", "כמות נדרשת", "יחידה", "הזמנות", "תאריכים", "סטטוס"]);
+    }
+
+    // Parse items from order (format: "מוצר x2, מוצר2 x1")
+    var itemsStr = orderData.items || "";
+    var orderId = orderData.orderId || "";
+    var orderDate = orderData.orderDate || "";
+
+    // Aggregate ingredients
+    var ingredients = {};
+
+    // Try to parse items - could be "name x qty" or "name × qty"
+    var itemParts = itemsStr.split(/[,،]/);
+    for (var i = 0; i < itemParts.length; i++) {
+      var part = itemParts[i].trim();
+      if (!part) continue;
+
+      var match = part.match(/(.+?)\s*[x×]\s*(\d+)/i);
+      var productName = match ? match[1].trim() : part.trim();
+      var qty = match ? parseInt(match[2]) : 1;
+
+      // Find product in INGREDIENT_MAP
+      var mapKey = null;
+      for (var key in INGREDIENT_MAP) {
+        if (productName.indexOf(key) !== -1 || key.indexOf(productName) !== -1) {
+          mapKey = key;
+          break;
+        }
+      }
+
+      if (mapKey && INGREDIENT_MAP[mapKey]) {
+        var recipe = INGREDIENT_MAP[mapKey];
+        for (var ing in recipe) {
+          if (!ingredients[ing]) {
+            ingredients[ing] = { qty: 0, unit: recipe[ing].unit };
+          }
+          ingredients[ing].qty += recipe[ing].qty * qty;
+        }
+      }
+    }
+
+    // Write to sheet
+    var existingData = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, 6).getValues() : [];
+
+    for (var ingName in ingredients) {
+      var found = false;
+      for (var r = 0; r < existingData.length; r++) {
+        if (String(existingData[r][0]).trim() === ingName) {
+          // Update existing row
+          var rowNum = r + 2;
+          var existingQty = Number(existingData[r][1]) || 0;
+          var existingOrders = String(existingData[r][3] || "");
+          var existingDates = String(existingData[r][4] || "");
+
+          sheet.getRange(rowNum, 2).setValue(existingQty + ingredients[ingName].qty);
+          sheet.getRange(rowNum, 4).setValue(existingOrders + (existingOrders ? ", " : "") + orderId);
+          sheet.getRange(rowNum, 5).setValue(existingDates + (existingDates ? ", " : "") + orderDate);
+          sheet.getRange(rowNum, 6).setValue("פעיל");
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        sheet.appendRow([ingName, ingredients[ingName].qty, ingredients[ingName].unit, orderId, orderDate, "פעיל"]);
+      }
+    }
+  } catch (e) {
+    logError("updateQuantitiesSheet", e.toString());
+  }
+}
+
+// ─── ניקוי כמויות שפג תוקפן ─────────────────────────────────────────────────
+function cleanExpiredQuantities() {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("כמויות");
+    if (!sheet || sheet.getLastRow() < 2) return;
+
+    var today = new Date();
+    var fmtD = function(d) { return Utilities.formatDate(d, "Asia/Jerusalem", "dd/MM/yyyy"); };
+    var todayStr = fmtD(today);
+
+    var data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 6).getValues();
+    var rowsToDelete = [];
+
+    for (var r = data.length - 1; r >= 0; r--) {
+      var dates = String(data[r][4] || "").split(",");
+      var allExpired = true;
+      for (var d = 0; d < dates.length; d++) {
+        var dateStr = dates[d].trim();
+        if (!dateStr) continue;
+        // Parse date
+        var orderDate;
+        if (dateStr.includes(".")) {
+          var parts = dateStr.split(".");
+          orderDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        } else if (dateStr.includes("/")) {
+          var parts = dateStr.split("/");
+          orderDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        } else {
+          allExpired = false;
+          continue;
+        }
+        if (orderDate >= today) {
+          allExpired = false;
+          break;
+        }
+      }
+      if (allExpired && dates.some(function(d) { return d.trim().length > 0; })) {
+        rowsToDelete.push(r + 2);
+      }
+    }
+
+    for (var i = 0; i < rowsToDelete.length; i++) {
+      sheet.deleteRow(rowsToDelete[i]);
+    }
+  } catch (e) {
+    logError("cleanExpiredQuantities", e.toString());
+  }
+}
+
+// ─── הקמת כל הגליונות ────────────────────────────────────────────────────────
+function setupAllSheets() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // הזמנות
+  if (!ss.getSheetByName("הזמנות")) {
+    var s = ss.insertSheet("הזמנות");
+    s.appendRow(["חותמת זמן קבלה", "תאריך הזמנה", "שם לקוח", "טלפון", "סוג אירוע", "מספר אורחים", "פריטים", 'סה"כ לפני הנחה', "הנחה", "סכום סופי", "הערות", "אושר בתאריך", "מזהה הזמנה", "שעת איסוף", "קוד תשלום", "זמן יצירת קוד", "סטטוס תשלום", "ניסיונות כושלים"]);
+  }
+
+  // סיכום
+  if (!ss.getSheetByName("סיכום")) {
+    var s = ss.insertSheet("סיכום");
+    s.appendRow(["שם לקוח", "סכום הזמנה"]);
+  }
+
+  // כמויות
+  if (!ss.getSheetByName("כמויות")) {
+    var s = ss.insertSheet("כמויות");
+    s.appendRow(["מצרך", "כמות נדרשת", "יחידה", "הזמנות", "תאריכים", "סטטוס"]);
+  }
+
+  // הזמנות מעודכן
+  if (!ss.getSheetByName("הזמנות מעודכן")) {
+    var s = ss.insertSheet("הזמנות מעודכן");
+    s.appendRow(["חותמת זמן קבלה", "תאריך הזמנה", "שם לקוח", "טלפון", "סוג אירוע", "מספר אורחים", "פריטים", 'סה"כ לפני הנחה', "הנחה", "סכום סופי", "הערות", "אושר בתאריך", "מזהה הזמנה", "שעת איסוף"]);
+  }
+
+  Logger.log("setupAllSheets: all 4 sheets verified/created");
+}
+
+// ─── טריגר חודשי לניקוי הזמנות ישנות ─────────────────────────────────────────
+function setupMonthlyCleanup() {
+  ScriptApp.getProjectTriggers().forEach(function(t) {
+    if (t.getHandlerFunction() === "cleanOldOrders") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("cleanOldOrders")
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(3)
+    .inTimezone("Asia/Jerusalem")
+    .create();
 }
 
 // ─── עזר ─────────────────────────────────────────────────────────────────────
